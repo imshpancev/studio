@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
 // Mock data for workout history
-const historyItems = [
+export const historyItems = [
     {
         id: 1,
         type: "Бег",

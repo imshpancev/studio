@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2, Flame } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
@@ -10,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { allSports, Sport } from "@/lib/workout-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
+import { historyItems } from '@/app/history/page';
+
 
 const weeklyActivityData = [
   { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0, swimming: 0, home: 20 },
@@ -63,7 +66,21 @@ const lineChartConfig = {
     endurance: { label: 'Выносливость (км)', color: 'hsl(var(--chart-2))' },
 }
 
+const records = {
+    general: {
+        longestWorkout: { workoutId: 5, label: 'Самая длинная тренировка', value: '2:15:00' },
+        mostCalories: { workoutId: 5, label: 'Больше всего калорий', value: '950 ккал' }
+    },
+    sport: {
+        running5k: { workoutId: 4, label: 'Бег 5км', value: '27:30' }, // Assuming 5.5 min/km * 5km
+        running10k: { workoutId: 1, label: 'Бег 10км', value: '60:10' }, // Placeholder, no 10k data
+        cycling20k: { workoutId: 5, label: 'Вело 20км', value: '45:00' } // Placeholder
+    }
+}
+
+
 export function DashboardPage() {
+    const router = useRouter();
     const [activeSport, setActiveSport] = useState('all');
 
     const filteredPieData = activeSport === 'all' 
@@ -71,6 +88,15 @@ export function DashboardPage() {
         : allPieChartData.filter(item => item.name === activeSport);
     
     const totalTime = weeklyActivityData.reduce((acc, day) => acc + day.running + day.gym + day.yoga + day.cycling + day.swimming + day.home, 0);
+
+    const handleRecordClick = (workoutId: number) => {
+        const workout = historyItems.find(item => item.id === workoutId);
+        if (workout) {
+            const itemQuery = encodeURIComponent(JSON.stringify(workout));
+            router.push(`/history/${workout.id}?data=${itemQuery}`);
+        }
+    }
+
 
     return (
         <div className="space-y-8">
@@ -130,12 +156,13 @@ export function DashboardPage() {
                                     <TabsTrigger value="general" className='text-xs'>Общие</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="sport" className='mt-2 text-xs space-y-1'>
-                                     <p><Badge variant='secondary'>Бег 5км:</Badge> 24:15</p>
-                                     <p><Badge variant='secondary'>Вело 20км:</Badge> 45:30</p>
+                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.running5k.workoutId)}><Badge variant='secondary'>{records.sport.running5k.label}:</Badge> {records.sport.running5k.value}</p>
+                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.running10k.workoutId)}><Badge variant='secondary'>{records.sport.running10k.label}:</Badge> {records.sport.running10k.value}</p>
+                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.cycling20k.workoutId)}><Badge variant='secondary'>{records.sport.cycling20k.label}:</Badge> {records.sport.cycling20k.value}</p>
                                 </TabsContent>
                                 <TabsContent value="general" className='mt-2 text-xs space-y-1'>
-                                    <p><Flame className='inline h-3 w-3 mr-1'/>Калории: 950 ккал</p>
-                                    <p><Clock className='inline h-3 w-3 mr-1'/>Длительность: 2:15:00</p>
+                                    <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.general.longestWorkout.workoutId)}><Flame className='inline h-3 w-3 mr-1'/>{records.general.longestWorkout.label}: {records.general.longestWorkout.value}</p>
+                                    <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.general.mostCalories.workoutId)}><Clock className='inline h-3 w-3 mr-1'/>{records.general.mostCalories.label}: {records.general.mostCalories.value}</p>
                                 </TabsContent>
                             </Tabs>
                         </CardContent>
