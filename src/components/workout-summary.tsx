@@ -4,9 +4,11 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2, TrendingUp, BarChart, Zap, Bike } from 'lucide-react';
+import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2, TrendingUp, BarChart, Zap, Bike, Footprints } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sport } from '@/lib/workout-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Label } from './ui/label';
 
 type WorkoutSummaryProps = {
   summary: {
@@ -23,6 +25,19 @@ type WorkoutSummaryProps = {
     volume?: string;
   };
 };
+
+// Mock data, in a real app this would come from the user's profile
+const userGear = {
+    shoes: [
+        { id: '1', name: 'Hoka Clifton 9' },
+        { id: '2', name: 'Nike Vaporfly 3' },
+    ],
+    bikes: [
+        { id: '1', name: 'Specialized Tarmac' },
+        { id: '2', name: 'Canyon Aeroad' },
+    ]
+}
+
 
 export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
   const router = useRouter();
@@ -44,6 +59,44 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
           description: "Результаты тренировки скопированы в буфер обмена.",
       });
   }
+  
+  const renderGearSelector = () => {
+      if (summary.type === Sport.Running) {
+          return (
+              <div className='space-y-2'>
+                <Label htmlFor="shoes" className='flex items-center gap-2'><Footprints /> Кроссовки</Label>
+                <Select>
+                    <SelectTrigger id="shoes">
+                        <SelectValue placeholder="Выберите кроссовки" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {userGear.shoes.map(shoe => (
+                             <SelectItem key={shoe.id} value={shoe.id}>{shoe.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+              </div>
+          )
+      }
+      if (summary.type === Sport.Cycling) {
+           return (
+              <div className='space-y-2'>
+                <Label htmlFor="bike" className='flex items-center gap-2'><Bike /> Велосипед</Label>
+                <Select>
+                    <SelectTrigger id="bike">
+                        <SelectValue placeholder="Выберите велосипед" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {userGear.bikes.map(bike => (
+                             <SelectItem key={bike.id} value={bike.id}>{bike.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+              </div>
+          )
+      }
+      return null;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -53,7 +106,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
           <CardTitle className="mt-4 text-2xl">Отличная работа!</CardTitle>
           <CardDescription>Вы завершили тренировку: {summary.title}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
             <dl className="grid grid-cols-2 gap-4 text-center">
                 <div className="rounded-lg bg-muted p-4">
                     <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Clock/>Время</dt>
@@ -100,6 +153,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
                     </div>
                 )}
             </dl>
+            {renderGearSelector()}
         </CardContent>
         <CardFooter className="flex justify-between gap-4 pt-6">
           <Button variant="outline" onClick={handleShare} className='w-full'>

@@ -368,16 +368,19 @@ export function ProfilePage() {
                             <h4 className="font-semibold flex items-center gap-2"><Footprints/>Кроссовки</h4>
                             {shoes.map((shoe, index) => (
                                 <div key={shoe.id} className="flex gap-2 items-end p-2 border rounded-lg">
-                                    <FormField
-                                        control={form.control}
-                                        name={`runningShoes.${index}.name`}
-                                        render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormLabel className="text-xs">Название</FormLabel>
-                                                <FormControl><Input placeholder="Напр., Hoka Clifton 9" {...field} disabled={!isEditing} /></FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className='flex-1 space-y-2'>
+                                        <FormField
+                                            control={form.control}
+                                            name={`runningShoes.${index}.name`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs">Название</FormLabel>
+                                                    <FormControl><Input placeholder="Напр., Hoka Clifton 9" {...field} disabled={!isEditing} /></FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <p className="text-xs text-muted-foreground">Пробег: {shoe.mileage} км</p>
+                                    </div>
                                     {isEditing && (
                                       <Button type="button" variant="ghost" size="icon" onClick={() => removeShoe(index)}>
                                           <Trash2 className="h-4 w-4 text-destructive"/>
@@ -397,16 +400,19 @@ export function ProfilePage() {
                             <h4 className="font-semibold flex items-center gap-2"><Bike/>Велосипеды</h4>
                              {bikes.map((bike, index) => (
                                 <div key={bike.id} className="flex gap-2 items-end p-2 border rounded-lg">
-                                    <FormField
-                                        control={form.control}
-                                        name={`bikes.${index}.name`}
-                                        render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormLabel className="text-xs">Название</FormLabel>
-                                                <FormControl><Input placeholder="Напр., Specialized Tarmac" {...field} disabled={!isEditing} /></FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className='flex-1 space-y-2'>
+                                        <FormField
+                                            control={form.control}
+                                            name={`bikes.${index}.name`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs">Название</FormLabel>
+                                                    <FormControl><Input placeholder="Напр., Specialized Tarmac" {...field} disabled={!isEditing} /></FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <p className="text-xs text-muted-foreground">Пробег: {bike.mileage} км</p>
+                                    </div>
                                      {isEditing && (
                                       <Button type="button" variant="ghost" size="icon" onClick={() => removeBike(index)}>
                                           <Trash2 className="h-4 w-4 text-destructive"/>
