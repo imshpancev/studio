@@ -61,7 +61,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
     setIsLoading(true);
 
     try {
-        const workoutData: Workout = {
+        const workoutData: Omit<Workout, 'id' | 'createdAt'> = {
             ...summary,
             userId: user.uid,
             // In a real app, you'd add selected gear here
