@@ -70,13 +70,8 @@ const lineChartConfig = {
 
 export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     const router = useRouter();
-    const [activeSport, setActiveSport] = useState('all');
     const [timePeriod, setTimePeriod] = useState('week');
 
-    const filteredPieData = activeSport === 'all' 
-        ? allPieChartData
-        : allPieChartData.filter(item => item.name === activeSport);
-    
     const totalTime = weeklyActivityData.reduce((acc, day) => acc + day.running + day.gym + day.yoga + day.cycling + day.swimming + day.home, 0);
 
     const handleRecordClick = () => {
@@ -237,24 +232,13 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             </CardTitle>
                             <CardDescription>Соотношение времени</CardDescription>
                         </div>
-                         <Select value={activeSport} onValueChange={setActiveSport}>
-                            <SelectTrigger className="w-[160px] text-xs">
-                                <SelectValue placeholder="Фильтр по спорту" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Все виды</SelectItem>
-                                {allSports.map(sport => (
-                                    <SelectItem key={sport} value={sport}>{sport}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </CardHeader>
                     <CardContent className="h-[250px] flex flex-col items-center justify-center">
                        <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-full">
                             <PieChart>
                                 <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                                <Pie data={filteredPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} labelLine={false} paddingAngle={2}>
-                                    {filteredPieData.map((entry) => (
+                                <Pie data={allPieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} labelLine={false} paddingAngle={2}>
+                                    {allPieChartData.map((entry) => (
                                         <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                     ))}
                                 </Pie>
