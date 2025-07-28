@@ -3,31 +3,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can be read by anyone authenticated, but only created or updated by the owner.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
 
-      // Nutrition and water data is private to the user.
       match /nutrition/{date} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
       match /meals/{mealId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
       match /water/{date} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
     }
 
-    // Workouts can be listed and read by any authenticated user (for feeds, records).
-    // Creation is allowed for any authenticated user.
-    // Update and delete are restricted to the owner of the workout.
     match /workouts/{workoutId} {
-      allow list, get: if request.auth != null;
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
+    
   }
 }
