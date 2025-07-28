@@ -7,7 +7,6 @@ import { Sport, workoutDatabase } from '@/lib/workout-data';
 export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promise<GenerateWorkoutPlanOutput> {
   // AI-less fallback implementation
   try {
-    // This is a simplified fallback. In a real app, this logic would be more sophisticated.
     const sportKey = input.sportPreferences as Sport;
     const sportData = workoutDatabase[sportKey];
 
@@ -15,18 +14,52 @@ export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promi
       throw new Error(`Invalid sport preference: ${input.sportPreferences}`);
     }
 
-    // Create a simple 7-day plan using the first workout for the selected sport
-    const sampleWorkout = sportData.workouts[0] || { name: 'Отдых', exercises: [] };
+    const workoutDays = input.workoutDaysPerWeek;
+    const totalDays = 7;
+    const restDays = totalDays - workoutDays;
+    
+    // Simple distribution of workout and rest days
+    const planDays = Array.from({ length: totalDays }, (_, i) => {
+      // This is a naive distribution logic, can be improved
+      const workoutDayIndex = Math.floor(totalDays / workoutDays);
+      return (i + 1) % workoutDayIndex === 0 || workoutDays === 7;
+    });
 
-    const plan = Array.from({ length: 7 }, (_, i) => {
-      // Make days 4 and 7 rest days
-      if (i === 3 || i === 6) {
+    // Ensure we have the correct number of workout days
+    let currentWorkoutDays = planDays.filter(d => d).length;
+    let dayIndex = 0;
+    while(currentWorkoutDays < workoutDays && dayIndex < totalDays) {
+        if (!planDays[dayIndex]) {
+            planDays[dayIndex] = true;
+            currentWorkoutDays++;
+        }
+        dayIndex++;
+    }
+    while(currentWorkoutDays > workoutDays && dayIndex < totalDays) {
+       if (planDays[dayIndex]) {
+            planDays[dayIndex] = false;
+            currentWorkoutDays--;
+        }
+        dayIndex++;
+    }
+
+
+    const sampleWorkout = sportData.workouts[0] || { name: 'Отдых', description: 'Отдых', exercises: [] };
+
+    const plan = planDays.map((isWorkout, i) => {
+      if (!isWorkout) {
         return {
           day: `День ${i + 1}`,
           title: 'День отдыха',
-          exercises: [{ name: 'Легкая активность', details: 'Прогулка, растяжка или активный отдых.' }],
+          exercises: [{ 
+            name: 'Легкая активность', 
+            details: 'Прогулка, растяжка или активный отдых.',
+            description: 'Легкая активность помогает восстановиться и улучшить кровообращение.',
+            technique: 'Выполняйте легкую прогулку в парке или сделайте комплекс суставной гимнастики и растяжки.'
+          }],
         };
       }
+
       return {
         day: `День ${i + 1}`,
         title: sampleWorkout.name,
@@ -41,6 +74,8 @@ export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promi
           return {
             name: ex.name,
             details: details,
+            description: ex.description,
+            technique: ex.technique,
           };
         }),
       };

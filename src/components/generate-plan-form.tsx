@@ -1,10 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Loader2, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -15,6 +15,12 @@ import { useToast } from '@/hooks/use-toast';
 import { generatePlanAction } from '@/app/actions';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
+import { cn } from '@/lib/utils';
+import { allEquipment, Sport, sportsWithEquipment } from '@/lib/workout-data';
+import { Slider } from './ui/slider';
+
 
 const formSchema = z.object({
   gender: z.enum(['male', 'female', 'other'], { required_error: "Пожалуйста, выберите пол." }),
@@ -23,7 +29,8 @@ const formSchema = z.object({
   height: z.coerce.number().min(1, 'Рост обязателен.'),
   sportPreferences: z.string().min(1, 'Предпочтения в спорте обязательны.'),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
-  availableEquipment: z.string().min(1, 'Пожалуйста, укажите доступное оборудование или напишите "нет".'),
+  workoutDaysPerWeek: z.number().min(1).max(7),
+  availableEquipment: z.array(z.string()),
   workoutHistory: z.string().min(1, 'История тренировок обязательна.'),
   goals: z.string().min(1, 'Пожалуйста, опишите свои фитнес-цели.'),
   workoutDifficultyFeedback: z.string().optional(),
@@ -33,7 +40,7 @@ const formSchema = z.object({
 });
 
 type GeneratePlanFormProps = {
-  onPlanGenerated: (data: GenerateWorkoutPlanOutput) => void;
+  onPlanGenerated: (data: GenerateWorkoutPlanOutput | null) => void;
 };
 
 export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
@@ -47,9 +54,10 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
       age: 30,
       weight: 80,
       height: 180,
-      sportPreferences: 'Тренажерный зал',
+      sportPreferences: Sport.Gym,
       fitnessLevel: 'intermediate',
-      availableEquipment: 'Гантели, эспандеры, штанга',
+      workoutDaysPerWeek: 3,
+      availableEquipment: [],
       workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года. В основном силовые тренировки.',
       goals: 'Нарастить мышечную массу',
       workoutDifficultyFeedback: '',
@@ -59,9 +67,13 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
     },
   });
 
+  const sportPreference = form.watch('sportPreferences');
+  const showEquipmentSelector = useMemo(() => sportsWithEquipment.includes(sportPreference as Sport), [sportPreference]);
+  const daysPerWeek = form.watch('workoutDaysPerWeek');
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    onPlanGenerated(null as any); // Clear previous plan
+    onPlanGenerated(null); // Clear previous plan
     try {
       const result = await generatePlanAction(values);
       onPlanGenerated(result);
@@ -145,19 +157,21 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Предпочтения в спорте</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('availableEquipment', []); // Reset equipment on sport change
+                    }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Выберите ваш вид спорта" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Тренажерный зал">Тренажерный зал</SelectItem>
-                      <SelectItem value="Бег">Бег</SelectItem>
-                      <SelectItem value="Домашние тренировки">Домашние тренировки</SelectItem>
-                      <SelectItem value="Плавание">Плавание</SelectItem>
-                      <SelectItem value="Йога">Йога</SelectItem>
-                      <SelectItem value="Другое">Другое (укажите в целях)</SelectItem>
+                      <SelectItem value={Sport.Gym}>Тренажерный зал</SelectItem>
+                      <SelectItem value={Sport.Running}>Бег</SelectItem>
+                      <SelectItem value={Sport.Home}>Домашние тренировки</SelectItem>
+                      <SelectItem value={Sport.Swimming}>Плавание</SelectItem>
+                      <SelectItem value={Sport.Yoga}>Йога</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -217,18 +231,89 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
 
         <FormField
             control={form.control}
-            name="availableEquipment"
+            name="workoutDaysPerWeek"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Доступное оборудование</FormLabel>
+                <FormLabel>Количество тренировок в неделю: <span className="text-primary font-bold">{daysPerWeek}</span></FormLabel>
                 <FormControl>
-                  <Textarea placeholder="например, Гантели, беговая дорожка, или 'нет'" {...field} />
+                   <Slider
+                      min={1}
+                      max={7}
+                      step={1}
+                      defaultValue={[field.value]}
+                      onValueChange={(value) => field.onChange(value[0])}
+                    />
                 </FormControl>
-                <FormDescription>Перечислите все оборудование через запятую.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+        {showEquipmentSelector && (
+           <Controller
+            control={form.control}
+            name="availableEquipment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Доступное оборудование</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value?.length && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value?.length > 0
+                          ? field.value.join(", ")
+                          : "Выберите оборудование"}
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Поиск оборудования..." />
+                      <CommandList>
+                        <CommandEmpty>Ничего не найдено.</CommandEmpty>
+                        <CommandGroup>
+                          {allEquipment.map((equipment) => (
+                            <CommandItem
+                              key={equipment.id}
+                              onSelect={() => {
+                                const currentValue = field.value || [];
+                                const newValue = currentValue.includes(equipment.id)
+                                  ? currentValue.filter((id) => id !== equipment.id)
+                                  : [...currentValue, equipment.id];
+                                field.onChange(newValue);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value?.includes(equipment.id)
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {equipment.label}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormDescription>
+                  Выберите все оборудование, которое у вас есть.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <FormField
           control={form.control}

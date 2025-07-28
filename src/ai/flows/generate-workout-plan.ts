@@ -51,10 +51,11 @@ const GenerateWorkoutPlanInputSchema = z.object({
     .describe(
       'The user fitness level, e.g., beginner, intermediate, advanced.'
     ),
+  workoutDaysPerWeek: z.number().min(1).max(7).describe('The number of days per week the user wants to train.'),
   availableEquipment: z
-    .string()
+    .array(z.string())
     .describe(
-      'The equipment available to the user, e.g., treadmill, weights, resistance bands. Specify none if no equipment is available.'
+      'The equipment available to the user, e.g., ["treadmill", "weights", "resistance bands"]. Can be an empty array.'
     ),
   workoutHistory: z
     .string()
@@ -85,6 +86,8 @@ export type GenerateWorkoutPlanInput = z.infer<typeof GenerateWorkoutPlanInputSc
 const ExerciseSchema = z.object({
   name: z.string().describe('The name of the exercise.'),
   details: z.string().describe('The details of the exercise, e.g., sets, reps, rest time, duration, or distance.'),
+  technique: z.string().describe('The detailed technique for performing the exercise.'),
+  description: z.string().describe('A brief description of the exercise and its purpose.'),
 });
 
 const DayPlanSchema = z.object({
@@ -108,11 +111,13 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   input: {schema: GenerateWorkoutPlanInputSchema},
   output: {schema: GenerateWorkoutPlanOutputSchema},
   tools: [getWorkoutDatabase],
-  prompt: `You are an expert personal trainer. Your task is to create a personalized 7-day workout plan for a user based on their profile and goals.
+  prompt: `You are an expert personal trainer. Your task is to create a personalized weekly workout plan.
 
 First, use the 'getWorkoutDatabase' tool to fetch the available workouts and exercises for the user's specified 'sportPreferences'.
 
-Then, using ONLY the exercises from the provided database, create a structured 7-day plan. You MUST NOT invent new exercises.
+Then, using ONLY the exercises from the provided database, create a structured plan for a 7-day week. The plan must contain exactly {{{workoutDaysPerWeek}}} workout days and the rest should be rest days.
+
+When selecting exercises, you MUST consider the user's 'availableEquipment'. If an exercise requires equipment not in the user's list, you MUST NOT include it.
 
 Adapt the plan based on the user's entire profile:
 - User Profile:
@@ -121,7 +126,8 @@ Adapt the plan based on the user's entire profile:
   - Weight: {{{weight}}} kg
   - Height: {{{height}}} cm
   - Fitness Level: {{{fitnessLevel}}}
-  - Available Equipment: {{{availableEquipment}}}
+  - Workout Days Per Week: {{{workoutDaysPerWeek}}}
+  - Available Equipment: {{#if availableEquipment}}{{#each availableEquipment}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
   - Workout History: {{{workoutHistory}}}
   - Goals: {{{goals}}}
   - Sport Preferences: {{{sportPreferences}}}
@@ -139,22 +145,14 @@ Adapt the plan based on the user's entire profile:
   {{/if}}
 
 - Plan Requirements:
-  - The plan should be for 7 days, including rest days where appropriate.
+  - The plan should be for a 7-day week.
+  - Distribute the {{{workoutDaysPerWeek}}} workout days evenly throughout the week, with appropriate rest days in between (e.g., Day 1, Day 3, Day 5 for 3 days/week).
   - For each workout day, select a suitable workout type from the database (e.g., 'Interval Run', 'Full Body Strength').
-  - For each workout, select a set of exercises from the database.
-  - Specify the details for each exercise (e.g., "3 подхода по 12 повторений, отдых 60 сек.", "30 минут в умеренном темпе", "5 км"). Adapt sets, reps, duration, and intensity based on the user's fitness level and goals.
+  - For each workout, select a set of exercises from the database. For each exercise, you MUST include the 'name', 'details', 'technique', and 'description' from the database.
+  - Specify the 'details' for each exercise (e.g., "3 подхода по 12 повторений, отдых 60 сек.", "30 минут в умеренном темпе", "5 км"). Adapt sets, reps, duration, and intensity based on the user's fitness level and goals.
+  - For rest days, the 'title' should be "День отдыха" and the 'exercises' array can be empty or contain one activity like "Легкая активность" or "Растяжка".
   - The final output MUST be a JSON object that perfectly matches the required output schema.
   - Ensure the response is in Russian.
-
-Example of a single day in the output:
-{
-  "day": "День 1",
-  "title": "Силовая тренировка на все тело",
-  "exercises": [
-    { "name": "Приседания со штангой", "details": "3 подхода по 10 повторений, отдых 90 сек." },
-    { "name": "Становая тяга", "details": "3 подхода по 8 повторений, отдых 120 сек." }
-  ]
-}
 `,
 });
 

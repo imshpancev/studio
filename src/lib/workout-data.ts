@@ -8,18 +8,23 @@ export enum Sport {
   Gym = 'Тренажерный зал',
   Running = 'Бег',
   Home = 'Домашние тренировки',
+  Swimming = 'Плавание',
+  Yoga = 'Йога',
 }
+
+export const sportsWithEquipment = [Sport.Gym, Sport.Home];
 
 export interface Exercise {
   name: string;
-  description: string; // Brief description for the AI to understand the exercise
+  description: string;
+  technique: string;
   muscleGroups: string[];
-  equipmentNeeded: string[]; // e.g., ['dumbbell', 'barbell', 'none']
+  equipmentNeeded: string[];
 }
 
-export interface Workout {
+export type Workout = {
   name: string;
-  description: string; // Brief description of the workout type
+  description: string;
   exercises: Exercise[];
 }
 
@@ -27,6 +32,21 @@ export interface SportWorkouts {
   sport: Sport;
   workouts: Workout[];
 }
+
+export const allEquipment = [
+    { id: 'barbell', label: 'Штанга' },
+    { id: 'dumbbell', label: 'Гантели' },
+    { id: 'kettlebell', label: 'Гиря' },
+    { id: 'bench', label: 'Скамья' },
+    { id: 'pull-up bar', label: 'Турник' },
+    { id: 'resistance bands', label: 'Эспандеры' },
+    { id: 'cable machine', label: 'Блочный тренажер' },
+    { id: 'leg press machine', label: 'Тренажер для жима ногами' },
+    { id: 'leg curl machine', label: 'Тренажер для сгибания ног' },
+    { id: 'treadmill', label: 'Беговая дорожка' },
+    { id: 'yoga mat', label: 'Коврик для йоги' },
+];
+
 
 // Using a Record for easier lookup
 export const workoutDatabase: Record<Sport, SportWorkouts> = {
@@ -37,34 +57,34 @@ export const workoutDatabase: Record<Sport, SportWorkouts> = {
         name: 'Комплексная тренировка (Full Body)',
         description: 'Тренировка, нацеленная на проработку всех основных мышечных групп за одно занятие.',
         exercises: [
-          { name: 'Приседания со штангой', description: 'Базовое упражнение для ног и ягодиц.', muscleGroups: ['quads', 'glutes', 'hamstrings'], equipmentNeeded: ['barbell'] },
-          { name: 'Жим штанги лежа', description: 'Базовое упражнение для грудных мышц, трицепсов и дельт.', muscleGroups: ['chest', 'triceps', 'shoulders'], equipmentNeeded: ['barbell', 'bench'] },
-          { name: 'Становая тяга', description: 'Комплексное упражнение для спины, ног и ягодиц.', muscleGroups: ['back', 'hamstrings', 'glutes'], equipmentNeeded: ['barbell'] },
-          { name: 'Подтягивания', description: 'Упражнение для широчайших мышц спины и бицепсов.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['pull-up bar'] },
-          { name: 'Армейский жим', description: 'Упражнение для плеч.', muscleGroups: ['shoulders', 'triceps'], equipmentNeeded: ['barbell'] },
-          { name: 'Тяга штанги в наклоне', description: 'Упражнение для мышц спины.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['barbell'] },
+          { name: 'Приседания со штангой', description: 'Базовое упражнение для ног и ягодиц.', technique: 'Держите спину прямо, штангу на плечах. Приседайте до параллели бедер с полом, контролируя движение.', muscleGroups: ['quads', 'glutes', 'hamstrings'], equipmentNeeded: ['barbell'] },
+          { name: 'Жим штанги лежа', description: 'Базовое упражнение для грудных мышц, трицепсов и дельт.', technique: 'Лягте на скамью, возьмите штангу хватом чуть шире плеч. Опускайте штангу к груди, затем выжимайте вверх.', muscleGroups: ['chest', 'triceps', 'shoulders'], equipmentNeeded: ['barbell', 'bench'] },
+          { name: 'Становая тяга', description: 'Комплексное упражнение для спины, ног и ягодиц.', technique: 'Подойдите к штанге, ноги на ширине плеч. С прямой спиной опуститесь и возьмитесь за гриф. Поднимайтесь, разгибая ноги и спину одновременно.', muscleGroups: ['back', 'hamstrings', 'glutes'], equipmentNeeded: ['barbell'] },
+          { name: 'Подтягивания', description: 'Упражнение для широчайших мышц спины и бицепсов.', technique: 'Возьмитесь за турник широким хватом. Подтягивайтесь до тех пор, пока подбородок не окажется над перекладиной.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['pull-up bar'] },
+          { name: 'Армейский жим', description: 'Упражнение для плеч.', technique: 'Стоя или сидя, поднимите штангу на уровень плеч. Выжмите штангу вверх над головой до полного выпрямления рук.', muscleGroups: ['shoulders', 'triceps'], equipmentNeeded: ['barbell'] },
+          { name: 'Тяга штанги в наклоне', description: 'Упражнение для мышц спины.', technique: 'Наклонитесь с прямой спиной. Возьмите штангу и тяните ее к поясу, сводя лопатки.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['barbell'] },
         ],
       },
       {
         name: 'Тренировка на верхнюю часть тела (Upper Body)',
         description: 'Тренировка, сфокусированная на мышцах груди, спины, плеч и рук.',
         exercises: [
-          { name: 'Жим гантелей лежа', description: 'Упражнение для грудных мышц.', muscleGroups: ['chest', 'shoulders', 'triceps'], equipmentNeeded: ['dumbbell', 'bench'] },
-          { name: 'Тяга верхнего блока', description: 'Упражнение для широчайших мышц спины.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['cable machine'] },
-          { name: 'Махи гантелями в стороны', description: 'Изолирующее упражнение для средних дельт.', muscleGroups: ['shoulders'], equipmentNeeded: ['dumbbell'] },
-          { name: 'Сгибания рук со штангой на бицепс', description: 'Упражнение для бицепсов.', muscleGroups: ['biceps'], equipmentNeeded: ['barbell'] },
-          { name: 'Французский жим', description: 'Упражнение для трицепсов.', muscleGroups: ['triceps'], equipmentNeeded: ['barbell', 'bench'] },
+          { name: 'Жим гантелей лежа', description: 'Упражнение для грудных мышц.', technique: 'Лягте на скамью, гантели на уровне груди. Выжимайте гантели вверх, сводя их в верхней точке.', muscleGroups: ['chest', 'shoulders', 'triceps'], equipmentNeeded: ['dumbbell', 'bench'] },
+          { name: 'Тяга верхнего блока', description: 'Упражнение для широчайших мышц спины.', technique: 'Сядьте в тренажер, возьмитесь за рукоять широким хватом. Тяните рукоять к верхней части груди, сводя лопатки.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['cable machine'] },
+          { name: 'Махи гантелями в стороны', description: 'Изолирующее упражнение для средних дельт.', technique: 'Стоя, слегка согните руки в локтях. Поднимайте гантели в стороны до уровня плеч.', muscleGroups: ['shoulders'], equipmentNeeded: ['dumbbell'] },
+          { name: 'Сгибания рук со штангой на бицепс', description: 'Упражнение для бицепсов.', technique: 'Стоя, держите штангу хватом снизу. Сгибайте руки в локтях, поднимая штангу к плечам.', muscleGroups: ['biceps'], equipmentNeeded: ['barbell'] },
+          { name: 'Французский жим', description: 'Упражнение для трицепсов.', technique: 'Лягте на скамью, держите штангу над собой. Сгибайте руки в локтях, опуская штангу ко лбу.', muscleGroups: ['triceps'], equipmentNeeded: ['barbell', 'bench'] },
         ],
       },
       {
         name: 'Тренировка на нижнюю часть тела (Lower Body)',
         description: 'Тренировка, сфокусированная на мышцах ног и ягодиц.',
         exercises: [
-          { name: 'Выпады с гантелями', description: 'Упражнение для ног и ягодиц.', muscleGroups: ['quads', 'glutes', 'hamstrings'], equipmentNeeded: ['dumbbell'] },
-          { name: 'Жим ногами в тренажере', description: 'Упражнение для квадрицепсов.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['leg press machine'] },
-          { name: 'Сгибание ног в тренажере', description: 'Изолирующее упражнение для бицепса бедра.', muscleGroups: ['hamstrings'], equipmentNeeded: ['leg curl machine'] },
-          { name: 'Подъемы на носки', description: 'Упражнение для икроножных мышц.', muscleGroups: ['calves'], equipmentNeeded: ['none'] },
-          { name: 'Румынская становая тяга', description: 'Упражнение для бицепса бедра и ягодиц.', muscleGroups: ['hamstrings', 'glutes'], equipmentNeeded: ['barbell'] },
+          { name: 'Выпады с гантелями', description: 'Упражнение для ног и ягодиц.', technique: 'Сделайте шаг вперед и опуститесь, пока оба колена не согнутся под углом 90 градусов. Вернитесь в исходное положение.', muscleGroups: ['quads', 'glutes', 'hamstrings'], equipmentNeeded: ['dumbbell'] },
+          { name: 'Жим ногами в тренажере', description: 'Упражнение для квадрицепсов.', technique: 'Сядьте в тренажер, поставьте ноги на платформу. Выжимайте платформу ногами, не блокируя колени в верхней точке.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['leg press machine'] },
+          { name: 'Сгибание ног в тренажере', description: 'Изолирующее упражнение для бицепса бедра.', technique: 'Лягте в тренажер, заведите голени под валик. Сгибайте ноги, подтягивая валик к ягодицам.', muscleGroups: ['hamstrings'], equipmentNeeded: ['leg curl machine'] },
+          { name: 'Подъемы на носки', description: 'Упражнение для икроножных мышц.', technique: 'Стоя на платформе, поднимайтесь на носки как можно выше, затем медленно опускайтесь.', muscleGroups: ['calves'], equipmentNeeded: ['none'] },
+          { name: 'Румынская становая тяга', description: 'Упражнение для бицепса бедра и ягодиц.', technique: 'Держите штангу перед собой. С прямой спиной наклоняйтесь вперед, отводя таз назад, пока не почувствуете растяжение в бицепсе бедра.', muscleGroups: ['hamstrings', 'glutes'], equipmentNeeded: ['barbell'] },
         ],
       },
     ],
@@ -76,33 +96,33 @@ export const workoutDatabase: Record<Sport, SportWorkouts> = {
         name: 'Восстановительный бег',
         description: 'Легкий бег в медленном темпе для восстановления после тяжелых нагрузок.',
         exercises: [
-          { name: 'Легкий бег', description: 'Бег в разговорном темпе.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
-          { name: 'Заминка и растяжка', description: 'Легкая растяжка основных групп мышц.', muscleGroups: ['full body'], equipmentNeeded: ['none'] },
+          { name: 'Легкий бег', description: 'Бег в разговорном темпе.', technique: 'Поддерживайте темп, при котором вы можете свободно разговаривать. Следите за каденсом (частотой шагов) около 170-180 шагов в минуту.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Заминка и растяжка', description: 'Легкая растяжка основных групп мышц.', technique: 'После бега выполните статическую растяжку квадрицепсов, бицепсов бедра, икроножных мышц и ягодиц, удерживая каждую позу по 30 секунд.', muscleGroups: ['full body'], equipmentNeeded: ['none'] },
         ],
       },
       {
         name: 'Скоростная тренировка (Темповый бег)',
         description: 'Бег с комфортно-тяжелой скоростью на определенное время или дистанцию.',
         exercises: [
-          { name: 'Разминка', description: '10-15 минут легкого бега.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
-          { name: 'Темповый бег', description: 'Бег с постоянной скоростью на грани анаэробного порога.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
-          { name: 'Заминка', description: '10-15 минут легкого бега.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Разминка', description: '10-15 минут легкого бега.', technique: 'Начните с легкой трусцы, постепенно увеличивая темп до разминочного.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Темповый бег', description: 'Бег с постоянной скоростью на грани анаэробного порога.', technique: 'Найдите темп, который вы могли бы поддерживать в течение часа. Бегите в этом темпе указанное время или дистанцию.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Заминка', description: '10-15 минут легкого бега.', technique: 'Постепенно снижайте темп до легкой трусцы, чтобы нормализовать пульс.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
         ],
       },
       {
         name: 'Интервальная тренировка',
         description: 'Чередование коротких отрезков быстрого бега с периодами восстановления.',
         exercises: [
-          { name: 'Разминка', description: '10-15 минут легкого бега.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
-          { name: 'Интервалы', description: 'Например, 400м быстрого бега, 400м трусцой.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
-          { name: 'Заминка', description: '10-15 минут легкого бега.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Разминка', description: '10-15 минут легкого бега.', technique: 'Начните с легкой трусцы, постепенно увеличивая темп до разминочного.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Интервалы', description: 'Например, 400м быстрого бега, 400м трусцой.', technique: 'Пробегите быстрый отрезок с усилием 8-9 из 10. Восстановительный отрезок — очень легкая трусца или ходьба.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Заминка', description: '10-15 минут легкого бега.', technique: 'Постепенно снижайте темп до легкой трусцы, чтобы нормализовать пульс.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
         ],
       },
       {
         name: 'Длительный бег',
         description: 'Продолжительный бег в легком или умеренном темпе для развития выносливости.',
         exercises: [
-          { name: 'Длительный бег', description: 'Бег на длинную дистанцию в легком темпе.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
+          { name: 'Длительный бег', description: 'Бег на длинную дистанцию в легком темпе.', technique: 'Поддерживайте комфортный, разговорный темп на протяжении всей дистанции. Сосредоточьтесь на экономичности движений.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['none'] },
         ],
       },
     ],
@@ -114,24 +134,56 @@ export const workoutDatabase: Record<Sport, SportWorkouts> = {
         name: 'Домашняя комплексная тренировка (Full Body)',
         description: 'Тренировка на все тело с использованием собственного веса или минимального инвентаря.',
         exercises: [
-          { name: 'Отжимания', description: 'Упражнение для груди, плеч и трицепсов.', muscleGroups: ['chest', 'shoulders', 'triceps'], equipmentNeeded: ['none'] },
-          { name: 'Приседания с собственным весом', description: 'Базовое упражнение для ног.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['none'] },
-          { name: 'Планка', description: 'Упражнение для мышц кора.', muscleGroups: ['core'], equipmentNeeded: ['none'] },
-          { name: 'Выпады', description: 'Упражнение для ног и ягодиц.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['none'] },
-          { name: 'Берпи', description: 'Комплексное кардио-упражнение.', muscleGroups: ['full body', 'cardio'], equipmentNeeded: ['none'] },
-          { name: 'Подтягивания на турнике', description: '(Если есть) Упражнение для спины и бицепсов.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['pull-up bar'] },
+          { name: 'Отжимания', description: 'Упражнение для груди, плеч и трицепсов.', technique: 'Руки на ширине плеч, тело прямое. Опускайтесь, сгибая локти, пока грудь почти не коснется пола. Вернитесь в исходное положение.', muscleGroups: ['chest', 'shoulders', 'triceps'], equipmentNeeded: ['none'] },
+          { name: 'Приседания с собственным весом', description: 'Базовое упражнение для ног.', technique: 'Ноги на ширине плеч, спина прямая. Приседайте, отводя таз назад, как будто садитесь на стул. Опускайтесь до параллели бедер с полом.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['none'] },
+          { name: 'Планка', description: 'Упражнение для мышц кора.', technique: 'Примите упор на предплечьях и носках. Тело должно образовывать прямую линию от головы до пяток. Удерживайте положение, напрягая мышцы живота.', muscleGroups: ['core'], equipmentNeeded: ['none'] },
+          { name: 'Выпады', description: 'Упражнение для ног и ягодиц.', technique: 'Сделайте шаг вперед и опуститесь, пока оба колена не согнутся под углом 90 градусов. Вернитесь в исходное положение и повторите с другой ноги.', muscleGroups: ['quads', 'glutes'], equipmentNeeded: ['none'] },
+          { name: 'Берпи', description: 'Комплексное кардио-упражнение.', technique: 'Из положения стоя присядьте, поставьте руки на пол. Отпрыгните ногами назад в планку, сделайте отжимание. Вернитесь в присед и выпрыгните вверх.', muscleGroups: ['full body', 'cardio'], equipmentNeeded: ['none'] },
+          { name: 'Подтягивания на турнике', description: '(Если есть) Упражнение для спины и бицепсов.', technique: 'Возьмитесь за турник широким хватом. Подтягивайтесь до тех пор, пока подбородок не окажется над перекладиной.', muscleGroups: ['back', 'biceps'], equipmentNeeded: ['pull-up bar'] },
         ],
       },
       {
         name: 'Домашняя кардио-тренировка',
         description: 'Высокоинтенсивная интервальная тренировка (HIIT) для сжигания калорий и улучшения выносливости.',
         exercises: [
-          { name: 'Прыжки "Jumping Jacks"', description: 'Классическое кардио-упражнение.', muscleGroups: ['cardio', 'full body'], equipmentNeeded: ['none'] },
-          { name: 'Высокое поднимание коленей', description: 'Интенсивное кардио-упражнение.', muscleGroups: ['cardio', 'legs', 'core'], equipmentNeeded: ['none'] },
-          { name: 'Скалолазы (Mountain Climbers)', description: 'Упражнение для кора и кардио.', muscleGroups: ['core', 'cardio', 'shoulders'], equipmentNeeded: ['none'] },
-          { name: 'Берпи', description: 'Комплексное кардио-упражнение.', muscleGroups: ['full body', 'cardio'], equipmentNeeded: ['none'] },
+          { name: 'Прыжки "Jumping Jacks"', description: 'Классическое кардио-упражнение.', technique: 'В прыжке расставляйте ноги в стороны и одновременно поднимайте руки над головой. Возвращайтесь в исходное положение.', muscleGroups: ['cardio', 'full body'], equipmentNeeded: ['none'] },
+          { name: 'Высокое поднимание коленей', description: 'Интенсивное кардио-упражнение.', technique: 'Бегите на месте, стараясь поднимать колени как можно выше, до уровня таза.', muscleGroups: ['cardio', 'legs', 'core'], equipmentNeeded: ['none'] },
+          { name: 'Скалолазы (Mountain Climbers)', description: 'Упражнение для кора и кардио.', technique: 'Примите положение планки на прямых руках. Поочередно подтягивайте колени к груди в быстром темпе.', muscleGroups: ['core', 'cardio', 'shoulders'], equipmentNeeded: ['none'] },
+          { name: 'Берпи', description: 'Комплексное кардио-упражнение.', technique: 'Из положения стоя присядьте, поставьте руки на пол. Отпрыгните ногами назад в планку, сделайте отжимание. Вернитесь в присед и выпрыгните вверх.', muscleGroups: ['full body', 'cardio'], equipmentNeeded: ['none'] },
         ],
       },
     ],
   },
+  [Sport.Swimming]: {
+    sport: Sport.Swimming,
+    workouts: [
+      {
+        name: 'Техническая тренировка',
+        description: 'Тренировка, сфокусированная на улучшении техники плавания.',
+        exercises: [
+          { name: 'Плавание с доской для ног', description: 'Изолированная работа ног для улучшения их силы и техники.', technique: 'Держите доску вытянутыми руками перед собой. Работайте только ногами, стараясь держать тело горизонтально.', muscleGroups: ['legs', 'core'], equipmentNeeded: ['kickboard'] },
+          { name: 'Плавание с колобашкой', description: 'Изолированная работа рук.', technique: 'Зажмите колобашку между бедер. Плывите, используя только руки. Сосредоточьтесь на правильном гребке.', muscleGroups: ['arms', 'shoulders', 'back', 'core'], equipmentNeeded: ['pull buoy'] },
+          { name: 'Упражнения на "чувство воды"', description: 'Различные виды гребков для улучшения контроля над водой.', technique: 'Выполняйте медленные гребки sculling в различных положениях (перед собой, под собой) для развития чувства опоры о воду.', muscleGroups: ['forearms', 'shoulders'], equipmentNeeded: ['none'] },
+        ],
+      },
+    ],
+  },
+  [Sport.Yoga]: {
+    sport: Sport.Yoga,
+    workouts: [
+        {
+          name: 'Приветствие Солнцу (Сурья Намаскар)',
+          description: 'Динамическая последовательность асан для разогрева тела и синхронизации дыхания с движением.',
+          exercises: [
+            { name: 'Тадасана (Поза горы)', description: 'Основная стоячая поза, улучшает осанку.', technique: 'Встаньте прямо, стопы вместе. Распределите вес равномерно. Руки вдоль тела.', muscleGroups: ['full body'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Урдхва Хастасана (Поза с поднятыми руками)', description: 'Растягивает боковые мышцы тела.', technique: 'На вдохе поднимите руки вверх через стороны.', muscleGroups: ['full body'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Уттанасана (Наклон вперед)', description: 'Растягивает заднюю поверхность ног и спину.', technique: 'На выдохе наклонитесь вперед от тазобедренных суставов.', muscleGroups: ['hamstrings', 'back'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Ардха Уттанасана (Половинный наклон)', description: 'Вытягивает позвоночник.', technique: 'На вдохе поднимите корпус до половины, спина прямая.', muscleGroups: ['back'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Чатуранга Дандасана (Поза посоха на четырех опорах)', description: 'Укрепляет руки и кор.', technique: 'На выдохе отшагните или отпрыгните назад в планку и согните локти до прямого угла.', muscleGroups: ['arms', 'core', 'shoulders'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Урдхва Мукха Шванасана (Собака мордой вверх)', description: 'Раскрывает грудную клетку.', technique: 'На вдохе перекатитесь на подъемы стоп, выпрямите руки и прогнитесь, глядя вверх.', muscleGroups: ['chest', 'shoulders', 'back'], equipmentNeeded: ['yoga mat'] },
+            { name: 'Адхо Мукха Шванасана (Собака мордой вниз)', description: 'Комплексное вытяжение всего тела.', technique: 'На выдохе поднимите таз вверх, образуя телом перевернутую букву V.', muscleGroups: ['full body'], equipmentNeeded: ['yoga mat'] },
+          ],
+        },
+      ],
+    },
 };

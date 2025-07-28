@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
-import { PlayCircle } from 'lucide-react';
+import { PlayCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Terminal } from 'lucide-react';
 import { Bot } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
@@ -61,7 +63,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Ваш персональный план</CardTitle>
+        <CardTitle>Ваш персональный недельный план</CardTitle>
         <CardDescription>Вот ваш индивидуальный план тренировок, созданный ИИ.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,6 +80,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="p-4 border-t space-y-4">
+                      {dayPlan.exercises.length === 0 && <p className='text-muted-foreground'>День отдыха.</p>}
                       {dayPlan.exercises.map((exercise, exIndex) => (
                         <div key={exIndex} className="flex gap-4 items-start">
                           <div className="relative group w-[100px] h-[100px] flex-shrink-0">
@@ -94,7 +97,22 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-base">{exercise.name}</h4>
+                             <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-base">{exercise.name}</h4>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="font-bold">Описание</p>
+                                    <p>{exercise.description}</p>
+                                    <p className="font-bold mt-2">Техника выполнения</p>
+                                    <p>{exercise.technique}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <p className="text-muted-foreground text-sm">{exercise.details}</p>
                           </div>
                         </div>
