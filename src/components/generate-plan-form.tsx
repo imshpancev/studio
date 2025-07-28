@@ -19,16 +19,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { cn } from '@/lib/utils';
-import { allEquipment, Sport, sportsWithEquipment } from '@/lib/workout-data';
+import { allEquipment, allSports, Sport, sportsWithEquipment } from '@/lib/workout-data';
 import { Slider } from './ui/slider';
 
 
 const formSchema = z.object({
-  gender: z.enum(['male', 'female', 'other'], { required_error: "Пожалуйста, выберите пол." }),
-  age: z.coerce.number().min(1, 'Возраст обязателен.'),
-  weight: z.coerce.number().min(1, 'Вес обязателен.'),
-  height: z.coerce.number().min(1, 'Рост обязателен.'),
-  sportPreferences: z.string().min(1, 'Предпочтения в спорте обязательны.'),
+  // Assume user profile data (gender, age, weight, height) is fetched from a profile context
+  sportPreferences: z.array(z.string()).nonempty({ message: "Пожалуйста, выберите хотя бы один вид спорта." }),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
   workoutDaysPerWeek: z.number().min(1).max(7),
   availableEquipment: z.array(z.string()),
@@ -47,15 +44,18 @@ type GeneratePlanFormProps = {
 export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  // In a real app, you'd fetch this from a user context or API
+  const userProfile = {
       gender: 'male',
       age: 30,
       weight: 80,
       height: 180,
-      sportPreferences: Sport.Gym,
+  }
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      sportPreferences: [Sport.Gym],
       fitnessLevel: 'intermediate',
       workoutDaysPerWeek: 3,
       availableEquipment: [],
@@ -68,15 +68,25 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
     },
   });
 
-  const sportPreference = form.watch('sportPreferences');
-  const showEquipmentSelector = useMemo(() => sportsWithEquipment.includes(sportPreference as Sport), [sportPreference]);
+  const sportPreferences = form.watch('sportPreferences');
+  const showEquipmentSelector = useMemo(() => {
+    if (!sportPreferences) return false;
+    return sportPreferences.some(sport => sportsWithEquipment.includes(sport as Sport))
+  }, [sportPreferences]);
   const daysPerWeek = form.watch('workoutDaysPerWeek');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     onPlanGenerated(null); // Clear previous plan
     try {
-      const result = await generatePlanAction(values);
+      // Merge form values with the static user profile data
+      const fullInput = {
+        ...userProfile,
+        ...values,
+        sportPreferences: values.sportPreferences.join(', '), // Convert array to string for the flow
+      };
+
+      const result = await generatePlanAction(fullInput);
       onPlanGenerated(result);
       toast({
         title: 'Успех!',
@@ -98,87 +108,69 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
         <div className="space-y-4">
-          <p className="font-medium text-sm">Основная информация</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <FormField
+          <p className="font-medium text-sm">Предпочтения и цели</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
                 control={form.control}
-                name="gender"
+                name="sportPreferences"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Пол</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Пол" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">Мужской</SelectItem>
-                        <SelectItem value="female">Женский</SelectItem>
-                        <SelectItem value="other">Другой</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Предпочтения в спорте</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value?.length && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value?.length > 0
+                              ? field.value.join(", ")
+                              : "Выберите виды спорта"}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                          <CommandInput placeholder="Поиск..." />
+                          <CommandList>
+                            <CommandEmpty>Ничего не найдено.</CommandEmpty>
+                            <CommandGroup>
+                              {allSports.map((sport) => (
+                                <CommandItem
+                                  key={sport}
+                                  onSelect={() => {
+                                    const currentValue = field.value || [];
+                                    const newValue = currentValue.includes(sport)
+                                      ? currentValue.filter((s) => s !== sport)
+                                      : [...currentValue, sport];
+                                    field.onChange(newValue);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value?.includes(sport)
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {sport}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField control={form.control} name="age" render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Возраст</FormLabel>
-                      <FormControl><Input type="number" placeholder="30" {...field} /></FormControl>
-                      <FormMessage />
-                  </FormItem>
-              )} />
-              <FormField control={form.control} name="weight" render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Вес (кг)</FormLabel>
-                      <FormControl><Input type="number" placeholder="80" {...field} /></FormControl>
-                      <FormMessage />
-                  </FormItem>
-              )} />
-              <FormField control={form.control} name="height" render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Рост (см)</FormLabel>
-                      <FormControl><Input type="number" placeholder="180" {...field} /></FormControl>
-                      <FormMessage />
-                  </FormItem>
-              )} />
-          </div>
-        </div>
-
-
-        <div className="space-y-4">
-          <p className="font-medium text-sm">Предпочтения и цели</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="sportPreferences"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Предпочтения в спорте</FormLabel>
-                  <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      form.setValue('availableEquipment', []); // Reset equipment on sport change
-                    }} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите ваш вид спорта" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={Sport.Gym}>Тренажерный зал</SelectItem>
-                      <SelectItem value={Sport.Running}>Бег</SelectItem>
-                      <SelectItem value={Sport.Home}>Домашние тренировки</SelectItem>
-                      <SelectItem value={Sport.Swimming}>Плавание</SelectItem>
-                      <SelectItem value={Sport.Yoga}>Йога</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="fitnessLevel"

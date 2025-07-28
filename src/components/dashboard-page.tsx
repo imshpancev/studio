@@ -2,35 +2,35 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, LineChart, PieChart } from 'lucide-react';
+import { BarChart, LineChart, PieChart, Activity, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { Bar, Line, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Bar, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const chartData = [
-  { month: 'Январь', desktop: 186, mobile: 80 },
-  { month: 'Февраль', desktop: 305, mobile: 200 },
-  { month: 'Март', desktop: 237, mobile: 120 },
-  { month: 'Апрель', desktop: 73, mobile: 190 },
-  { month: 'Май', desktop: 209, mobile: 130 },
-  { month: 'Июнь', desktop: 214, mobile: 140 },
+const weeklyActivityData = [
+  { day: 'Пн', running: 30, gym: 45, yoga: 0 },
+  { day: 'Вт', running: 0, gym: 60, yoga: 0 },
+  { day: 'Ср', running: 45, gym: 0, yoga: 30 },
+  { day: 'Чт', running: 0, gym: 55, yoga: 0 },
+  { day: 'Пт', running: 60, gym: 0, yoga: 0 },
+  { day: 'Сб', running: 90, gym: 0, yoga: 60 },
+  { day: 'Вс', running: 0, gym: 0, yoga: 0 },
 ];
 
-const chartConfig = {
-  desktop: {
-    label: 'Силовые',
-    color: 'hsl(var(--chart-1))',
-  },
-  mobile: {
-    label: 'Кардио',
-    color: 'hsl(var(--chart-2))',
-  },
-};
+const progressData = [
+  { month: 'Янв', weight: 85, endurance: 5.0 },
+  { month: 'Фев', weight: 84, endurance: 5.5 },
+  { month: 'Мар', weight: 83, endurance: 6.0 },
+  { month: 'Апр', weight: 82.5, endurance: 6.2 },
+  { month: 'Май', weight: 81, endurance: 6.8 },
+  { month: 'Июн', weight: 80, endurance: 7.5 },
+];
 
 const pieChartData = [
-    { name: 'Бег', value: 400, fill: 'var(--color-running)' },
+    { name: 'Бег', value: 450, fill: 'var(--color-running)' },
     { name: 'Зал', value: 300, fill: 'var(--color-gym)' },
-    { name: 'Йога', value: 300, fill: 'var(--color-yoga)' },
-    { name: 'Плавание', value: 200, fill: 'var(--color-swimming)' },
+    { name: 'Йога', value: 150, fill: 'var(--color-yoga)' },
+    { name: 'Плавание', value: 100, fill: 'var(--color-swimming)' },
 ];
 const pieChartConfig = {
     running: { label: 'Бег', color: 'hsl(var(--chart-1))' },
@@ -39,89 +39,116 @@ const pieChartConfig = {
     swimming: { label: 'Плавание', color: 'hsl(var(--chart-4))' },
 }
 
+const barChartConfig = {
+  running: { label: 'Бег', color: 'hsl(var(--chart-1))' },
+  gym: { label: 'Зал', color: 'hsl(var(--chart-2))' },
+  yoga: { label: 'Йога', color: 'hsl(var(--chart-3))' },
+};
+
+const lineChartConfig = {
+    weight: { label: 'Вес (кг)', color: 'hsl(var(--chart-1))' },
+    endurance: { label: 'Выносливость (км)', color: 'hsl(var(--chart-2))' },
+}
+
 export function DashboardPage() {
     return (
-        <div className="grid gap-8 md:grid-cols-2">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <BarChart className="h-6 w-6" />
-                        Минуты тренировок за месяц
-                    </CardTitle>
-                    <CardDescription>Сравнение силовых и кардио тренировок.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart accessibilityLayer data={chartData}>
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <ChartLegend />
-                                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-                                <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </ChartContainer>
-                </CardContent>
-            </Card>
+        <div className="space-y-8">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-bold tracking-tight">Дашборд</h2>
+                <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <Select defaultValue="last_7_days">
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Фильтр периода" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="last_7_days">Последние 7 дней</SelectItem>
+                            <SelectItem value="last_30_days">Последние 30 дней</SelectItem>
+                            <SelectItem value="last_3_months">Последние 3 месяца</SelectItem>
+                            <SelectItem value="all_time">За все время</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <LineChart className="h-6 w-6" />
-                        Динамика среднего пульса
-                    </CardTitle>
-                    <CardDescription>Средний пульс во время тренировок за последние 6 месяцев.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <ChartLegend />
-                                <Line type="monotone" dataKey="desktop" stroke="var(--color-desktop)" strokeWidth={2} />
-                                <Line type="monotone" dataKey="mobile" stroke="var(--color-mobile)" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </ChartContainer>
-                </CardContent>
-            </Card>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <Calendar className="h-5 w-5" />
+                            Активность за неделю
+                        </CardTitle>
+                        <CardDescription>Минуты тренировок по дням</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={barChartConfig} className="h-[200px] w-full">
+                            <ResponsiveContainer>
+                                <BarChart data={weeklyActivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                                    <YAxis tickLine={false} axisLine={false} />
+                                    <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                    <ChartLegend content={<ChartLegendContent />} />
+                                    <Bar dataKey="running" stackId="a" fill="var(--color-running)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
 
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <PieChart className="h-6 w-6" />
-                        Распределение активностей
-                    </CardTitle>
-                    <CardDescription>Соотношение различных видов тренировок.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center">
-                    <ChartContainer config={pieChartConfig} className="h-[250px]">
-                        <ResponsiveContainer width={250} height={250}>
-                            <PieChart>
-                                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                                <Pie data={pieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                                    {pieChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                                    ))}
-                                </Pie>
-                                <ChartLegend content={<ChartLegendContent nameKey="name" />} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </ChartContainer>
-                </CardContent>
-            </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <TrendingUp className="h-5 w-5" />
+                            Прогресс
+                        </CardTitle>
+                        <CardDescription>Динамика веса и выносливости</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={lineChartConfig} className="h-[200px] w-full">
+                             <ResponsiveContainer>
+                                <LineChart data={progressData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                                    <YAxis yAxisId="left" tickLine={false} axisLine={false} />
+                                    <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} />
+                                    <Tooltip content={<ChartTooltipContent hideLabel />} />
+                                    <ChartLegend content={<ChartLegendContent />} />
+                                    <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" yAxisId="left" />
+                                    <Line type="monotone" dataKey="endurance" stroke="var(--color-endurance)" yAxisId="right" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
 
-             <Card className="flex flex-col items-center justify-center text-center p-8">
-                 <CardHeader>
-                    <CardTitle>Скоро здесь будет больше аналитики!</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">
-                        Мы работаем над добавлением новых виджетов и отчетов.
-                    </p>
-                </CardContent>
-            </Card>
-
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <Activity className="h-5 w-5" />
+                            Виды активностей
+                        </CardTitle>
+                        <CardDescription>Соотношение времени по видам спорта</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center">
+                        <ChartContainer config={pieChartConfig} className="h-[200px] w-[250px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Tooltip content={<ChartTooltipContent nameKey="name" />} />
+                                    <Pie data={pieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
+                                        {pieChartData.map((entry) => (
+                                            <Cell key={entry.name} fill={entry.fill} />
+                                        ))}
+                                    </Pie>
+                                    <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

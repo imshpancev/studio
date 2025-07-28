@@ -11,10 +11,20 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
+import { Sport } from '@/lib/workout-data';
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
 };
+
+function findSportForWorkout(title: string): Sport {
+  if (title.toLowerCase().includes('бег') || title.toLowerCase().includes('интервальная') || title.toLowerCase().includes('темповый')) return Sport.Running;
+  if (title.toLowerCase().includes('силовая') || title.toLowerCase().includes('upper body') || title.toLowerCase().includes('lower body')) return Sport.Gym;
+  if (title.toLowerCase().includes('йога') || title.toLowerCase().includes('сурья')) return Sport.Yoga;
+  if (title.toLowerCase().includes('плавание') || title.toLowerCase().includes('техническая')) return Sport.Swimming;
+  return Sport.Home;
+}
+
 
 export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   const router = useRouter();
@@ -64,9 +74,10 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     )
   }
 
-  const handleStartWorkout = (day: string) => {
-    // A real implementation would pass more context, like the full day plan.
-    router.push(`/workout/${encodeURIComponent(day)}`);
+  const handleStartWorkout = (dayPlan: any) => {
+    const sport = findSportForWorkout(dayPlan.title);
+    const exercisesQuery = encodeURIComponent(JSON.stringify(dayPlan.exercises));
+    router.push(`/workout/${encodeURIComponent(dayPlan.day)}?sport=${encodeURIComponent(sport)}&exercises=${exercisesQuery}`);
   };
 
   return (
@@ -93,7 +104,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                               size="sm" 
                               onClick={(e) => {
                                 e.stopPropagation(); // Prevent accordion from toggling
-                                handleStartWorkout(dayPlan.day);
+                                handleStartWorkout(dayPlan);
                               }}
                               className='mr-2'
                             >

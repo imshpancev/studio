@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dumbbell, BarChart3, User, Map, LayoutDashboard, CalendarCheck } from "lucide-react";
+import { Dumbbell, BarChart3, User, Map, LayoutDashboard, CalendarCheck, History } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,12 +16,14 @@ import { ProfilePage } from "@/components/profile-page";
 import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { DashboardPage } from "@/components/dashboard-page";
+import { WorkoutHistoryPage } from "@/components/workout-history-page";
 
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeWorkoutFeedbackOutput | null>(null);
   const [activeTab, setActiveTab] = useState("my-plan");
+  const [isEditingPlan, setIsEditingPlan] = useState(false);
 
   // Load workout plan from localStorage on initial render
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function Home() {
 
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null) => {
     setWorkoutPlan(plan);
+    setIsEditingPlan(false); // Exit editing mode
     if (plan) {
       localStorage.setItem('workoutPlan', JSON.stringify(plan));
       // Switch to "My Plan" tab after generating a new plan
@@ -46,6 +49,11 @@ export default function Home() {
       localStorage.removeItem('workoutPlan');
     }
   };
+
+  const handleStartEditing = () => {
+    setIsEditingPlan(true);
+    setActiveTab("my-plan");
+  }
 
 
   return (
@@ -61,15 +69,15 @@ export default function Home() {
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
             <TabsTrigger value="my-plan" className="gap-2">
               <CalendarCheck className="h-5 w-5" /> Мой план
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
             </TabsTrigger>
-            <TabsTrigger value="generate-plan" className="gap-2">
-              <Dumbbell className="h-5 w-5" /> Создать план
+             <TabsTrigger value="history" className="gap-2">
+              <History className="h-5 w-5" /> История
             </TabsTrigger>
             <TabsTrigger value="analyze-feedback" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Анализ
@@ -83,29 +91,33 @@ export default function Home() {
           </TabsList>
           
           <TabsContent value="my-plan">
-              <MyPlanPage 
-                workoutPlan={workoutPlan} 
-                onGeneratePlan={() => setActiveTab('generate-plan')}
-                onEditPlan={() => setActiveTab('generate-plan')}
-              />
+             {isEditingPlan || !workoutPlan ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{workoutPlan ? 'Измените свой план' : 'Создайте свой план'}</CardTitle>
+                    <CardDescription>
+                      Расскажите нам о своих целях и предпочтениях, и наш ИИ разработает или обновит для вас идеальный план.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <GeneratePlanForm onPlanGenerated={handlePlanGenerated} />
+                  </CardContent>
+                </Card>
+              ) : (
+                <MyPlanPage 
+                  workoutPlan={workoutPlan} 
+                  onGeneratePlan={() => setIsEditingPlan(true)}
+                  onEditPlan={handleStartEditing}
+                />
+             )}
           </TabsContent>
 
           <TabsContent value="dashboard">
             <DashboardPage />
           </TabsContent>
-
-          <TabsContent value="generate-plan">
-             <Card>
-              <CardHeader>
-                <CardTitle>Создайте или измените свой план</CardTitle>
-                <CardDescription>
-                  Расскажите нам о своих целях и предпочтениях, и наш ИИ разработает или обновит для вас идеальный план.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <GeneratePlanForm onPlanGenerated={handlePlanGenerated} />
-              </CardContent>
-            </Card>
+          
+          <TabsContent value="history">
+            <WorkoutHistoryPage />
           </TabsContent>
 
           <TabsContent value="analyze-feedback">

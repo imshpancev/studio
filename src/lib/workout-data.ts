@@ -13,6 +13,8 @@ export enum Sport {
   Yoga = 'Йога',
 }
 
+export const allSports = Object.values(Sport);
+
 export const sportsWithEquipment = [Sport.Gym, Sport.Home];
 
 export interface Exercise {
@@ -21,6 +23,7 @@ export interface Exercise {
   technique: string;
   muscleGroups: string[];
   equipmentNeeded: string[];
+  details?: string; // e.g., "3x12", "30 min"
 }
 
 export type Workout = {

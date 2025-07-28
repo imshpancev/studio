@@ -2,10 +2,14 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dumbbell, Flame, HeartPulse, Zap } from "lucide-react";
+import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag } from "lucide-react";
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from 'next/navigation';
+import { type Exercise } from "@/lib/workout-data";
+import { cn } from "@/lib/utils";
+
 
 type WorkoutPageProps = {
     params: {
@@ -14,46 +18,125 @@ type WorkoutPageProps = {
 }
 
 export default function WorkoutPage({ params }: WorkoutPageProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const day = decodeURIComponent(params.day);
-
+  const exercises: Exercise[] = JSON.parse(searchParams.get('exercises') || '[]');
+  const sport = searchParams.get('sport') || 'Тренировка';
+  
+  // Overall workout state
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [calories, setCalories] = useState(0);
   const [heartRate, setHeartRate] = useState(75); // Start with a resting-ish heart rate
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  
+  // For gym workouts
+  const [isResting, setIsResting] = useState(false);
+  const [restTime, setRestTime] = useState(0);
 
+  // For running workouts
+  const [pace, setPace] = useState({ current: 330, average: 330 }); // seconds per km
+  const [laps, setLaps] = useState<number[]>([]);
+
+  const currentExercise = exercises[currentExerciseIndex];
+
+  // Main timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (isActive) {
       interval = setInterval(() => {
         setTime(prevTime => prevTime + 1);
+        
         // Simulate calorie burn and heart rate changes
-        if (time % 10 === 0) {
-            setCalories(c => c + 5);
+        if (time > 0 && time % 10 === 0) {
+            setCalories(c => c + (sport === 'Бег' ? 10 : 5));
         }
         setHeartRate(hr => {
             const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            const baseHr = sport === 'Бег' ? 145 : 120;
             const newHr = hr + variation;
             return Math.min(Math.max(newHr, 60), 180); // Keep HR in a reasonable range
         });
+        
+        // Simulate pace changes for running
+        if (sport === 'Бег' && time > 0 && time % 5 === 0) {
+            setPace(p => {
+                const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
+                const newCurrent = p.current + paceVariation;
+                const newAverage = ((p.average * (time - 1)) + newCurrent) / time;
+                return { current: newCurrent, average: Math.round(newAverage) };
+            });
+        }
+
       }, 1000);
-    } else if (!isActive && time !== 0) {
-      if (interval) clearInterval(interval);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time]);
+  }, [isActive, time, sport]);
+
+
+  // Rest timer effect
+   useEffect(() => {
+    let restInterval: NodeJS.Timeout | null = null;
+    if (isResting && restTime > 0) {
+      restInterval = setInterval(() => {
+        setRestTime(prev => prev - 1);
+      }, 1000);
+    } else if (isResting && restTime === 0) {
+      setIsResting(false);
+      // Optionally move to next exercise automatically
+      handleNextExercise();
+    }
+    return () => {
+      if (restInterval) clearInterval(restInterval);
+    };
+  }, [isResting, restTime]);
+
 
   const toggleTimer = () => setIsActive(!isActive);
-  const resetTimer = () => { setTime(0); setCalories(0); setIsActive(false); };
+  
+  const finishWorkout = () => {
+    // Here you would save the workout to history
+    router.push('/');
+  };
 
   const formatTime = (seconds: number) => {
     const getSeconds = `0${(seconds % 60)}`.slice(-2);
     const minutes = `${Math.floor(seconds / 60)}`;
     const getMinutes = `0${parseInt(minutes, 10) % 60}`.slice(-2);
     const getHours = `0${Math.floor(seconds / 3600)}`.slice(-2);
-    return `${getHours} : ${getMinutes} : ${getSeconds}`;
+    return `${getHours}:${getMinutes}:${getSeconds}`;
   };
+  
+  const formatPace = (seconds: number) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = `0${seconds % 60}`.slice(-2);
+      return `${mins}'${secs}"`;
+  }
+
+  const handleNextExercise = () => {
+      setIsResting(false);
+      setRestTime(0);
+      if (currentExerciseIndex < exercises.length - 1) {
+          setCurrentExerciseIndex(i => i + 1);
+      } else {
+          // Last exercise finished
+          finishWorkout();
+      }
+  }
+
+  const handleFinishSet = () => {
+      // Example rest time of 60 seconds
+      setRestTime(60);
+      setIsResting(true);
+  }
+
+  const handleAddLap = () => {
+    setLaps(l => [...l, time]);
+  }
+
 
   const heartRateZone = useMemo(() => {
     // Very simplified HR zones based on a max HR of 200
@@ -74,46 +157,88 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                         Тренировка: {day}
                     </CardTitle>
                     <CardDescription>
-                        Сосредоточьтесь и выложитесь на полную!
+                        {sport} - Сосредоточьтесь и выложитесь на полную!
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-8">
+                <CardContent className="space-y-6">
                     
                     <div className="text-center font-mono text-6xl tracking-widest bg-muted p-4 rounded-lg">
                         {formatTime(time)}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Flame /> Калории</p>
-                            <p className="text-3xl font-bold">{calories}</p>
-                            <p className="text-xs text-muted-foreground">ккал</p>
+                            <p className="text-2xl font-bold">{calories}</p>
                         </div>
                          <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><HeartPulse /> Пульс</p>
-                            <p className="text-3xl font-bold">{heartRate}</p>
-                             <p className="text-xs text-muted-foreground">уд/мин</p>
+                            <p className="text-2xl font-bold">{heartRate}</p>
                         </div>
-                        <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
-                            <p className="text-xl font-bold">{heartRateZone.name}</p>
-                             <div className="w-full mt-2">
-                                <Progress value={heartRateZone.percentage} className="h-2 [&>div]:bg-none" style={{'--progress-color': heartRateZone.color} as React.CSSProperties} />
-                             </div>
-                        </div>
+                        {sport === 'Бег' ? (
+                            <>
+                                <div className="p-4 bg-muted rounded-lg">
+                                    <p className="text-sm text-muted-foreground">Текущий темп</p>
+                                    <p className="text-2xl font-bold">{formatPace(pace.current)}</p>
+                                </div>
+                                <div className="p-4 bg-muted rounded-lg">
+                                    <p className="text-sm text-muted-foreground">Средний темп</p>
+                                    <p className="text-2xl font-bold">{formatPace(pace.average)}</p>
+                                </div>
+                            </>
+                        ) : (
+                             <>
+                                <div className="p-4 bg-muted rounded-lg col-span-2">
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
+                                    <p className="text-xl font-bold">{heartRateZone.name}</p>
+                                    <div className="w-full mt-1">
+                                        <Progress value={heartRateZone.percentage} className={cn("h-2", heartRateZone.color)} />
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                     
-                    <div className="text-center space-y-4 pt-4">
-                        <p className="text-muted-foreground">
-                            Здесь будет отображаться текущее упражнение и таймер отдыха.
-                        </p>
-                    </div>
+                    {/* Dynamic section based on sport */}
+                    {sport !== 'Бег' && currentExercise && !isResting && (
+                         <Card className="bg-muted">
+                            <CardHeader>
+                                <CardTitle className="text-xl">{currentExercise.name}</CardTitle>
+                                <CardDescription>{currentExercise.details}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm">{currentExercise.technique}</p>
+                            </CardContent>
+                         </Card>
+                    )}
+
+                    {isResting && (
+                        <div className="text-center p-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">Время отдыха!</p>
+                            <p className="font-mono text-5xl mt-2">{formatTime(restTime)}</p>
+                            <Button onClick={() => handleNextExercise()} variant="ghost" size="sm" className="mt-4">
+                                Пропустить отдых <SkipForward className="ml-2 h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+
 
                     <div className="flex justify-center gap-4">
-                        <Button onClick={toggleTimer} size="lg" className="w-40">
-                            {isActive ? 'Пауза' : 'Продолжить'}
+                        <Button onClick={toggleTimer} size="lg" className="w-28">
+                            {isActive ? 'Пауза' : 'Старт'}
                         </Button>
-                        <Button onClick={resetTimer} variant="destructive" size="lg">
+
+                        {sport === 'Бег' ? (
+                            <Button onClick={handleAddLap} variant="outline" size="lg">
+                                <Flag className="mr-2 h-4 w-4" /> Круг
+                            </Button>
+                        ) : (
+                           <Button onClick={handleFinishSet} variant="outline" size="lg" disabled={isResting}>
+                                <Repeat className="mr-2 h-4 w-4" /> Подход
+                           </Button>
+                        )}
+
+                        <Button onClick={finishWorkout} variant="destructive" size="lg">
                             Завершить
                         </Button>
                     </div>
@@ -124,16 +249,3 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
     </div>
   );
 }
-
-// A simple trick to make custom color work with tailwind's progress bar
-const CustomProgress = ({ className, value, ...props }: React.ComponentProps<typeof Progress> & { style: React.CSSProperties }) => {
-  return (
-    <Progress
-      className={cn("bg-secondary", className)}
-      {...props}
-      value={value}
-      // @ts-ignore
-      indicatorClassName={props.style['--progress-color']}
-    />
-  );
-};
