@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dumbbell, BarChart3, User, Map, LayoutDashboard, CalendarCheck, History } from "lucide-react";
+import { BarChart3, User, Map, LayoutDashboard, CalendarCheck, History } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

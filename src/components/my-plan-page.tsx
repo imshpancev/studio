@@ -44,7 +44,7 @@ export function MyPlanPage({ workoutPlan, onGeneratePlan, onEditPlan }: MyPlanPa
                     <p className="text-muted-foreground">Вот ваш персональный план на эту неделю.</p>
                 </div>
                 <Button onClick={onEditPlan} variant="outline">
-                    <Pencil className="mr-2" />
+                    <Pencil className="mr-2 h-4 w-4" />
                     Изменить план
                 </Button>
             </div>
@@ -52,4 +52,3 @@ export function MyPlanPage({ workoutPlan, onGeneratePlan, onEditPlan }: MyPlanPa
         </div>
     );
 }
-
