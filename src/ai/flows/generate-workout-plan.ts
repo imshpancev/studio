@@ -14,6 +14,10 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateWorkoutPlanInputSchema = z.object({
+  gender: z.enum(['male', 'female', 'other']).describe('The user\'s gender.'),
+  age: z.number().describe('The user\'s age.'),
+  weight: z.number().describe('The user\'s weight in kilograms.'),
+  height: z.number().describe('The user\'s height in centimeters.'),
   sportPreferences: z
     .string()
     .describe('The user sport preferences, e.g., running, gym workouts, outdoor activities, home workouts. Multiple sports can be specified, separated by commas.'),
@@ -80,6 +84,10 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   prompt: `You are an expert personal trainer who can create personalized workout plans for users based on their preferences, fitness level, available equipment, workout history, and goals.
 
   Consider the following information about the user:
+  - Gender: {{{gender}}}
+  - Age: {{{age}}}
+  - Weight: {{{weight}}} kg
+  - Height: {{{height}}} cm
   - Sport Preferences: {{{sportPreferences}}}
   - Fitness Level: {{{fitnessLevel}}}
   - Available Equipment: {{{availableEquipment}}}

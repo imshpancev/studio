@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
-import { Apple, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -17,6 +17,10 @@ import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 const formSchema = z.object({
+  gender: z.enum(['male', 'female', 'other'], { required_error: "Пожалуйста, выберите пол." }),
+  age: z.coerce.number().min(1, 'Возраст обязателен.'),
+  weight: z.coerce.number().min(1, 'Вес обязателен.'),
+  height: z.coerce.number().min(1, 'Рост обязателен.'),
   sportPreferences: z.string().min(1, 'Предпочтения в спорте обязательны.'),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
   availableEquipment: z.string().min(1, 'Пожалуйста, укажите доступное оборудование или напишите "нет".'),
@@ -39,10 +43,14 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      sportPreferences: 'Бег',
+      gender: 'male',
+      age: 30,
+      weight: 80,
+      height: 180,
+      sportPreferences: 'Тренажерный зал',
       fitnessLevel: 'intermediate',
-      availableEquipment: 'Гантели, эспандеры',
-      workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года.',
+      availableEquipment: 'Гантели, эспандеры, штанга',
+      workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года. В основном силовые тренировки.',
       goals: 'Нарастить мышечную массу',
       workoutDifficultyFeedback: '',
       upcomingCompetitionReference: '',
@@ -74,50 +82,130 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div className="space-y-4">
+          <p className="font-medium text-sm">Основная информация</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Пол</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Пол" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">Мужской</SelectItem>
+                        <SelectItem value="female">Женский</SelectItem>
+                        <SelectItem value="other">Другой</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField control={form.control} name="age" render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Возраст</FormLabel>
+                      <FormControl><Input type="number" placeholder="30" {...field} /></FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )} />
+              <FormField control={form.control} name="weight" render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Вес (кг)</FormLabel>
+                      <FormControl><Input type="number" placeholder="80" {...field} /></FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )} />
+              <FormField control={form.control} name="height" render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Рост (см)</FormLabel>
+                      <FormControl><Input type="number" placeholder="180" {...field} /></FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )} />
+          </div>
+        </div>
+
+
+        <div className="space-y-4">
+          <p className="font-medium text-sm">Предпочтения и цели</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sportPreferences"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Предпочтения в спорте</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите ваш вид спорта" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Тренажерный зал">Тренажерный зал</SelectItem>
+                      <SelectItem value="Бег">Бег</SelectItem>
+                      <SelectItem value="Домашние тренировки">Домашние тренировки</SelectItem>
+                      <SelectItem value="Плавание">Плавание</SelectItem>
+                      <SelectItem value="Йога">Йога</SelectItem>
+                      <SelectItem value="Другое">Другое (укажите в целях)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fitnessLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Уровень подготовки</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите ваш уровень подготовки" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="beginner">Начинающий</SelectItem>
+                      <SelectItem value="intermediate">Средний</SelectItem>
+                      <SelectItem value="advanced">Продвинутый</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="sportPreferences"
-             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Предпочтения в спорте</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите ваш вид спорта" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Бег">Бег</SelectItem>
-                    <SelectItem value="Тренажерный зал">Тренажерный зал</SelectItem>
-                    <SelectItem value="Домашние тренировки">Домашние тренировки</SelectItem>
-                    <SelectItem value="Плавание">Плавание</SelectItem>
-                    <SelectItem value="Йога">Йога</SelectItem>
-                     <SelectItem value="Другое">Другое (укажите в целях)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="fitnessLevel"
+            name="goals"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Уровень подготовки</FormLabel>
+                <FormLabel>Основные цели</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите ваш уровень подготовки" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="beginner">Начинающий</SelectItem>
-                    <SelectItem value="intermediate">Средний</SelectItem>
-                    <SelectItem value="advanced">Продвинутый</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите вашу основную цель" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Похудеть">Похудеть</SelectItem>
+                      <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
+                      <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
+                      <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
+                      <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
+                      <SelectItem value="Другое">Другое (уточните ниже)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -125,44 +213,19 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
         </div>
 
         <FormField
-          control={form.control}
-          name="availableEquipment"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Доступное оборудование</FormLabel>
-              <FormControl>
-                <Input placeholder="например, Гантели, беговая дорожка, или 'нет'" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="goals"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Основные цели</FormLabel>
-               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите вашу основную цель" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Похудеть">Похудеть</SelectItem>
-                    <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
-                    <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
-                    <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
-                    <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
-                    <SelectItem value="Другое">Другое (уточните ниже)</SelectItem>
-                  </SelectContent>
-                </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            control={form.control}
+            name="availableEquipment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Доступное оборудование</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="например, Гантели, беговая дорожка, или 'нет'" {...field} />
+                </FormControl>
+                <FormDescription>Перечислите все оборудование через запятую.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         
         <FormField
           control={form.control}
@@ -170,14 +233,9 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>История тренировок</FormLabel>
-               <Button type="button" variant="outline" className='w-full justify-start' onClick={() => toast({ title: 'Функция в разработке', description: 'Интеграция с Apple Health появится в будущем.'})}>
-                <Apple className="mr-2 h-4 w-4" />
-                Подключить Apple Health
-              </Button>
               <FormControl>
-                <Textarea className="hidden" {...field} />
+                <Textarea placeholder="Опишите ваш опыт тренировок: как часто, как долго, какие упражнения вы делали." {...field} />
               </FormControl>
-               <FormDescription>Мы автоматически загрузим вашу историю.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -185,8 +243,8 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
 
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="advanced-options" className='border-b-0'>
-            <AccordionTrigger className="hover:no-underline">
-              Расширенные и необязательные детали
+            <AccordionTrigger className="hover:no-underline text-sm">
+              Дополнительные детали (необязательно)
             </AccordionTrigger>
             <AccordionContent>
               <div className='space-y-6 pt-4'>
@@ -204,26 +262,20 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                     </FormItem>
                   )}
                 />
-
-                <FormField
+                 <FormField
                   control={form.control}
                   name="healthDataFromWearables"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Сводка данных о здоровье</FormLabel>
-                       <Button type="button" variant="outline" className='w-full justify-start' onClick={() => toast({ title: 'Функция в разработке', description: 'Интеграция с Apple Health появится в будущем.'})}>
-                        <Apple className="mr-2 h-4 w-4" />
-                        Подключить Apple Health
-                      </Button>
                       <FormControl>
-                        <Textarea className="hidden" {...field} />
+                         <Textarea placeholder="e.g. Средний пульс в покое: 60 ударов в минуту, Средний сон: 7 часов" {...field} />
                       </FormControl>
-                      <FormDescription>Мы автоматически загрузим данные с ваших устройств.</FormDescription>
+                      <FormDescription>Любые данные с носимых устройств, которые могут быть полезны.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="workoutDifficultyFeedback"
@@ -246,7 +298,7 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                     <FormItem>
                       <FormLabel>Противопоказания к упражнениям</FormLabel>
                       <FormControl>
-                        <Input placeholder="например, 'приседания' из-за боли в колене" {...field} />
+                        <Textarea placeholder="например, 'приседания' из-за боли в колене. Перечислите через запятую." {...field} />
                       </FormControl>
                       <FormDescription>Перечислите все упражнения, которых вам следует избегать.</FormDescription>
                       <FormMessage />
