@@ -25,7 +25,7 @@ export default function WorkoutPage() {
   const exercises: Exercise[] = useMemo(() => JSON.parse(searchParams.get('exercises') || '[]'), [searchParams]);
   const sport = useMemo(() => (searchParams.get('sport') as Sport) || 'Тренировка', [searchParams]);
   
-  const isCardio = useMemo(() => [Sport.Running, Sport.Swimming, Sport.Cycling].includes(sport), [sport]);
+  const isCardio = useMemo(() => [Sport.Running, Sport.Swimming, Sport.Cycling, Sport.Triathlon].includes(sport), [sport]);
 
   // Overall workout state
   const [time, setTime] = useState(0);
@@ -204,8 +204,8 @@ export default function WorkoutPage() {
           avgSpeed: sport === Sport.Cycling ? formatSpeed(pace.average) : undefined,
           distance: isCardio ? (distance / 1000).toFixed(2) + ' км' : undefined,
           avgHeartRate: Math.round(time > 0 ? (heartRate / time) * time: heartRate), // simplified avg
-          peakHeartRate: peakHeartRate,
-          volume: sport === Sport.Gym ? `${totalVolume} кг` : undefined,
+          peakHeartRate: Math.round(peakHeartRate),
+          volume: !isCardio ? `${totalVolume} кг` : undefined,
       };
       return <WorkoutSummary summary={summary} />;
   }
@@ -215,9 +215,98 @@ export default function WorkoutPage() {
           case Sport.Running: return <MapPin className="h-8 w-8 text-primary" />;
           case Sport.Cycling: return <Bike className="h-8 w-8 text-primary" />;
           case Sport.Gym: return <Dumbbell className="h-8 w-8 text-primary" />;
+          case Sport.Home: return <Dumbbell className="h-8 w-8 text-primary" />;
+          case Sport.Swimming: return <Dumbbell className="h-8 w-8 text-primary" />;
+          case Sport.Yoga: return <Dumbbell className="h-8 w-8 text-primary" />;
+          case Sport.Triathlon: return <Dumbbell className="h-8 w-8 text-primary" />;
           default: return <Dumbbell className="h-8 w-8 text-primary" />;
       }
  }
+  
+  const renderGymWorkout = () => (
+    <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+            <div className="p-4 bg-muted rounded-lg col-span-2">
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
+                <p className="text-xl font-bold">{heartRateZone.name}</p>
+                <div className="w-full mt-1">
+                    <Progress value={heartRateZone.percentage} indicatorClassName={cn(heartRateZone.color)} />
+                </div>
+            </div>
+        </div>
+
+        {currentExercise && !isResting && (
+                <Card className="bg-muted overflow-hidden">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
+                        <CardDescription>{currentExercise.details} (Выполнено подходов: {setsCompleted})</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div className="relative group w-full aspect-video flex-shrink-0">
+                            <video 
+                            key={currentExercise.name}
+                            className="rounded-lg object-cover w-full h-full"
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline
+                            // In a real app, you would have a URL for each exercise video
+                            src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+                        >
+                        </video>
+                    </div>
+                    <div className="text-sm space-y-2">
+                        <h4 className="font-semibold">Техника выполнения:</h4>
+                        <p className="max-h-[150px] overflow-y-auto">{currentExercise.technique}</p>
+                    </div>
+                    </CardContent>
+                </Card>
+        )}
+
+        {isResting && (
+            <div className="text-center p-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">Время отдыха!</p>
+                <p className="font-mono text-5xl mt-2">{formatTime(restTime)}</p>
+                <p className="text-sm text-muted-foreground mt-2">Следующее упражнение: {currentExerciseIndex + 1 < exercises.length ? exercises[currentExerciseIndex+1].name : 'Завершение'}</p>
+                <Button onClick={() => setRestTime(0)} variant="ghost" size="sm" className="mt-4">
+                    Пропустить отдых <SkipForward className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        )}
+    </>
+  );
+
+  const renderCardioWorkout = () => (
+    <>
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {sport === Sport.Running && (
+                <>
+                    <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Текущий темп</p>
+                        <p className="text-2xl font-bold">{formatPace(pace.current)}</p>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
+                        <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
+                    </div>
+                </>
+            )}
+            {sport === Sport.Cycling && (
+                    <>
+                    <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Скорость</p>
+                        <p className="text-2xl font-bold">{formatSpeed(pace.current)}</p>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
+                        <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
+                    </div>
+                </>
+            )}
+        </div>
+        <WorkoutTrackingPage isMinimal={true} />
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -238,7 +327,7 @@ export default function WorkoutPage() {
                         {formatTime(time)}
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-center">
                         <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Flame /> Калории</p>
                             <p className="text-2xl font-bold">{Math.round(calories)}</p>
@@ -247,84 +336,9 @@ export default function WorkoutPage() {
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><HeartPulse /> Пульс</p>
                             <p className="text-2xl font-bold">{heartRate}</p>
                         </div>
-                        {sport === Sport.Running && (
-                            <>
-                                <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Текущий темп</p>
-                                    <p className="text-2xl font-bold">{formatPace(pace.current)}</p>
-                                </div>
-                                <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
-                                    <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
-                                </div>
-                            </>
-                        )}
-                        {sport === Sport.Cycling && (
-                             <>
-                                <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Скорость</p>
-                                    <p className="text-2xl font-bold">{formatSpeed(pace.current)}</p>
-                                </div>
-                                <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
-                                    <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
-                                </div>
-                            </>
-                        )}
-                         {!isCardio && (
-                             <div className="p-4 bg-muted rounded-lg col-span-2">
-                                <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
-                                <p className="text-xl font-bold">{heartRateZone.name}</p>
-                                <div className="w-full mt-1">
-                                    <Progress value={heartRateZone.percentage} indicatorClassName={cn(heartRateZone.color)} />
-                                </div>
-                            </div>
-                        )}
                     </div>
                     
-                    {isCardio && (
-                       <WorkoutTrackingPage isMinimal={true} />
-                    )}
-                    
-                    {!isCardio && currentExercise && !isResting && (
-                         <Card className="bg-muted overflow-hidden">
-                             <CardHeader className="pb-2">
-                                 <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
-                                 <CardDescription>{currentExercise.details} (Выполнено подходов: {setsCompleted})</CardDescription>
-                             </CardHeader>
-                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                <div className="relative group w-full aspect-video flex-shrink-0">
-                                     <video 
-                                        key={currentExercise.name}
-                                        className="rounded-lg object-cover w-full h-full"
-                                        autoPlay 
-                                        loop 
-                                        muted 
-                                        playsInline
-                                        // In a real app, you would have a URL for each exercise video
-                                        src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
-                                    >
-                                    </video>
-                                </div>
-                                <div className="text-sm space-y-2">
-                                    <h4 className="font-semibold">Техника выполнения:</h4>
-                                    <p className="max-h-[150px] overflow-y-auto">{currentExercise.technique}</p>
-                                </div>
-                             </CardContent>
-                         </Card>
-                    )}
-
-                    {isResting && (
-                        <div className="text-center p-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
-                            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">Время отдыха!</p>
-                            <p className="font-mono text-5xl mt-2">{formatTime(restTime)}</p>
-                            <p className="text-sm text-muted-foreground mt-2">Следующее упражнение: {currentExerciseIndex + 1 < exercises.length ? exercises[currentExerciseIndex+1].name : 'Завершение'}</p>
-                            <Button onClick={() => setRestTime(0)} variant="ghost" size="sm" className="mt-4">
-                                Пропустить отдых <SkipForward className="ml-2 h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
-
+                    {isCardio ? renderCardioWorkout() : renderGymWorkout() }
 
                     <div className="flex justify-center gap-4">
                         <Button onClick={toggleTimer} size="lg" className="w-32">

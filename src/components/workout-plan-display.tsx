@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
-import { PlayCircle, Info, Bot, Terminal, Forward, Calendar, Target, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { PlayCircle, Info, Bot, Terminal, Forward, Calendar, Target, ChevronLeft, ChevronRight, CheckCircle, Lock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Button } from './ui/button';
@@ -16,10 +16,12 @@ import { Sport } from '@/lib/workout-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Skeleton } from './ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
+  onFinishPlan: () => void;
 };
 
 function findSportForWorkout(title: string): Sport {
@@ -27,23 +29,17 @@ function findSportForWorkout(title: string): Sport {
   if (title.toLowerCase().includes('силовая') || title.toLowerCase().includes('upper body') || title.toLowerCase().includes('lower body')) return Sport.Gym;
   if (title.toLowerCase().includes('йога') || title.toLowerCase().includes('сурья')) return Sport.Yoga;
   if (title.toLowerCase().includes('плавание') || title.toLowerCase().includes('техническая')) return Sport.Swimming;
+  if (title.toLowerCase().includes('вело') || title.toLowerCase().includes('велосипед')) return Sport.Cycling;
+  if (title.toLowerCase().includes('брик') || title.toLowerCase().includes('триатлон')) return Sport.Triathlon;
   return Sport.Home;
 }
 
-const handleFinishPlan = () => {
-  // This would typically involve a state update in the parent component
-  // For now, we can just log it and potentially clear it from localStorage
-  console.log("Plan finished");
-  localStorage.removeItem('workoutPlan');
-  localStorage.removeItem('workoutPlanInput');
-  // In a real app, you'd probably call a prop function like onFinishPlan()
-  window.location.reload(); // Simple way to reset state for demo
-};
-
-
-export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
+export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [currentWeek, setCurrentWeek] = useState(0);
+  // This would normally come from a database, tracking completed workouts.
+  const [completedWorkouts, setCompletedWorkouts] = useState<string[]>([]); 
 
   if (!data) {
     return (
@@ -88,11 +84,40 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     )
   }
 
-  const handleStartWorkout = (dayPlan: any) => {
+  const handleStartWorkout = (dayPlan: any, weekIndex: number) => {
+    if (weekIndex !== currentWeek) {
+        toast({
+            variant: "destructive",
+            title: "Неверная неделя",
+            description: "Вы можете начинать тренировки только из текущей недели.",
+        });
+        return;
+    }
     const sport = findSportForWorkout(dayPlan.title);
     const exercisesQuery = encodeURIComponent(JSON.stringify(dayPlan.exercises));
     router.push(`/workout/${encodeURIComponent(dayPlan.day)}?sport=${encodeURIComponent(sport)}&exercises=${exercisesQuery}`);
+    
+    // Mock completing a workout to test week progression
+    // setCompletedWorkouts(prev => [...prev, `${weekIndex}-${dayPlan.day}`]);
   };
+
+  const handleFinishWeek = () => {
+    if (currentWeek < structuredPlan.length - 1) {
+        setCurrentWeek(w => w + 1);
+        toast({
+            title: `Неделя ${currentWeek + 1} завершена!`,
+            description: "Отличная работа! Теперь доступна следующая неделя.",
+        });
+    } else {
+        toast({
+            title: "Весь план завершен!",
+            description: "Поздравляем с завершением всего тренировочного плана!",
+        });
+        onFinishPlan();
+    }
+  }
+  
+  const isWeekLocked = (weekIndex: number) => weekIndex > currentWeek;
 
   const selectedWeek = structuredPlan[currentWeek];
 
@@ -106,36 +131,47 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
             </div>
              <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
+                     <Button variant="secondary">
                         <CheckCircle className="mr-2 h-4 w-4" />
-                        Завершить план
+                        Завершить неделю
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Завершить весь план?</AlertDialogTitle>
+                    <AlertDialogTitle>Завершить текущую неделю?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Это действие завершит и удалит ваш текущий план тренировок. Вы сможете сгенерировать новый.
+                        Вы уверены, что хотите завершить эту неделю и перейти к следующей? Это действие нельзя будет отменить.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Отмена</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleFinishPlan}>Завершить план</AlertDialogAction>
+                    <AlertDialogAction onClick={handleFinishWeek}>Да, завершить</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs value={String(currentWeek)} onValueChange={(val) => setCurrentWeek(Number(val))} className="w-full">
-          <div className="flex justify-between items-center mb-4">
-            <Button onClick={() => setCurrentWeek(w => w - 1)} disabled={currentWeek === 0} variant="outline" size="icon"><ChevronLeft/></Button>
+        <Tabs value={String(currentWeek)} onValueChange={(val) => {
+            if (Number(val) > currentWeek) {
+                 toast({
+                    variant: "destructive",
+                    title: "Неделя заблокирована",
+                    description: "Сначала завершите текущую неделю.",
+                });
+                return;
+            }
+            setCurrentWeek(Number(val))
+        }} className="w-full">
+          <div className="flex justify-center items-center mb-4">
             <TabsList>
                 {structuredPlan.map((week, index) => (
-                    <TabsTrigger key={index} value={String(index)}>Неделя {week.week}</TabsTrigger>
+                    <TabsTrigger key={index} value={String(index)} disabled={isWeekLocked(index)}>
+                        {isWeekLocked(index) && <Lock className='mr-2'/>}
+                        Неделя {week.week}
+                    </TabsTrigger>
                 ))}
             </TabsList>
-             <Button onClick={() => setCurrentWeek(w => w + 1)} disabled={currentWeek === structuredPlan.length - 1} variant="outline" size="icon"><ChevronRight/></Button>
           </div>
             
             {selectedWeek ? (
@@ -171,7 +207,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                                     <Button 
                                         variant="default" 
                                         size="sm" 
-                                        onClick={() => handleStartWorkout(dayPlan)}
+                                        onClick={() => handleStartWorkout(dayPlan, currentWeek)}
                                         className='w-full'
                                       >
                                        <Forward className="mr-2 h-4 w-4" /> Начать тренировку

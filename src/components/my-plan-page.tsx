@@ -48,21 +48,21 @@ export function MyPlanPage({ workoutPlan, onGeneratePlan, onEditPlan, onFinishPl
                 <div className="flex gap-2">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="secondary">
+                            <Button variant="destructive" size="sm">
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Завершить неделю
+                                Завершить план
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                            <AlertDialogTitle>Завершить неделю?</AlertDialogTitle>
+                            <AlertDialogTitle>Завершить весь план?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Это действие завершит ваш текущий план тренировок. Вы сможете сгенерировать новый план на следующую неделю.
+                                Это действие завершит и удалит ваш текущий план тренировок. Вы сможете сгенерировать новый.
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                             <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            <AlertDialogAction onClick={onFinishPlan}>Завершить</AlertDialogAction>
+                            <AlertDialogAction onClick={onFinishPlan}>Завершить план</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
@@ -73,7 +73,7 @@ export function MyPlanPage({ workoutPlan, onGeneratePlan, onEditPlan, onFinishPl
                     </Button>
                 </div>
             </div>
-            <WorkoutPlanDisplay data={workoutPlan} />
+            <WorkoutPlanDisplay data={workoutPlan} onFinishPlan={onFinishPlan} />
         </div>
     );
 }
