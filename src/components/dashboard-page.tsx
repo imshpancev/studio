@@ -6,15 +6,16 @@ import { Activity, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { allSports, Sport } from "@/lib/workout-data";
 
 const weeklyActivityData = [
-  { day: 'Пн', running: 30, gym: 45, yoga: 0 },
-  { day: 'Вт', running: 0, gym: 60, yoga: 0 },
-  { day: 'Ср', running: 45, gym: 0, yoga: 30 },
-  { day: 'Чт', running: 0, gym: 55, yoga: 0 },
-  { day: 'Пт', running: 60, gym: 0, yoga: 0 },
-  { day: 'Сб', running: 90, gym: 0, yoga: 60 },
-  { day: 'Вс', running: 0, gym: 0, yoga: 0 },
+  { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0 },
+  { day: 'Вт', running: 0, gym: 60, yoga: 0, cycling: 75 },
+  { day: 'Ср', running: 45, gym: 0, yoga: 30, cycling: 0 },
+  { day: 'Чт', running: 0, gym: 55, yoga: 0, cycling: 0 },
+  { day: 'Пт', running: 60, gym: 0, yoga: 0, cycling: 90 },
+  { day: 'Сб', running: 90, gym: 0, yoga: 60, cycling: 120 },
+  { day: 'Вс', running: 0, gym: 0, yoga: 0, cycling: 0 },
 ];
 
 const progressData = [
@@ -27,22 +28,29 @@ const progressData = [
 ];
 
 const pieChartData = [
-    { name: 'Бег', value: 450, fill: 'var(--color-running)' },
-    { name: 'Зал', value: 300, fill: 'var(--color-gym)' },
-    { name: 'Йога', value: 150, fill: 'var(--color-yoga)' },
-    { name: 'Плавание', value: 100, fill: 'var(--color-swimming)' },
+    { name: Sport.Running, value: 450, fill: 'var(--color-running)' },
+    { name: Sport.Gym, value: 300, fill: 'var(--color-gym)' },
+    { name: Sport.Yoga, value: 150, fill: 'var(--color-yoga)' },
+    { name: Sport.Swimming, value: 100, fill: 'var(--color-swimming)' },
+    { name: Sport.Cycling, value: 280, fill: 'var(--color-cycling)' },
+    { name: Sport.Home, value: 120, fill: 'var(--color-home)'},
 ];
+
 const pieChartConfig = {
-    running: { label: 'Бег', color: 'hsl(var(--chart-1))' },
-    gym: { label: 'Зал', color: 'hsl(var(--chart-2))' },
-    yoga: { label: 'Йога', color: 'hsl(var(--chart-3))' },
-    swimming: { label: 'Плавание', color: 'hsl(var(--chart-4))' },
-}
+    [Sport.Running]: { label: Sport.Running, color: 'hsl(var(--chart-1))' },
+    [Sport.Gym]: { label: Sport.Gym, color: 'hsl(var(--chart-2))' },
+    [Sport.Yoga]: { label: Sport.Yoga, color: 'hsl(var(--chart-3))' },
+    [Sport.Swimming]: { label: Sport.Swimming, color: 'hsl(var(--chart-4))' },
+    [Sport.Cycling]: { label: Sport.Cycling, color: 'hsl(var(--chart-5))' },
+    [Sport.Home]: { label: Sport.Home, color: 'hsl(var(--chart-1))' },
+    [Sport.Triathlon]: { label: Sport.Triathlon, color: 'hsl(var(--chart-2))' },
+};
 
 const barChartConfig = {
   running: { label: 'Бег', color: 'hsl(var(--chart-1))' },
   gym: { label: 'Зал', color: 'hsl(var(--chart-2))' },
   yoga: { label: 'Йога', color: 'hsl(var(--chart-3))' },
+  cycling: { label: 'Велоспорт', color: 'hsl(var(--chart-5))' },
 };
 
 const lineChartConfig = {
@@ -92,6 +100,7 @@ export function DashboardPage() {
                                     <Bar dataKey="running" stackId="a" fill="var(--color-running)" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </ChartContainer>
@@ -139,7 +148,7 @@ export function DashboardPage() {
                                     <Tooltip content={<ChartTooltipContent nameKey="name" />} />
                                     <Pie data={pieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
                                         {pieChartData.map((entry) => (
-                                            <Cell key={entry.name} fill={entry.fill} />
+                                            <Cell key={entry.name} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                         ))}
                                     </Pie>
                                     <ChartLegend content={<ChartLegendContent nameKey="name" />} />

@@ -43,7 +43,7 @@ export default function WorkoutPage() {
   const [setsCompleted, setSetsCompleted] = useState(0);
 
   // For running/cycling workouts
-  const [pace, setPace] = useState({ current: sport === Sport.Running ? 360 : 120, average: sport === Sport.Running ? 360 : 120 }); // sec/km for run, km/h for bike
+  const [pace, setPace] = useState({ current: sport === Sport.Running ? 360 : 25, average: sport === Sport.Running ? 360 : 25 }); // sec/km for run, km/h for bike
   const [laps, setLaps] = useState<number[]>([]);
   const [distance, setDistance] = useState(0); // in meters
 
