@@ -50,6 +50,7 @@ const profileSchema = z.object({
   name: z.string().min(1, 'Имя обязательно.'),
   username: z.string().min(1, 'Имя пользователя обязательно.').optional(),
   bio: z.string().optional(),
+  avatar: z.string().optional(),
   favoriteSports: z.array(z.string()).optional(),
   gender: z.enum(['male', 'female', 'other']),
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
@@ -74,9 +75,29 @@ const profileSchema = z.object({
   runningShoes: z.array(runningShoeSchema).optional(),
   bikes: z.array(bikeSchema).optional(),
 
-  // Workout Plan
+  // Workout Plan - these are not edited here but need to be in the schema
+  // to avoid being stripped out on save.
   workoutPlan: z.any().optional(),
   workoutPlanInput: z.any().optional(),
+
+  // Other analytics fields that are not directly editable in the form
+  // but should be preserved.
+  bodyFat: z.number().optional(),
+  muscleMass: z.number().optional(),
+  visceralFat: z.number().optional(),
+  bmr: z.number().optional(),
+  water: z.number().optional(),
+  skeletalMuscle: z.number().optional(),
+  sleepData: z.any().optional(),
+  sleepPhases: z.any().optional(),
+  readinessScore: z.number().optional(),
+  trainingLoadRatio: z.number().optional(),
+  stressLevel: z.number().optional(),
+  bodyBattery: z.number().optional(),
+  recoveryTimeHours: z.number().optional(),
+  totalDistance: z.number().optional(),
+  totalSteps: z.number().optional(),
+  totalCalories: z.number().optional(),
 });
 
 
@@ -95,6 +116,7 @@ export function ProfilePage() {
         name: '',
         username: '',
         bio: '',
+        avatar: '',
         favoriteSports: [],
         gender: 'other',
         age: 0,
@@ -102,10 +124,12 @@ export function ProfilePage() {
         height: 0,
         language: 'ru',
         mainGoal: '',
+        restingHeartRate: 0,
+        hrv: 0,
+        dailySteps: 0,
+        avgSleepDuration: 0,
         runningShoes: [],
         bikes: [],
-        workoutPlan: null,
-        workoutPlanInput: null,
     },
   });
   
@@ -575,3 +599,4 @@ export function ProfilePage() {
     </div>
   );
 }
+
