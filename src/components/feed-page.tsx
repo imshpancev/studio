@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -12,6 +13,10 @@ import { historyItems } from "@/lib/mock-data";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { UsersPage } from './users-page';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { useState, useEffect } from 'react';
+import { getLeaderboardData, UserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { Skeleton } from './ui/skeleton';
 
 // Mock data for a user's feed
 const feedItems = [
@@ -32,16 +37,26 @@ const feedItems = [
     }
 ];
 
-const leaderboardData = [
-  { rank: 1, name: 'Иван Петров', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', distance: 35.2, steps: 85430, calories: 3200 },
-  { rank: 2, name: 'Вы', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a', distance: 31.8, steps: 78950, calories: 2950 },
-  { rank: 3, name: 'Мария Кузнецова', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704g', distance: 28.5, steps: 65120, calories: 2800 },
-  { rank: 4, name: 'Елена Сидорова', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', distance: 15.6, steps: 55600, calories: 2100 },
-];
-
 
 export function FeedPage() {
     const router = useRouter();
+    const [leaderboardData, setLeaderboardData] = useState<UserProfile[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const currentUser = auth.currentUser;
+
+    useEffect(() => {
+        async function fetchLeaderboard() {
+            try {
+                const data = await getLeaderboardData();
+                setLeaderboardData(data);
+            } catch (error) {
+                console.error("Failed to fetch leaderboard", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchLeaderboard();
+    }, []);
 
     const handleWorkoutClick = (item: any) => {
         const itemQuery = encodeURIComponent(JSON.stringify(item));
@@ -83,6 +98,13 @@ export function FeedPage() {
                     <CardDescription>Сравните свой прогресс с друзьями.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {isLoading ? (
+                         <div className="space-y-2">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : (
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -94,25 +116,26 @@ export function FeedPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {leaderboardData.map((user) => (
-                                <TableRow key={user.rank} className={user.name === 'Вы' ? 'bg-muted/50' : ''}>
-                                    <TableCell className="font-medium">{user.rank}</TableCell>
+                            {leaderboardData.map((user, index) => (
+                                <TableRow key={user.uid} className={user.uid === currentUser?.uid ? 'bg-muted/50' : ''}>
+                                    <TableCell className="font-medium">{index + 1}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Avatar className="h-8 w-8">
                                                 <AvatarImage src={user.avatar} alt={user.name} />
-                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{user.name}</span>
+                                            <span className="font-medium">{user.uid === currentUser?.uid ? 'Вы' : user.name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right">{user.distance.toFixed(1)}</TableCell>
-                                    <TableCell className="text-right">{user.steps.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right">{user.calories.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">{user.totalDistance?.toFixed(1) || 0}</TableCell>
+                                    <TableCell className="text-right">{user.totalSteps?.toLocaleString() || 0}</TableCell>
+                                    <TableCell className="text-right">{user.totalCalories?.toLocaleString() || 0}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
+                    )}
                 </CardContent>
             </Card>
 

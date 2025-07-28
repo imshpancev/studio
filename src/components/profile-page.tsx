@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages, Pencil, X, Star } from 'lucide-react';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages, Pencil, X, Star, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -23,8 +23,11 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { allSports } from '@/lib/workout-data';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { UserProfile, getUserProfile, updateUserProfile } from '@/services/userService';
+import { Skeleton } from './ui/skeleton';
+
 
 const runningShoeSchema = z.object({
   id: z.string().optional(),
@@ -45,7 +48,7 @@ const bikeSchema = z.object({
 const profileSchema = z.object({
   // Basic Info
   name: z.string().min(1, 'Имя обязательно.'),
-  username: z.string().min(1, 'Имя пользователя обязательно.'),
+  username: z.string().min(1, 'Имя пользователя обязательно.').optional(),
   bio: z.string().optional(),
   favoriteSports: z.array(z.string()).optional(),
   gender: z.enum(['male', 'female', 'other']),
@@ -65,7 +68,7 @@ const profileSchema = z.object({
   avgSleepDuration: z.coerce.number().optional(),
   
   // Goals
-  mainGoal: z.string().min(1, "Цель обязательна."),
+  mainGoal: z.string().optional(),
   
   // Gear
   runningShoes: z.array(runningShoeSchema).optional(),
@@ -77,29 +80,54 @@ export function ProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const user = auth.currentUser;
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: 'Сергей Рахманинов',
-      username: '@sergei_rachmaninoff',
-      bio: 'Композитор, пианист и просто хороший человек. Люблю долгие прогулки и умеренные тренировки.',
-      favoriteSports: ['Бег', 'Йога'],
-      gender: 'male',
-      age: 30,
-      weight: 80,
-      height: 180,
-      language: 'ru',
-      mainGoal: 'Поддерживать форму',
-      restingHeartRate: 60,
-      hrv: 45,
-      dailySteps: 8000,
-      avgSleepDuration: 7.5,
-      runningShoes: [{ id: '1', name: 'Hoka Clifton 9', mileage: 250, isDefault: true, imageUrl: 'https://placehold.co/100x100.png' }],
-      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500, isDefault: true, imageUrl: 'https://placehold.co/100x100.png' }],
+        name: '',
+        username: '',
+        bio: '',
+        favoriteSports: [],
+        gender: 'other',
+        age: 0,
+        weight: 0,
+        height: 0,
+        language: 'ru',
+        mainGoal: '',
+        runningShoes: [],
+        bikes: [],
     },
   });
   
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const userProfile = await getUserProfile(user.uid, user.email || '');
+        setProfile(userProfile);
+        form.reset(userProfile);
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Ошибка загрузки профиля',
+          description: 'Не удалось загрузить ваши данные. Попробуйте обновить страницу.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProfile();
+  }, [user, form, toast]);
+
+
   const { fields: shoes, append: appendShoe, remove: removeShoe, update: updateShoe } = useFieldArray({
       control: form.control,
       name: "runningShoes"
@@ -123,17 +151,31 @@ export function ProfilePage() {
   }
 
 
-  function onSubmit(values: z.infer<typeof profileSchema>) {
-    console.log(values);
-    toast({
-      title: 'Профиль обновлен!',
-      description: 'Ваши данные были успешно сохранены.',
-    });
-    setIsEditing(false);
+  async function onSubmit(values: z.infer<typeof profileSchema>) {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+        await updateUserProfile(user.uid, values);
+        setProfile(prev => prev ? { ...prev, ...values } : null);
+        toast({
+            title: 'Профиль обновлен!',
+            description: 'Ваши данные были успешно сохранены.',
+        });
+        setIsEditing(false);
+    } catch (error) {
+        console.error("Failed to update profile:", error);
+        toast({
+            variant: "destructive",
+            title: "Ошибка сохранения",
+            description: "Не удалось сохранить изменения. Попробуйте еще раз."
+        });
+    } finally {
+        setIsSaving(false);
+    }
   }
 
   function handleCancel() {
-    form.reset(); // Сбросить изменения к последним сохраненным значениям
+    if(profile) form.reset(profile); 
     setIsEditing(false);
   }
 
@@ -150,6 +192,32 @@ export function ProfilePage() {
         description: 'Не удалось выйти из системы. Попробуйте еще раз.',
       });
     }
+  }
+  
+  if (isLoading) {
+      return (
+        <div className="max-w-4xl mx-auto space-y-8">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent className="space-y-8">
+                    <div className="flex flex-col items-center gap-4">
+                        <Skeleton className="h-24 w-24 rounded-full" />
+                    </div>
+                    <div className="space-y-4">
+                        <Skeleton className="h-6 w-1/4" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <Skeleton className="h-20 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      )
   }
 
   return (
@@ -174,8 +242,8 @@ export function ProfilePage() {
               
               <div className="flex flex-col items-center gap-4">
                  <Avatar className="h-24 w-24">
-                    <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704a" alt="User avatar" />
-                    <AvatarFallback>SR</AvatarFallback>
+                    <AvatarImage src={profile?.avatar} alt="User avatar" />
+                    <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {isEditing && (
                   <Button type="button" variant="outline" disabled={!isEditing}>
@@ -281,7 +349,7 @@ export function ProfilePage() {
                     <FormField control={form.control} name="gender" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Пол</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
                           <FormControl><SelectTrigger><SelectValue placeholder="Пол" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="male">Мужской</SelectItem>
@@ -348,7 +416,7 @@ export function ProfilePage() {
                     <FormField control={form.control} name="mainGoal" render={({ field }) => (
                     <FormItem>
                         <FormLabel className='flex items-center gap-2'><Target className='w-4 h-4' />Основная цель</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Выберите вашу основную цель" /></SelectTrigger></FormControl>
                             <SelectContent>
                             <SelectItem value="Похудеть">Похудеть</SelectItem>
@@ -363,7 +431,7 @@ export function ProfilePage() {
                     <FormField control={form.control} name="language" render={({ field }) => (
                         <FormItem>
                             <FormLabel className='flex items-center gap-2'><Languages className='w-4 h-4' />Язык</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Выберите язык" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="ru">Русский</SelectItem>
@@ -479,7 +547,10 @@ export function ProfilePage() {
 
               {isEditing && (
                 <div className="flex gap-4">
-                  <Button type="submit">Сохранить изменения</Button>
+                  <Button type="submit" disabled={isSaving}>
+                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Сохранить изменения
+                  </Button>
                   <Button type="button" variant="ghost" onClick={handleCancel}>Отмена</Button>
                 </div>
               )}
