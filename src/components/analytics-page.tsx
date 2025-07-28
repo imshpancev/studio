@@ -20,8 +20,8 @@ export function AnalyticsPage() {
     }
 
     const getTrainingLoadBadgeVariant = (ratio: number): "default" | "destructive" | "secondary" => {
-        if (ratio > 0.8 && ratio < 1.3) return "default"; // Green in shadcn default
-        if (ratio >= 1.3 && ratio < 1.5) return "secondary"; // Yellow-ish
+        if (ratio >= 0.8 && ratio < 1.3) return "default"; // Green in shadcn default
+        if (ratio >= 1.3 && ratio < 1.5) return "secondary"; // Use secondary for warning
         return "destructive"; // Red
     }
      const getTrainingLoadText = (ratio: number) => {

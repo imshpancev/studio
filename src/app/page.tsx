@@ -8,26 +8,23 @@ import { BarChart3, User, Map, LayoutDashboard, CalendarCheck, History, LogIn, U
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GeneratePlanForm } from "@/components/generate-plan-form";
-import { AnalyzeFeedbackForm } from "@/components/analyze-feedback-form";
 import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
-import { FeedbackAnalysisDisplay } from "@/components/feedback-analysis-display";
-import type { AnalyzeWorkoutFeedbackOutput } from "@/ai/flows/analyze-workout-feedback";
 import { LighSportLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
 import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { DashboardPage } from "@/components/dashboard-page";
-import { WorkoutHistoryPage } from "@/components/workout-history-page";
 import { Button } from "@/components/ui/button";
+import { WorkoutHistoryPage } from "@/components/workout-history-page";
+import { AnalyticsPage } from "@/components/analytics-page";
 
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<AnalyzeWorkoutFeedbackOutput | null>(null);
   const [activeTab, setActiveTab] = useState("my-plan");
   const [isEditingPlan, setIsEditingPlan] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Mock auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Start as logged out
 
   // Load workout plan and input from localStorage on initial render
   useEffect(() => {
@@ -49,7 +46,25 @@ export default function Home() {
         localStorage.removeItem('workoutPlanInput');
       }
     }
+
+    // Check auth state from localStorage
+    const authState = localStorage.getItem('isAuthenticated');
+    if (authState === 'true') {
+      setIsAuthenticated(true);
+    }
+
   }, []);
+
+  const handleSetAuthenticated = (status: boolean) => {
+    setIsAuthenticated(status);
+    if (status) {
+      localStorage.setItem('isAuthenticated', 'true');
+    } else {
+      localStorage.removeItem('isAuthenticated');
+       // Also clear user-specific data on logout
+      handlePlanGenerated(null, null);
+    }
+  }
 
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
@@ -155,44 +170,14 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="analyze-feedback">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Проанализируйте свою тренировку</CardTitle>
-                  <CardDescription>
-                    Оставьте отзыв о вашей последней тренировке, чтобы помочь нашему ИИ адаптировать и оптимизировать ваш план.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <AnalyzeFeedbackForm onAnalysisComplete={setAnalysisResult} />
-                </CardContent>
-              </Card>
-              <div className="lg:sticky top-8">
-              {analysisResult ? (
-                  <FeedbackAnalysisDisplay data={analysisResult} />
-                ) : (
-                  <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-center gap-2">
-                        <User className="h-8 w-8 text-primary" />
-                         Анализ на базе ИИ
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">
-                        Ваш анализ тренировки и рекомендации появятся здесь.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
+            <AnalyticsPage />
           </TabsContent>
+
            <TabsContent value="maps">
             <WorkoutTrackingPage />
           </TabsContent>
           <TabsContent value="profile">
-            <ProfilePage />
+            <ProfilePage onLogout={() => handleSetAuthenticated(false)} />
           </TabsContent>
         </Tabs>
         ) : (

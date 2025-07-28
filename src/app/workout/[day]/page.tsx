@@ -2,15 +2,17 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square } from "lucide-react";
+import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { type Exercise } from "@/lib/workout-data";
+import { useRouter, useParams } from 'next/navigation';
+import type { Exercise } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WorkoutSummary } from "@/components/workout-summary";
+import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -213,14 +215,30 @@ export default function WorkoutPage() {
                     
                     {/* Dynamic section based on sport */}
                     {sport !== 'Бег' && currentExercise && !isResting && (
-                         <Card className="bg-muted">
-                            <CardHeader>
-                                <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
-                                <CardDescription>{currentExercise.details}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm">{currentExercise.technique}</p>
-                            </CardContent>
+                         <Card className="bg-muted overflow-hidden">
+                             <CardHeader className="pb-2">
+                                 <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
+                                 <CardDescription>{currentExercise.details}</CardDescription>
+                             </CardHeader>
+                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                <div className="relative group w-full aspect-square flex-shrink-0">
+                                    <Image
+                                        src={`https://placehold.co/400x400.png`}
+                                        data-ai-hint="exercise animation"
+                                        alt={`Анимация упражнения ${currentExercise.name}`}
+                                        width={400}
+                                        height={400}
+                                        className="rounded-lg object-cover w-full h-full"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <PlayCircle className="h-12 w-12 text-white" />
+                                    </div>
+                                </div>
+                                <div className="text-sm space-y-2">
+                                    <h4 className="font-semibold">Техника выполнения:</h4>
+                                    <p>{currentExercise.technique}</p>
+                                </div>
+                             </CardContent>
                          </Card>
                     )}
 

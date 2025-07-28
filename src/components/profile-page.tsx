@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
   // Basic Info
@@ -33,8 +34,13 @@ const profileSchema = z.object({
   mainGoal: z.string().min(1, "Цель обязательна."),
 });
 
-export function ProfilePage() {
+type ProfilePageProps = {
+    onLogout: () => void;
+}
+
+export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -64,8 +70,8 @@ export function ProfilePage() {
       title: 'Вы вышли из системы',
       description: 'Вы будете перенаправлены на главную страницу.',
     });
-    // In a real app, you would handle actual logout logic here
-    // and redirect the user.
+    onLogout();
+    router.push('/login');
   }
 
   return (
