@@ -11,6 +11,11 @@ import {
   type AnalyzeWorkoutFeedbackInput,
   type AnalyzeWorkoutFeedbackOutput,
 } from '@/ai/flows/analyze-workout-feedback';
+import {
+  processWorkoutSummary,
+  type ProcessWorkoutSummaryInput,
+  type ProcessWorkoutSummaryOutput,
+} from '@/ai/flows/process-workout-summary';
 import { Sport, workoutDatabase } from '@/lib/workout-data';
 import { auth } from '@/lib/firebase';
 import { updateUserProfile } from '@/services/userService';
@@ -23,7 +28,6 @@ export async function generatePlanAction(
     throw new Error('User not authenticated');
   }
   
-  // Original AI implementation
   try {
     const output = await generateWorkoutPlan(input);
     
@@ -40,14 +44,19 @@ export async function generatePlanAction(
   }
 }
 
-export async function analyzeFeedbackAction(
-  input: AnalyzeWorkoutFeedbackInput
-): Promise<AnalyzeWorkoutFeedbackOutput> {
+export async function processWorkoutSummaryAction(
+  input: ProcessWorkoutSummaryInput
+): Promise<ProcessWorkoutSummaryOutput> {
   try {
-    const output = await analyzeWorkoutFeedback(input);
+    const output = await processWorkoutSummary(input);
+    // The flow now handles saving the workout and analyzing feedback.
+    // We can potentially do more here, like updating the user's profile with the new plan.
     return output;
   } catch (error) {
-    console.error('Error analyzing workout feedback:', error);
-    throw new Error('Failed to analyze workout feedback.');
+    console.error('Error processing workout summary:', error);
+    if (error instanceof Error) {
+        throw new Error(`Failed to process workout summary: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while processing the workout summary.');
   }
 }
