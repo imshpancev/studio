@@ -20,6 +20,8 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   const router = useRouter();
 
   if (!data) {
+    // This part is now handled by the parent component (MyPlanPage)
+    // but kept as a fallback.
     return (
         <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
             <CardHeader>
@@ -30,7 +32,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
             </CardHeader>
             <CardContent>
             <p className="text-muted-foreground">
-                Ваш персональный план тренировок появится здесь после его создания. Заполните форму, чтобы начать!
+                Ваш персональный план тренировок появится здесь после его создания.
             </p>
             </CardContent>
         </Card>
@@ -64,7 +66,6 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
 
   const handleStartWorkout = (day: string) => {
     // A real implementation would pass more context, like the full day plan.
-    // For now, we just navigate to a placeholder page.
     router.push(`/workout/${encodeURIComponent(day)}`);
   };
 
@@ -86,7 +87,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                           <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
                           <p className="text-muted-foreground">{dayPlan.title}</p>
                         </div>
-                        {dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
+                        {dayPlan.exercises && dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
                            <Button 
                               variant="ghost" 
                               size="sm" 
@@ -103,7 +104,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="p-4 border-t space-y-4">
-                      {dayPlan.exercises.length === 0 || dayPlan.title === "День отдыха" ? (
+                      {dayPlan.exercises && dayPlan.exercises.length === 0 || dayPlan.title === "День отдыха" ? (
                         <p className='text-muted-foreground'>Запланирован отдых. Восстановление — ключ к успеху!</p>
                       ) : dayPlan.exercises.map((exercise, exIndex) => (
                         <div key={exIndex} className="flex gap-4 items-start">

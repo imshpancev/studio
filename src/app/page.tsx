@@ -2,23 +2,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dumbbell, BarChart3, User, Map } from "lucide-react";
+import { Dumbbell, BarChart3, User, Map, LayoutDashboard, CalendarCheck } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GeneratePlanForm } from "@/components/generate-plan-form";
 import { AnalyzeFeedbackForm } from "@/components/analyze-feedback-form";
-import { WorkoutPlanDisplay } from "@/components/workout-plan-display";
 import type { GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { FeedbackAnalysisDisplay } from "@/components/feedback-analysis-display";
 import type { AnalyzeWorkoutFeedbackOutput } from "@/ai/flows/analyze-workout-feedback";
 import { LighSportLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
 import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
+import { MyPlanPage } from "@/components/my-plan-page";
+import { DashboardPage } from "@/components/dashboard-page";
+
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeWorkoutFeedbackOutput | null>(null);
+  const [activeTab, setActiveTab] = useState("my-plan");
 
   // Load workout plan from localStorage on initial render
   useEffect(() => {
@@ -37,6 +40,8 @@ export default function Home() {
     setWorkoutPlan(plan);
     if (plan) {
       localStorage.setItem('workoutPlan', JSON.stringify(plan));
+      // Switch to "My Plan" tab after generating a new plan
+      setActiveTab("my-plan");
     } else {
       localStorage.removeItem('workoutPlan');
     }
@@ -55,39 +60,52 @@ export default function Home() {
           </p>
         </header>
 
-        <Tabs defaultValue="generate-plan" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-3xl mx-auto mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
+            <TabsTrigger value="my-plan" className="gap-2">
+              <CalendarCheck className="h-5 w-5" /> Мой план
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="gap-2">
+              <LayoutDashboard className="h-5 w-5" /> Дашборд
+            </TabsTrigger>
             <TabsTrigger value="generate-plan" className="gap-2">
               <Dumbbell className="h-5 w-5" /> Создать план
             </TabsTrigger>
             <TabsTrigger value="analyze-feedback" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Анализ
             </TabsTrigger>
-            <TabsTrigger value="tracking" className="gap-2">
-              <Map className="h-5 w-5" /> Трекинг
+            <TabsTrigger value="maps" className="gap-2">
+              <Map className="h-5 w-5" /> Карты
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> Профиль
             </TabsTrigger>
           </TabsList>
           
+          <TabsContent value="my-plan">
+              <MyPlanPage 
+                workoutPlan={workoutPlan} 
+                onGeneratePlan={() => setActiveTab('generate-plan')}
+                onEditPlan={() => setActiveTab('generate-plan')}
+              />
+          </TabsContent>
+
+          <TabsContent value="dashboard">
+            <DashboardPage />
+          </TabsContent>
+
           <TabsContent value="generate-plan">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Создайте свой план тренировок</CardTitle>
-                  <CardDescription>
-                    Расскажите нам о своих целях и предпочтениях, и наш ИИ разработает для вас идеальный план.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GeneratePlanForm onPlanGenerated={handlePlanGenerated} />
-                </CardContent>
-              </Card>
-              <div className="lg:sticky top-8">
-                <WorkoutPlanDisplay data={workoutPlan} />
-              </div>
-            </div>
+             <Card>
+              <CardHeader>
+                <CardTitle>Создайте или измените свой план</CardTitle>
+                <CardDescription>
+                  Расскажите нам о своих целях и предпочтениях, и наш ИИ разработает или обновит для вас идеальный план.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GeneratePlanForm onPlanGenerated={handlePlanGenerated} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analyze-feedback">
@@ -124,7 +142,7 @@ export default function Home() {
               </div>
             </div>
           </TabsContent>
-           <TabsContent value="tracking">
+           <TabsContent value="maps">
             <WorkoutTrackingPage />
           </TabsContent>
           <TabsContent value="profile">
