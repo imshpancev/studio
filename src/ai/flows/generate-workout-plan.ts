@@ -12,12 +12,38 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { workoutDatabase, Sport, Workout } from '@/lib/workout-data';
+
+// Tool to get the workout database
+const getWorkoutDatabase = ai.defineTool(
+  {
+    name: 'getWorkoutDatabase',
+    description: 'Get the list of available sports, workout types, and exercises.',
+    inputSchema: z.object({
+      sport: z.nativeEnum(Sport).optional().describe('Optional: filter by a specific sport to get its available workouts.'),
+    }),
+    outputSchema: z.array(Workout),
+  },
+  async ({ sport }) => {
+    if (sport) {
+      return workoutDatabase[sport]?.workouts || [];
+    }
+    // This is a simplification. In a real scenario, you might return the whole database
+    // or provide more sophisticated filtering. For now, we return all workouts from all sports.
+    let allWorkouts: Workout[] = [];
+    for (const s in workoutDatabase) {
+      allWorkouts = allWorkouts.concat(workoutDatabase[s as Sport].workouts);
+    }
+    return allWorkouts;
+  }
+);
+
 
 const GenerateWorkoutPlanInputSchema = z.object({
-  gender: z.enum(['male', 'female', 'other']).describe('The user\'s gender.'),
-  age: z.number().describe('The user\'s age.'),
-  weight: z.number().describe('The user\'s weight in kilograms.'),
-  height: z.number().describe('The user\'s height in centimeters.'),
+  gender: z.enum(['male', 'female', 'other']).describe("The user's gender."),
+  age: z.number().describe("The user's age."),
+  weight: z.number().describe("The user's weight in kilograms."),
+  height: z.number().describe("The user's height in centimeters."),
   sportPreferences: z
     .string()
     .describe('The user sport preferences, e.g., running, gym workouts, outdoor activities, home workouts. Multiple sports can be specified, separated by commas.'),
@@ -45,20 +71,20 @@ const GenerateWorkoutPlanInputSchema = z.object({
     .describe(
       'Optional feedback from the user on previous workout difficulties. Should be in a simple sentences.'
     ),
-  upcomingCompetitionReference: z.string().optional().describe('Optional information about upcoming competitions, e.g., \"I want to run a marathon on October 10, 2025.\"'),
+  upcomingCompetitionReference: z.string().optional().describe('Optional information about upcoming competitions, e.g., "I want to run a marathon on October 10, 2025."'),
   healthDataFromWearables: z
     .string().optional()
     .describe(
       'Optional health data (heart rate, sleep quality, stress level etc.) obtained from wearable devices, which may inform the workout plan generation.'
     ),
-  exerciseContraindications: z.string().optional().describe('Any exercises that the user has contraindications for, such as \"squats\" or \"push ups\".'),
+  exerciseContraindications: z.string().optional().describe('Any exercises that the user has contraindications for, such as "squats" or "push ups".'),
 });
 
 export type GenerateWorkoutPlanInput = z.infer<typeof GenerateWorkoutPlanInputSchema>;
 
 const ExerciseSchema = z.object({
   name: z.string().describe('The name of the exercise.'),
-  details: z.string().describe('The details of the exercise, e.g., sets, reps, rest time.'),
+  details: z.string().describe('The details of the exercise, e.g., sets, reps, rest time, duration, or distance.'),
 });
 
 const DayPlanSchema = z.object({
@@ -81,18 +107,24 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   name: 'generateWorkoutPlanPrompt',
   input: {schema: GenerateWorkoutPlanInputSchema},
   output: {schema: GenerateWorkoutPlanOutputSchema},
-  prompt: `You are an expert personal trainer who can create personalized workout plans for users based on their preferences, fitness level, available equipment, workout history, and goals.
+  tools: [getWorkoutDatabase],
+  prompt: `You are an expert personal trainer. Your task is to create a personalized 7-day workout plan for a user based on their profile and goals.
 
-  Consider the following information about the user:
+First, use the 'getWorkoutDatabase' tool to fetch the available workouts and exercises for the user's specified 'sportPreferences'.
+
+Then, using ONLY the exercises from the provided database, create a structured 7-day plan. You MUST NOT invent new exercises.
+
+Adapt the plan based on the user's entire profile:
+- User Profile:
   - Gender: {{{gender}}}
   - Age: {{{age}}}
   - Weight: {{{weight}}} kg
   - Height: {{{height}}} cm
-  - Sport Preferences: {{{sportPreferences}}}
   - Fitness Level: {{{fitnessLevel}}}
   - Available Equipment: {{{availableEquipment}}}
   - Workout History: {{{workoutHistory}}}
   - Goals: {{{goals}}}
+  - Sport Preferences: {{{sportPreferences}}}
   {{#if workoutDifficultyFeedback}}
   - Previous Workout Difficulty Feedback: {{{workoutDifficultyFeedback}}}
   {{/if}}
@@ -103,35 +135,27 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   - Health Data from Wearables: {{{healthDataFromWearables}}}
   {{/if}}
   {{#if exerciseContraindications}}
-  - Exercise Contraindications: {{{exerciseContraindications}}}
+  - Exercise Contraindications: {{{exerciseContraindications}}}. You MUST avoid any exercises listed here.
   {{/if}}
 
-  Create a detailed and personalized workout plan for the user.
-  The output MUST be a JSON object that parses into an object with a "workoutPlan" property, which is an array of objects, where each object represents a workout day.
-  Each day object must have the following properties: "day", "title", and "exercises".
-  The "exercises" property must be an array of objects, where each object has "name" and "details" properties.
-  For example:
-  {
-    "workoutPlan": [
-      {
-        "day": "День 1",
-        "title": "Силовая тренировка на все тело",
-        "exercises": [
-          { "name": "Приседания", "details": "3 подхода по 12 повторений, отдых 60 сек." },
-          { "name": "Отжимания", "details": "3 подхода до отказа, отдых 60 сек." }
-        ]
-      },
-      {
-        "day": "День 2",
-        "title": "Кардио и кор",
-        "exercises": [
-          { "name": "Бег", "details": "30 минут в умеренном темпе" },
-          { "name": "Планка", "details": "3 подхода по 60 секунд" }
-        ]
-      }
-    ]
-  }
-  `,
+- Plan Requirements:
+  - The plan should be for 7 days, including rest days where appropriate.
+  - For each workout day, select a suitable workout type from the database (e.g., 'Interval Run', 'Full Body Strength').
+  - For each workout, select a set of exercises from the database.
+  - Specify the details for each exercise (e.g., "3 подхода по 12 повторений, отдых 60 сек.", "30 минут в умеренном темпе", "5 км"). Adapt sets, reps, duration, and intensity based on the user's fitness level and goals.
+  - The final output MUST be a JSON object that perfectly matches the required output schema.
+  - Ensure the response is in Russian.
+
+Example of a single day in the output:
+{
+  "day": "День 1",
+  "title": "Силовая тренировка на все тело",
+  "exercises": [
+    { "name": "Приседания со штангой", "details": "3 подхода по 10 повторений, отдых 90 сек." },
+    { "name": "Становая тяга", "details": "3 подхода по 8 повторений, отдых 120 сек." }
+  ]
+}
+`,
 });
 
 const generateWorkoutPlanFlow = ai.defineFlow(
