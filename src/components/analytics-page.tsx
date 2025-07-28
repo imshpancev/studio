@@ -30,6 +30,13 @@ export function AnalyticsPage() {
         if (ratio < 1.5) return "Перегрузка";
         return "Высокий риск травмы";
     }
+    
+    const getTrainingLoadBadgeVariant = (ratio: number): "default" | "secondary" | "destructive" | "outline" => {
+        if (ratio < 0.8) return "secondary";
+        if (ratio < 1.3) return "default";
+        if (ratio < 1.5) return "outline";
+        return "destructive";
+    }
 
     const handleCardClick = (metric: string) => {
         router.push(`/analytics/${metric}`);
