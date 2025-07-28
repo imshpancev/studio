@@ -14,19 +14,8 @@ type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
 };
 
-interface Exercise {
-  name: string;
-  details: string;
-}
-
-interface DayPlan {
-  day: string;
-  title: string;
-  exercises: Exercise[];
-}
-
 export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
-  if (!data || !data.workoutPlan) {
+  if (!data) {
     return (
         <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
             <CardHeader>
@@ -50,17 +39,17 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     return (
        <Card className="h-full">
         <CardHeader>
-          <CardTitle>Ваш персональный план</CardTitle>
+          <CardTitle>Ошибка генерации плана</CardTitle>
         </CardHeader>
         <CardContent>
            <Alert variant="destructive">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Ошибка обработки</AlertTitle>
             <AlertDescription>
-              Не удалось обработать план тренировок, полученный от ИИ. Попробуйте сгенерировать его снова.
+              Не удалось обработать план тренировок, полученный от ИИ. Возможно, предоставленных данных было недостаточно. Попробуйте сгенерировать его снова с более подробной информацией.
             </AlertDescription>
           </Alert>
-          <p className="mt-4 text-xs text-muted-foreground">Необработанный ответ:</p>
+          <p className="mt-4 text-xs text-muted-foreground">Необработанный ответ от ИИ:</p>
           <pre className="w-full mt-2 rounded-md bg-muted p-4 text-sm overflow-x-auto">
             <code>{JSON.stringify(data, null, 2)}</code>
           </pre>
