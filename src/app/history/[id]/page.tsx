@@ -4,7 +4,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, ChevronsRight, Bike, Waves } from 'lucide-react';
+import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, Bike, Waves } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function HistoryDetailPage() {

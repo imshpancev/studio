@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History, HeartPulse, TrendingUp, BarChart } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History, HeartPulse, TrendingUp, BarChart, Bike, Waves } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
@@ -60,6 +60,8 @@ const getSportIcon = (type: string) => {
         case 'Бег': return <Map className="h-6 w-6 text-primary" />;
         case 'Тренажерный зал': return <Dumbbell className="h-6 w-6 text-destructive" />;
         case 'Йога': return <Zap className="h-6 w-6 text-accent" />;
+        case 'Велоспорт': return <Bike className="h-6 w-6 text-green-500" />;
+        case 'Плавание': return <Waves className="h-6 w-6 text-blue-500" />;
         default: return <History className="h-6 w-6" />;
     }
 }
