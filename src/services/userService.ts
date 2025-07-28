@@ -31,6 +31,8 @@ export interface UserProfile {
     bmr?: number;
     water?: number;
     skeletalMuscle?: number;
+    sleepData?: { date: string, duration: number, quality: number }[];
+    sleepPhases?: { deep: number, light: number, rem: number };
     
     // Gear
     runningShoes?: any[];
@@ -62,13 +64,27 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
     restingHeartRate: 65,
     hrv: 40,
     dailySteps: 5000,
-    avgSleepDuration: 7,
+    avgSleepDuration: 7.5,
     bodyFat: 27.8,
     muscleMass: 68.4,
     visceralFat: 11,
     bmr: 1919,
     water: 48.6,
     skeletalMuscle: 37.9,
+    sleepData: [
+      { date: 'Пн', duration: 7.2, quality: 85 },
+      { date: 'Вт', duration: 6.8, quality: 78 },
+      { date: 'Ср', duration: 8.1, quality: 92 },
+      { date: 'Чт', duration: 7.5, quality: 88 },
+      { date: 'Пт', duration: 6.5, quality: 75 },
+      { date: 'Сб', duration: 8.5, quality: 95 },
+      { date: 'Вс', duration: 7.8, quality: 90 },
+    ],
+    sleepPhases: {
+        deep: 20,
+        light: 60,
+        rem: 20,
+    },
     runningShoes: [],
     bikes: [],
     workoutPlan: null,

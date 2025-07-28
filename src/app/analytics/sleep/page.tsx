@@ -4,20 +4,15 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Moon, Bed, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Moon, Bed, TrendingUp, Loader2 } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { Progress } from '@/components/ui/progress';
+import { useEffect, useState } from 'react';
+import { getUserProfile, UserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
-const sleepData = [
-  { date: 'Пн', duration: 7.2, quality: 85 },
-  { date: 'Вт', duration: 6.8, quality: 78 },
-  { date: 'Ср', duration: 8.1, quality: 92 },
-  { date: 'Чт', duration: 7.5, quality: 88 },
-  { date: 'Пт', duration: 6.5, quality: 75 },
-  { date: 'Сб', duration: 8.5, quality: 95 },
-  { date: 'Вс', duration: 7.8, quality: 90 },
-];
 
 const chartConfig = {
   duration: {
@@ -32,6 +27,41 @@ const chartConfig = {
 
 export default function SleepDetailPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const user = auth.currentUser;
+
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    if (!user) {
+        setIsLoading(false);
+        return;
+    }
+    async function fetchData() {
+        try {
+            const userProfile = await getUserProfile(user!.uid, user!.email || '');
+            setProfile(userProfile);
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Ошибка',
+                description: 'Не удалось загрузить данные о сне.',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchData();
+  }, [user, toast]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  const sleepData = profile?.sleepData || [];
+  const sleepPhases = profile?.sleepPhases || { deep: 0, light: 0, rem: 0 };
+  const avgSleepDuration = profile?.avgSleepDuration || 0;
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -47,7 +77,7 @@ export default function SleepDetailPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Анализ Сна</CardTitle>
-                 <CardDescription className="text-lg">Среднее за неделю: <span className="text-primary font-bold">7.5 часов</span></CardDescription>
+                 <CardDescription className="text-lg">Среднее за неделю: <span className="text-primary font-bold">{avgSleepDuration} часов</span></CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -81,23 +111,23 @@ export default function SleepDetailPage() {
                     <div>
                         <div className="flex justify-between mb-1">
                             <span className="text-sm font-medium">Глубокий сон</span>
-                            <span className="text-sm font-medium text-muted-foreground">1.5 ч (20%)</span>
+                            <span className="text-sm font-medium text-muted-foreground">{(avgSleepDuration * (sleepPhases.deep / 100)).toFixed(1)} ч ({sleepPhases.deep}%)</span>
                         </div>
-                        <Progress value={20} indicatorClassName="bg-indigo-500" />
+                        <Progress value={sleepPhases.deep} indicatorClassName="bg-indigo-500" />
                     </div>
                      <div>
                         <div className="flex justify-between mb-1">
                             <span className="text-sm font-medium">Легкий сон</span>
-                            <span className="text-sm font-medium text-muted-foreground">4.5 ч (60%)</span>
+                            <span className="text-sm font-medium text-muted-foreground">{(avgSleepDuration * (sleepPhases.light / 100)).toFixed(1)} ч ({sleepPhases.light}%)</span>
                         </div>
-                        <Progress value={60} indicatorClassName="bg-blue-500" />
+                        <Progress value={sleepPhases.light} indicatorClassName="bg-blue-500" />
                     </div>
                      <div>
                         <div className="flex justify-between mb-1">
                             <span className="text-sm font-medium">Быстрый сон (REM)</span>
-                            <span className="text-sm font-medium text-muted-foreground">1.5 ч (20%)</span>
+                            <span className="text-sm font-medium text-muted-foreground">{(avgSleepDuration * (sleepPhases.rem / 100)).toFixed(1)} ч ({sleepPhases.rem}%)</span>
                         </div>
-                        <Progress value={20} indicatorClassName="bg-purple-500" />
+                        <Progress value={sleepPhases.rem} indicatorClassName="bg-purple-500" />
                     </div>
 
                 </div>
@@ -107,5 +137,3 @@ export default function SleepDetailPage() {
     </div>
   );
 }
-
-    
