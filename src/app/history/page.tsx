@@ -61,8 +61,7 @@ export default function WorkoutHistoryPage() {
 
 
     const handleCardClick = (item: Workout) => {
-        const itemQuery = encodeURIComponent(JSON.stringify(item));
-        router.push(`/history/${item.id}?data=${itemQuery}`);
+        router.push(`/history/${item.id}`);
     };
 
     return (

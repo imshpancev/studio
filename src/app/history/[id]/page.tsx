@@ -62,7 +62,7 @@ export default function HistoryDetailPage() {
                 title: 'Тренировка удалена',
                 description: 'Запись о тренировке была успешно удалена.',
             });
-            router.push('/history');
+            router.push('/#history');
         } catch (error) {
              toast({
                 variant: 'destructive',

@@ -111,9 +111,11 @@ export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWit
 
     for (const doc of querySnapshot.docs) {
         const workout = { id: doc.id, ...doc.data() } as Workout;
+        
         // The following condition is commented out to ensure feed is populated in a demo environment
         // if (workout.userId !== currentUserId) { 
-            
+        if (workout.userId === currentUserId) continue;
+
             if (!userPromises.has(workout.userId)) {
                 // Fetch user profile only once
                 userPromises.set(workout.userId, getUserProfile(workout.userId, ''));

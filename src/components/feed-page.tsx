@@ -45,7 +45,6 @@ export function FeedPage() {
     }, [currentUser]);
 
     const handleWorkoutClick = (item: any) => {
-        // We don't need to pass the whole item in the query anymore
         router.push(`/history/${item.id}`);
     };
 
@@ -141,7 +140,7 @@ export function FeedPage() {
                            <Link href={`/users/${item.user.uid}`}>
                                 <Avatar>
                                     <AvatarImage src={item.user.avatar} alt={item.user.name} />
-                                    <AvatarFallback>{item.user.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{item.user.name?.charAt(0) ?? ''}</AvatarFallback>
                                 </Avatar>
                             </Link>
                             <div className="flex-1">
