@@ -1,7 +1,8 @@
+
 "use client";
 
-import { useState } from "react";
-import { Dumbbell, BarChart3, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Dumbbell, BarChart3, User, Map } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,10 +14,34 @@ import { FeedbackAnalysisDisplay } from "@/components/feedback-analysis-display"
 import type { AnalyzeWorkoutFeedbackOutput } from "@/ai/flows/analyze-workout-feedback";
 import { LighSportLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
+import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeWorkoutFeedbackOutput | null>(null);
+
+  // Load workout plan from localStorage on initial render
+  useEffect(() => {
+    const savedPlan = localStorage.getItem('workoutPlan');
+    if (savedPlan) {
+      try {
+        setWorkoutPlan(JSON.parse(savedPlan));
+      } catch (e) {
+        console.error("Failed to parse saved workout plan", e);
+        localStorage.removeItem('workoutPlan');
+      }
+    }
+  }, []);
+
+  const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null) => {
+    setWorkoutPlan(plan);
+    if (plan) {
+      localStorage.setItem('workoutPlan', JSON.stringify(plan));
+    } else {
+      localStorage.removeItem('workoutPlan');
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -31,12 +56,15 @@ export default function Home() {
         </header>
 
         <Tabs defaultValue="generate-plan" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="generate-plan" className="gap-2">
               <Dumbbell className="h-5 w-5" /> Создать план
             </TabsTrigger>
             <TabsTrigger value="analyze-feedback" className="gap-2">
-              <BarChart3 className="h-5 w-5" /> Анализ обратной связи
+              <BarChart3 className="h-5 w-5" /> Анализ
+            </TabsTrigger>
+            <TabsTrigger value="tracking" className="gap-2">
+              <Map className="h-5 w-5" /> Трекинг
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> Профиль
@@ -53,7 +81,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <GeneratePlanForm onPlanGenerated={setWorkoutPlan} />
+                  <GeneratePlanForm onPlanGenerated={handlePlanGenerated} />
                 </CardContent>
               </Card>
               <div className="lg:sticky top-8">
@@ -95,6 +123,9 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </TabsContent>
+           <TabsContent value="tracking">
+            <WorkoutTrackingPage />
           </TabsContent>
           <TabsContent value="profile">
             <ProfilePage />

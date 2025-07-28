@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -5,18 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
-import { PlayCircle, Info } from 'lucide-react';
+import { PlayCircle, Info, Bot, Terminal, Forward } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Terminal } from 'lucide-react';
-import { Bot } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-
+import { Button } from './ui/button';
+import { useRouter } from 'next/navigation';
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
 };
 
 export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
+  const router = useRouter();
+
   if (!data) {
     return (
         <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
@@ -60,6 +62,12 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     )
   }
 
+  const handleStartWorkout = (day: string) => {
+    // A real implementation would pass more context, like the full day plan.
+    // For now, we just navigate to a placeholder page.
+    router.push(`/workout/${encodeURIComponent(day)}`);
+  };
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -73,15 +81,31 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
               <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
                 <Card className="overflow-hidden rounded-lg">
                   <AccordionTrigger className="p-4 hover:no-underline bg-muted/50 data-[state=open]:bg-muted">
-                    <div className="text-left">
-                      <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
-                      <p className="text-muted-foreground">{dayPlan.title}</p>
+                    <div className="flex justify-between items-center w-full">
+                       <div className="text-left">
+                          <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
+                          <p className="text-muted-foreground">{dayPlan.title}</p>
+                        </div>
+                        {dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
+                           <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent accordion from toggling
+                                handleStartWorkout(dayPlan.day);
+                              }}
+                              className='mr-2'
+                            >
+                             <Forward className="mr-2 h-4 w-4" /> Начать
+                           </Button>
+                        )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="p-4 border-t space-y-4">
-                      {dayPlan.exercises.length === 0 && <p className='text-muted-foreground'>День отдыха.</p>}
-                      {dayPlan.exercises.map((exercise, exIndex) => (
+                      {dayPlan.exercises.length === 0 || dayPlan.title === "День отдыха" ? (
+                        <p className='text-muted-foreground'>Запланирован отдых. Восстановление — ключ к успеху!</p>
+                      ) : dayPlan.exercises.map((exercise, exIndex) => (
                         <div key={exIndex} className="flex gap-4 items-start">
                           <div className="relative group w-[100px] h-[100px] flex-shrink-0">
                             <Image

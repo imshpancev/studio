@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -284,16 +285,16 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                               key={equipment.id}
                               onSelect={() => {
                                 const currentValue = field.value || [];
-                                const newValue = currentValue.includes(equipment.id)
-                                  ? currentValue.filter((id) => id !== equipment.id)
-                                  : [...currentValue, equipment.id];
+                                const newValue = currentValue.includes(equipment.label)
+                                  ? currentValue.filter((id) => id !== equipment.label)
+                                  : [...currentValue, equipment.label];
                                 field.onChange(newValue);
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  field.value?.includes(equipment.id)
+                                  field.value?.includes(equipment.label)
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
