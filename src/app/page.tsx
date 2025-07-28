@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users, Map } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,12 +15,13 @@ import { ProfilePage } from "@/components/profile-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { DashboardPage } from "@/components/dashboard-page";
 import { Button } from "@/components/ui/button";
-import { WorkoutHistoryPage } from "@/components/workout-history-page";
 import { AnalyticsPage } from "@/components/analytics-page";
 import { auth } from "@/lib/firebase";
 import { QuickStartPage } from "@/components/quick-start-page";
 import { NotificationBell } from "@/components/notification-bell";
 import { UsersPage } from "@/components/users-page";
+import { RoutesPage } from "@/components/routes-page";
+import WorkoutHistoryPage from "./history/page";
 
 
 export default function Home() {
@@ -141,7 +142,7 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-7 max-w-5xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 md:grid-cols-8 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
             </TabsTrigger>
@@ -153,6 +154,9 @@ export default function Home() {
             </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
               <History className="h-5 w-5" /> История
+            </TabsTrigger>
+             <TabsTrigger value="routes" className="gap-2">
+              <Map className="h-5 w-5" /> Маршруты
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Аналитика
@@ -201,6 +205,10 @@ export default function Home() {
 
           <TabsContent value="history">
             <WorkoutHistoryPage />
+          </TabsContent>
+          
+          <TabsContent value="routes">
+            <RoutesPage />
           </TabsContent>
 
           <TabsContent value="analytics">

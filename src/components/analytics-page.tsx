@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BatteryFull, Activity, Flame, ShieldCheck, HeartCrack, Smile, Moon } from "lucide-react";
+import { BatteryFull, Activity, Flame, ShieldCheck, HeartCrack, Smile, Moon, TrendingUp } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { useRouter } from "next/navigation";
@@ -13,8 +13,6 @@ export function AnalyticsPage() {
 
     const readinessScore = 88;
     const trainingLoadRatio = 1.1; // Example: 1.1 means slightly overreaching
-    const caloriesThisWeek = 2340;
-    const recoveryHours = 28;
     const stressLevel = 25; // Example: out of 100
     const bodyBattery = 78; // Example: out of 100
     const sleepQuality = 85;
@@ -26,11 +24,6 @@ export function AnalyticsPage() {
         return "bg-red-500";
     }
 
-    const getTrainingLoadBadgeVariant = (ratio: number): "default" | "destructive" | "secondary" => {
-        if (ratio >= 0.8 && ratio < 1.3) return "default"; // Green in shadcn default
-        if (ratio >= 1.3 && ratio < 1.5) return "secondary"; // Use secondary for warning
-        return "destructive"; // Red
-    }
      const getTrainingLoadText = (ratio: number) => {
         if (ratio < 0.8) return "Недостаточная нагрузка";
         if (ratio < 1.3) return "Оптимальная";
@@ -53,25 +46,29 @@ export function AnalyticsPage() {
                 </CardHeader>
             </Card>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card onClick={() => handleCardClick('readiness')} className="cursor-pointer hover:border-primary transition-colors">
+                <Card onClick={() => handleCardClick('readiness')} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Готовность к тренировке</CardTitle>
                         <Smile className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{readinessScore}%</div>
-                        <p className="text-xs text-muted-foreground">На основе ВСР, сна и недавней нагрузки</p>
+                    <CardContent className="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div className="text-2xl font-bold">{readinessScore}%</div>
+                            <p className="text-xs text-muted-foreground">На основе ВСР, сна и недавней нагрузки</p>
+                        </div>
                         <Progress value={readinessScore} className="mt-4 h-2" indicatorClassName={getReadinessColor(readinessScore)} />
                     </CardContent>
                 </Card>
-                 <Card onClick={() => handleCardClick('sleep')} className="cursor-pointer hover:border-primary transition-colors">
+                 <Card onClick={() => handleCardClick('sleep')} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Сон прошлой ночи</CardTitle>
                         <Moon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{sleepDuration} ч</div>
-                        <p className="text-xs text-muted-foreground">Качество: <span className={cn(sleepQuality > 80 ? "text-green-500" : "text-yellow-500")}>{sleepQuality}%</span></p>
+                    <CardContent className="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div className="text-2xl font-bold">{sleepDuration} ч</div>
+                            <p className="text-xs text-muted-foreground">Качество: <span className={cn(sleepQuality > 80 ? "text-green-500" : "text-yellow-500")}>{sleepQuality}%</span></p>
+                        </div>
                          <Progress value={sleepQuality} className="mt-4 h-2" indicatorClassName={getReadinessColor(sleepQuality)} />
                     </CardContent>
                 </Card>
@@ -85,27 +82,24 @@ export function AnalyticsPage() {
                              <Badge variant={getTrainingLoadBadgeVariant(trainingLoadRatio)}>{getTrainingLoadText(trainingLoadRatio)}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">Соотношение острой и хронической нагрузки: {trainingLoadRatio.toFixed(1)}</p>
+                         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500"></div><span>Оптимально (0.8-1.3)</span>
+                            <div className="h-2 w-2 rounded-full bg-yellow-500"></div><span>Перегрузка (1.3-1.5)</span>
+                            <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (>1.5)</span>
+                        </div>
                     </CardContent>
                 </Card>
-                 <Card onClick={() => handleCardClick('body-battery')} className="cursor-pointer hover:border-primary transition-colors">
+                 <Card onClick={() => handleCardClick('body-battery')} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Готовность тела</CardTitle>
                         <BatteryFull className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{bodyBattery}%</div>
-                        <p className="text-xs text-muted-foreground">Оценка запаса энергии вашего тела</p>
+                    <CardContent className="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div className="text-2xl font-bold">{bodyBattery}%</div>
+                             <p className="text-xs text-muted-foreground">Оценка запаса энергии вашего тела</p>
+                        </div>
                         <Progress value={bodyBattery} className="mt-4 h-2" indicatorClassName={getReadinessColor(bodyBattery)} />
-                    </CardContent>
-                </Card>
-                <Card onClick={() => handleCardClick('calories')} className="cursor-pointer hover:border-primary transition-colors">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Сожжено калорий</CardTitle>
-                        <Flame className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{caloriesThisWeek} ккал</div>
-                        <p className="text-xs text-muted-foreground">За последние 7 дней</p>
                     </CardContent>
                 </Card>
                 <Card onClick={() => handleCardClick('recovery')} className="cursor-pointer hover:border-primary transition-colors">
@@ -114,7 +108,7 @@ export function AnalyticsPage() {
                         <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{recoveryHours} часов</div>
+                        <div className="text-2xl font-bold">28 часов</div>
                         <p className="text-xs text-muted-foreground">Рекомендуемое время до следующей тяжелой тренировки</p>
                     </CardContent>
                 </Card>
@@ -132,5 +126,3 @@ export function AnalyticsPage() {
         </div>
     );
 }
-
-    

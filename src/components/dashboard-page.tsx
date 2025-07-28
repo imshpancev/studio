@@ -3,12 +3,13 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2 } from 'lucide-react';
+import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2, Flame } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart, Area, AreaChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { allSports, Sport } from "@/lib/workout-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Badge } from './ui/badge';
 
 const weeklyActivityData = [
   { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0, swimming: 0, home: 20 },
@@ -81,7 +82,7 @@ export function DashboardPage() {
                     <CardTitle>Итоги за неделю</CardTitle>
                     <CardDescription>Обзор вашей активности за последние 7 дней.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Общее время</CardTitle>
@@ -118,16 +119,25 @@ export function DashboardPage() {
                             </p>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Личные рекорды</CardTitle>
-                            <Target className="h-4 w-4 text-muted-foreground" />
+                      <Card className="lg:col-span-1">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base font-medium flex items-center gap-2"><Target/> Личные рекорды</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-base font-bold">Бег 5км: 24:15</div>
-                            <p className="text-xs text-muted-foreground">
-                                Установлен 3 дня назад
-                            </p>
+                        <CardContent className='pt-0'>
+                             <Tabs defaultValue="sport">
+                                <TabsList className="grid w-full grid-cols-2 h-8">
+                                    <TabsTrigger value="sport" className='text-xs'>По спорту</TabsTrigger>
+                                    <TabsTrigger value="general" className='text-xs'>Общие</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="sport" className='mt-2 text-xs space-y-1'>
+                                     <p><Badge variant='secondary'>Бег 5км:</Badge> 24:15</p>
+                                     <p><Badge variant='secondary'>Вело 20км:</Badge> 45:30</p>
+                                </TabsContent>
+                                <TabsContent value="general" className='mt-2 text-xs space-y-1'>
+                                    <p><Flame className='inline h-3 w-3 mr-1'/>Калории: 950 ккал</p>
+                                    <p><Clock className='inline h-3 w-3 mr-1'/>Длительность: 2:15:00</p>
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </CardContent>
@@ -177,8 +187,8 @@ export function DashboardPage() {
                 </TabsContent>
             </Tabs>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                 <Card>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+                 <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
                             <Calendar className="h-5 w-5" />
@@ -187,53 +197,25 @@ export function DashboardPage() {
                         <CardDescription>Минуты тренировок по дням</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={barChartConfig} className="h-[200px] w-full">
-                            <ResponsiveContainer>
-                                <BarChart data={weeklyActivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                                    <YAxis tickLine={false} axisLine={false} />
-                                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                                    <ChartLegend content={<ChartLegendContent />} />
-                                    <Bar dataKey="running" stackId="a" fill="var(--color-running)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="swimming" stackId="a" fill="var(--color-swimming)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="home" stackId="a" fill="var(--color-home)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                        <ChartContainer config={barChartConfig} className="h-[250px] w-full">
+                            <BarChart data={weeklyActivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                                <YAxis tickLine={false} axisLine={false} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Bar dataKey="running" stackId="a" fill="var(--color-running)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="swimming" stackId="a" fill="var(--color-swimming)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="home" stackId="a" fill="var(--color-home)" radius={[4, 4, 0, 0]} />
+                            </BarChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                            <TrendingUp className="h-5 w-5" />
-                            Прогресс
-                        </CardTitle>
-                        <CardDescription>Динамика веса и выносливости</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={lineChartConfig} className="h-[200px] w-full">
-                             <ResponsiveContainer>
-                                <LineChart data={progressData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                                    <YAxis yAxisId="left" tickLine={false} axisLine={false} />
-                                    <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} />
-                                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                    <ChartLegend content={<ChartLegendContent />} />
-                                    <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" yAxisId="left" />
-                                    <Line type="monotone" dataKey="endurance" stroke="var(--color-endurance)" yAxisId="right" />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                 <Card>
+                 <Card className="lg:col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>
                             <CardTitle className="flex items-center gap-2 text-xl">
@@ -254,12 +236,11 @@ export function DashboardPage() {
                             </SelectContent>
                         </Select>
                     </CardHeader>
-                    <CardContent className="h-[240px] flex flex-col items-center justify-center">
+                    <CardContent className="h-[250px] flex flex-col items-center justify-center">
                        <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-full">
-                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                                <Pie data={filteredPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
+                                <Pie data={filteredPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} labelLine={false} paddingAngle={2}>
                                     {filteredPieData.map((entry) => (
                                         <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                     ))}
@@ -268,7 +249,6 @@ export function DashboardPage() {
                                     content={<ChartLegendContent nameKey="name" className="flex-wrap" />}
                                     />
                             </PieChart>
-                         </ResponsiveContainer>
                        </ChartContainer>
                     </CardContent>
                 </Card>
@@ -276,5 +256,3 @@ export function DashboardPage() {
         </div>
     );
 }
-
-    
