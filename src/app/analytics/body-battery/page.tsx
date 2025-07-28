@@ -8,6 +8,7 @@ import { ArrowLeft, BatteryFull, PlusCircle, MinusCircle } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
+// TODO: Replace with real data from a service (e.g., fetching daily body battery history)
 const chartData = [
   { time: '00:00', value: 80 },
   { time: '03:00', value: 95 },

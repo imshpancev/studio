@@ -8,6 +8,7 @@ import { ArrowLeft, HeartCrack, TrendingDown, Coffee, Moon } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
+// TODO: Replace with real data from a service (e.g., fetching daily stress history)
 const chartData = [
   { time: '09:00', value: 30 },
   { time: '10:00', value: 45, event: 'Встреча' },

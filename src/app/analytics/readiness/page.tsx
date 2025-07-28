@@ -8,6 +8,7 @@ import { ArrowLeft, Smile, Activity, Moon, HeartPulse } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
+// TODO: Replace with real data from a service (e.g., fetching daily readiness history)
 const chartData = [
   { date: '2024-07-22', readiness: 75 },
   { date: '2024-07-23', readiness: 82 },

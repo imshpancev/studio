@@ -9,6 +9,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 
+// TODO: Replace with real data from a service (e.g., fetching weekly load history)
 const chartData = [
   { date: 'Неделя -3', acute: 250, chronic: 200, ratio: 1.25 },
   { date: 'Неделя -2', acute: 300, chronic: 225, ratio: 1.33 },
