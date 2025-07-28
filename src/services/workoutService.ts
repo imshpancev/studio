@@ -40,10 +40,11 @@ export interface WorkoutWithUser extends Workout {
  */
 export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>): Promise<string> {
     try {
-        const docRef = await addDoc(collection(db, 'workouts'), {
+        const dataToSave = {
             ...workoutData,
             createdAt: serverTimestamp(),
-        });
+        };
+        const docRef = await addDoc(collection(db, 'workouts'), dataToSave);
         return docRef.id;
     } catch (error) {
         console.error("Error adding workout document: ", error);

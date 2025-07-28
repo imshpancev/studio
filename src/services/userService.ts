@@ -130,19 +130,24 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
             email: email,
             username: `@user_${userId.substring(0, 8)}`
         };
-        await setDoc(userDocRef, newProfile);
+        // We will create the document via updateUserProfile on onboarding
         return newProfile;
     }
 }
 
 /**
- * Updates a user's profile in Firestore.
+ * Creates or updates a user's profile in Firestore.
  * @param userId The UID of the user.
  * @param data The partial profile data to update.
  */
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
-    await setDoc(userDocRef, data, { merge: true });
+    // Ensure the userId is always part of the document data for rule validation
+    const dataToSave = {
+        ...data,
+        uid: userId,
+    };
+    await setDoc(userDocRef, dataToSave, { merge: true });
 }
 
 
