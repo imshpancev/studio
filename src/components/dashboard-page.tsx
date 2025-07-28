@@ -153,7 +153,7 @@ export function DashboardPage() {
                         <CardDescription>Соотношение времени по видам спорта</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[240px] flex flex-col items-center justify-center">
-                        <ChartContainer config={pieChartConfig} className="h-[150px] w-[250px]">
+                        <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Tooltip content={<ChartTooltipContent nameKey="name" />} />
@@ -162,12 +162,10 @@ export function DashboardPage() {
                                             <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                         ))}
                                     </Pie>
+                                    <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </ChartContainer>
-                        <div className="w-full mt-4">
-                             <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center"/>} payload={pieChartData} />
-                        </div>
                     </CardContent>
                 </Card>
             </div>
