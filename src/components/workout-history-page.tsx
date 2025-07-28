@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 // Mock data for workout history
 const historyItems = [
@@ -54,17 +55,27 @@ const historyItems = [
     },
 ];
 
-
 export function WorkoutHistoryPage() {
+    const router = useRouter();
+
+    const handleViewDetails = (item: any) => {
+        const itemQuery = encodeURIComponent(JSON.stringify(item));
+        router.push(`/history/${item.id}?data=${itemQuery}`);
+    };
+
     return (
          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><History className="w-6 h-6" />История тренировок</CardTitle>
-              <CardDescription>Здесь хранятся все ваши завершенные тренировки.</CardDescription>
+              <CardDescription>Здесь хранятся все ваши завершенные тренировки. Нажмите на тренировку, чтобы просмотреть детали.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {historyItems.map((item) => (
-                    <Card key={item.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
+                    <Card 
+                        key={item.id} 
+                        className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => handleViewDetails(item)}
+                    >
                         <div className="p-3 rounded-full bg-muted">
                            {item.icon}
                         </div>

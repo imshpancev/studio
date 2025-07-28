@@ -4,7 +4,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Loader2, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generatePlanAction } from '@/app/actions';
-import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
+import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
@@ -24,7 +24,7 @@ import { Slider } from './ui/slider';
 
 
 const formSchema = z.object({
-  // Assume user profile data (gender, age, weight, height) is fetched from a profile context
+  // User profile data (gender, age, weight, height) is now passed separately
   sportPreferences: z.array(z.string()).nonempty({ message: "Пожалуйста, выберите хотя бы один вид спорта." }),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
   workoutDaysPerWeek: z.number().min(1).max(7),
@@ -38,10 +38,11 @@ const formSchema = z.object({
 });
 
 type GeneratePlanFormProps = {
-  onPlanGenerated: (data: GenerateWorkoutPlanOutput | null) => void;
+  onPlanGenerated: (data: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => void;
+  existingPlanInput?: GenerateWorkoutPlanInput | null;
 };
 
-export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
+export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: GeneratePlanFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   // In a real app, you'd fetch this from a user context or API
@@ -68,6 +69,18 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
     },
   });
 
+  // Populate form with existing plan data if available
+  useEffect(() => {
+    if (existingPlanInput) {
+        const sportPrefs = existingPlanInput.sportPreferences.split(',').map(s => s.trim());
+        form.reset({
+            ...existingPlanInput,
+            sportPreferences: sportPrefs, // Ensure it's an array for the form
+        });
+    }
+  }, [existingPlanInput, form]);
+
+
   const sportPreferences = form.watch('sportPreferences');
   const showEquipmentSelector = useMemo(() => {
     if (!sportPreferences) return false;
@@ -77,17 +90,17 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    onPlanGenerated(null); // Clear previous plan
+    onPlanGenerated(null, null); // Clear previous plan
     try {
       // Merge form values with the static user profile data
-      const fullInput = {
+      const fullInput: GenerateWorkoutPlanInput = {
         ...userProfile,
         ...values,
         sportPreferences: values.sportPreferences.join(', '), // Convert array to string for the flow
       };
 
       const result = await generatePlanAction(fullInput);
-      onPlanGenerated(result);
+      onPlanGenerated(result, fullInput);
       toast({
         title: 'Успех!',
         description: 'Ваш новый план тренировок был сгенерирован.',

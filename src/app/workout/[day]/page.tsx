@@ -1,15 +1,16 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square } from "lucide-react";
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type Exercise } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
-
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { WorkoutSummary } from "@/components/workout-summary";
 
 type WorkoutPageProps = {
     params: {
@@ -30,6 +31,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
   const [calories, setCalories] = useState(0);
   const [heartRate, setHeartRate] = useState(75); // Start with a resting-ish heart rate
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
   
   // For gym workouts
   const [isResting, setIsResting] = useState(false);
@@ -49,14 +51,13 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
         setTime(prevTime => prevTime + 1);
         
         // Simulate calorie burn and heart rate changes
-        if (time > 0 && time % 10 === 0) {
-            setCalories(c => c + (sport === 'Бег' ? 10 : 5));
-        }
+        setCalories(c => c + (sport === 'Бег' ? 0.15 : 0.08));
         setHeartRate(hr => {
             const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
             const baseHr = sport === 'Бег' ? 145 : 120;
-            const newHr = hr + variation;
-            return Math.min(Math.max(newHr, 60), 180); // Keep HR in a reasonable range
+            const targetHr = isResting ? hr - 5 : baseHr + Math.sin(time / 60) * 10;
+            const newHr = Math.max(60, Math.min(180, targetHr + variation)); // Keep HR in a reasonable range
+            return Math.round(newHr);
         });
         
         // Simulate pace changes for running
@@ -65,7 +66,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                 const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
                 const newCurrent = p.current + paceVariation;
                 const newAverage = ((p.average * (time - 1)) + newCurrent) / time;
-                return { current: newCurrent, average: Math.round(newAverage) };
+                return { current: Math.round(newCurrent), average: Math.round(newAverage) };
             });
         }
 
@@ -74,13 +75,13 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time, sport]);
+  }, [isActive, time, sport, isResting]);
 
 
   // Rest timer effect
    useEffect(() => {
     let restInterval: NodeJS.Timeout | null = null;
-    if (isResting && restTime > 0) {
+    if (isResting && restTime > 0 && isActive) {
       restInterval = setInterval(() => {
         setRestTime(prev => prev - 1);
       }, 1000);
@@ -92,21 +93,22 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
     return () => {
       if (restInterval) clearInterval(restInterval);
     };
-  }, [isResting, restTime]);
+  }, [isResting, restTime, isActive]);
 
 
   const toggleTimer = () => setIsActive(!isActive);
   
   const finishWorkout = () => {
-    // Here you would save the workout to history
-    router.push('/');
+    setIsActive(false);
+    setIsFinished(true);
   };
 
   const formatTime = (seconds: number) => {
-    const getSeconds = `0${(seconds % 60)}`.slice(-2);
-    const minutes = `${Math.floor(seconds / 60)}`;
+    const s = Math.floor(seconds);
+    const getSeconds = `0${(s % 60)}`.slice(-2);
+    const minutes = `${Math.floor(s / 60)}`;
     const getMinutes = `0${parseInt(minutes, 10) % 60}`.slice(-2);
-    const getHours = `0${Math.floor(seconds / 3600)}`.slice(-2);
+    const getHours = `0${Math.floor(s / 3600)}`.slice(-2);
     return `${getHours}:${getMinutes}:${getSeconds}`;
   };
   
@@ -147,6 +149,20 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
     return { name: "Максимум", color: "bg-red-500", percentage: (heartRate/200)*100 };
   }, [heartRate]);
 
+  if (isFinished) {
+      const summary = {
+          title: `Тренировка: ${day}`,
+          sport: sport,
+          duration: formatTime(time),
+          calories: Math.round(calories),
+          avgPace: sport === 'Бег' ? formatPace(pace.average) : undefined,
+          distance: sport === 'Бег' ? (time / pace.average * 1000 / 1000).toFixed(2) + ' км' : undefined,
+          avgHeartRate: Math.round(heartRate),
+      };
+      return <WorkoutSummary summary={summary} />;
+  }
+
+
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <main className="container mx-auto px-4 py-8 md:py-12">
@@ -169,7 +185,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Flame /> Калории</p>
-                            <p className="text-2xl font-bold">{calories}</p>
+                            <p className="text-2xl font-bold">{Math.round(calories)}</p>
                         </div>
                          <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><HeartPulse /> Пульс</p>
@@ -203,7 +219,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                     {sport !== 'Бег' && currentExercise && !isResting && (
                          <Card className="bg-muted">
                             <CardHeader>
-                                <CardTitle className="text-xl">{currentExercise.name}</CardTitle>
+                                <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
                                 <CardDescription>{currentExercise.details}</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -224,8 +240,8 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
 
 
                     <div className="flex justify-center gap-4">
-                        <Button onClick={toggleTimer} size="lg" className="w-28">
-                            {isActive ? 'Пауза' : 'Старт'}
+                        <Button onClick={toggleTimer} size="lg" className="w-28" variant="secondary">
+                            {isActive ? <><Pause className="mr-2"/>Пауза</> : <><Play className="mr-2"/>Старт</>}
                         </Button>
 
                         {sport === 'Бег' ? (
@@ -233,14 +249,32 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                                 <Flag className="mr-2 h-4 w-4" /> Круг
                             </Button>
                         ) : (
-                           <Button onClick={handleFinishSet} variant="outline" size="lg" disabled={isResting}>
-                                <Repeat className="mr-2 h-4 w-4" /> Подход
+                           <Button onClick={isResting ? () => handleNextExercise() : handleFinishSet} variant="outline" size="lg" disabled={!isActive}>
+                                {isResting ? <SkipForward className="mr-2 h-4 w-4" /> : <Repeat className="mr-2 h-4 w-4" />}
+                                {isResting ? 'Пропустить' : 'Подход'}
                            </Button>
                         )}
 
-                        <Button onClick={finishWorkout} variant="destructive" size="lg">
-                            Завершить
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="lg">
+                                <Square className="mr-2"/>Завершить
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Вы действительно хотите завершить тренировку? Это действие нельзя будет отменить.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Отмена</AlertDialogCancel>
+                              <AlertDialogAction onClick={finishWorkout}>Завершить</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
                     </div>
 
                 </CardContent>

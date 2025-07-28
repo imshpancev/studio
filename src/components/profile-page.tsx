@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const profileSchema = z.object({
@@ -57,6 +57,15 @@ export function ProfilePage() {
       title: 'Профиль обновлен!',
       description: 'Ваши данные были успешно сохранены.',
     });
+  }
+
+  function handleLogout() {
+     toast({
+      title: 'Вы вышли из системы',
+      description: 'Вы будете перенаправлены на главную страницу.',
+    });
+    // In a real app, you would handle actual logout logic here
+    // and redirect the user.
   }
 
   return (
@@ -163,6 +172,12 @@ export function ProfilePage() {
             </form>
           </Form>
         </CardContent>
+         <CardFooter className="border-t pt-6 mt-6">
+            <Button variant="destructive" onClick={handleLogout}>
+                <LogOut className="mr-2" />
+                Выход
+            </Button>
+         </CardFooter>
        </Card>
     </div>
   );
