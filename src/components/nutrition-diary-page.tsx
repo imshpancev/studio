@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Flame, PlusCircle, Camera } from "lucide-react";
+import { Flame, PlusCircle, Camera, History } from "lucide-react";
 import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { WaterIntakeCard } from './water-intake-card';
 
 const MealCard = ({ title, meals, onAddMeal }: { title: string, meals: any[], onAddMeal: (meal: any) => void }) => {
     const [mealName, setMealName] = useState('');
@@ -77,38 +79,60 @@ export function NutritionDiaryPage() {
     const progress = (totalCalories / calorieGoal) * 100;
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Дневник питания</CardTitle>
-                    <CardDescription>Отслеживайте свое питание, чтобы достигать фитнес-целей.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex justify-between font-medium">
-                            <span>Цель по калориям</span>
-                            <span>{totalCalories.toLocaleString()} / {calorieGoal.toLocaleString()} ккал</span>
-                        </div>
-                        <Progress value={progress} />
-                    </div>
-                     <div className="flex items-center gap-2">
-                        <Input 
-                            type="number" 
-                            value={calorieGoal} 
-                            onChange={(e) => setCalorieGoal(Number(e.target.value))}
-                            className="w-full"
-                        />
-                         <Button>Установить цель</Button>
-                    </div>
-                </CardContent>
-            </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Дневник питания</CardTitle>
+                <CardDescription>Отслеживайте свое питание и потребление воды, чтобы достигать фитнес-целей.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Tabs defaultValue="today" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="today">Сегодня</TabsTrigger>
+                        <TabsTrigger value="history" className="gap-2"><History />История</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="today" className="mt-4 space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Калории</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between font-medium">
+                                        <span>Цель по калориям</span>
+                                        <span>{totalCalories.toLocaleString()} / {calorieGoal.toLocaleString()} ккал</span>
+                                    </div>
+                                    <Progress value={progress} />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Input 
+                                        type="number" 
+                                        value={calorieGoal} 
+                                        onChange={(e) => setCalorieGoal(Number(e.target.value))}
+                                        className="w-full"
+                                    />
+                                    <Button>Установить цель</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <WaterIntakeCard />
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MealCard title="Завтрак" meals={breakfast} onAddMeal={(meal) => setBreakfast(prev => [...prev, meal])} />
-                <MealCard title="Обед" meals={lunch} onAddMeal={(meal) => setLunch(prev => [...prev, meal])} />
-                <MealCard title="Ужин" meals={dinner} onAddMeal={(meal) => setDinner(prev => [...prev, meal])} />
-                <MealCard title="Перекусы" meals={snacks} onAddMeal={(meal) => setSnacks(prev => [...prev, meal])} />
-            </div>
-        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <MealCard title="Завтрак" meals={breakfast} onAddMeal={(meal) => setBreakfast(prev => [...prev, meal])} />
+                            <MealCard title="Обед" meals={lunch} onAddMeal={(meal) => setLunch(prev => [...prev, meal])} />
+                            <MealCard title="Ужин" meals={dinner} onAddMeal={(meal) => setDinner(prev => [...prev, meal])} />
+                            <MealCard title="Перекусы" meals={snacks} onAddMeal={(meal) => setSnacks(prev => [...prev, meal])} />
+                        </div>
+                    </TabsContent>
+                     <TabsContent value="history" className="mt-4">
+                       <Card>
+                           <CardContent className="p-8 text-center text-muted-foreground">
+                               <p>История вашего питания будет отображаться здесь.</p>
+                           </CardContent>
+                       </Card>
+                    </TabsContent>
+                </Tabs>
+            </CardContent>
+        </Card>
     );
 }

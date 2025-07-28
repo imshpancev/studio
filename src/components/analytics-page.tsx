@@ -2,12 +2,11 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BatteryFull, Activity, ShieldCheck, HeartCrack, Smile, Moon, Calendar, Clock, Zap, Footprints, Trophy, PersonStanding } from "lucide-react";
+import { BatteryFull, Activity, ShieldCheck, HeartCrack, Smile, Moon, Calendar, Clock, Zap, Footprints, Trophy, PersonStanding, Flame, Droplets, TrendingDown, TrendingUp } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { WaterIntakeCard } from "./water-intake-card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -191,6 +190,37 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
 
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                     <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Баланс калорий</CardTitle>
+                            <Flame className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                             <div className="text-2xl font-bold text-green-500">+ 350 ккал</div>
+                             <p className="text-xs text-muted-foreground">Потрачено: 2200, Потреблено: 1850</p>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Потреблено калорий</CardTitle>
+                             <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                             <div className="text-2xl font-bold">1850 / 2500 ккал</div>
+                             <p className="text-xs text-muted-foreground">Факт / План</p>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Потрачено калорий</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                             <div className="text-2xl font-bold">2200 ккал</div>
+                             <p className="text-xs text-muted-foreground">Активные: 550, В покое: 1650</p>
+                        </CardContent>
+                    </Card>
+
                     <Card onClick={() => handleCardClick('readiness')} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Готовность к тренировке</CardTitle>
@@ -267,10 +297,6 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <p className="text-xs text-muted-foreground">На основе вариабельности сердечного ритма</p>
                         </CardContent>
                     </Card>
-
-                    <div className="lg:col-span-3">
-                        <WaterIntakeCard />
-                    </div>
                 </div>
             </TabsContent>
             <TabsContent value="composition">
