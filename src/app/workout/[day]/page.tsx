@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from 'next/navigation';
-import type { Exercise, Sport } from "@/lib/workout-data";
+import { type Exercise, Sport } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WorkoutSummary } from "@/components/workout-summary";
