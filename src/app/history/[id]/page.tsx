@@ -4,7 +4,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart } from 'lucide-react';
 
 export default function HistoryDetailPage() {
     const router = useRouter();
@@ -41,14 +41,14 @@ export default function HistoryDetailPage() {
                              </div>
                              <div className="p-3 rounded-full bg-muted hidden sm:block">
                                  {/* This is a hack because we can't pass JSX elements as query params */}
-                                 {item.type === 'Бег' && <Map className="h-8 w-8 text-blue-500" />}
-                                 {item.type === 'Тренажерный зал' && <Dumbbell className="h-8 w-8 text-red-500" />}
-                                 {item.type === 'Йога' && <Zap className="h-8 w-8 text-purple-500" />}
+                                 {item.type === 'Бег' && <Map className="h-8 w-8 text-primary" />}
+                                 {item.type === 'Тренажерный зал' && <Dumbbell className="h-8 w-8 text-destructive" />}
+                                 {item.type === 'Йога' && <Zap className="h-8 w-8 text-accent" />}
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <dl className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                             <div className="rounded-lg bg-muted p-4">
                                 <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Clock/>Время</dt>
                                 <dd className="mt-1 text-xl font-semibold">{item.duration}</dd>
@@ -57,6 +57,11 @@ export default function HistoryDetailPage() {
                                 <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Flame/>Калории</dt>
                                 <dd className="mt-1 text-xl font-semibold">{item.calories} ккал</dd>
                             </div>
+                            <div className="rounded-lg bg-muted p-4">
+                                <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><HeartPulse/>Средний пульс</dt>
+                                <dd className="mt-1 text-xl font-semibold">{item.avgHeartRate || 'N/A'} уд/мин</dd>
+                            </div>
+
                             {item.distance && (
                                 <div className="rounded-lg bg-muted p-4">
                                     <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Map/>Дистанция</dt>
@@ -65,17 +70,17 @@ export default function HistoryDetailPage() {
                             )}
                             {item.avgPace && (
                                 <div className="rounded-lg bg-muted p-4">
-                                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Zap/>Сред. темп</dt>
+                                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><TrendingUp/>Сред. темп</dt>
                                     <dd className="mt-1 text-xl font-semibold">{item.avgPace}</dd>
                                 </div>
                             )}
                              {item.volume && (
-                                <div className="rounded-lg bg-muted p-4 col-span-2 md:col-span-1">
-                                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Dumbbell/>Объем</dt>
+                                <div className="rounded-lg bg-muted p-4">
+                                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><BarChart/>Объем</dt>
                                     <dd className="mt-1 text-xl font-semibold">{item.volume}</dd>
                                 </div>
                             )}
-                        </div>
+                        </dl>
                         
                         {item.type === 'Бег' && (
                             <div>

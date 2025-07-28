@@ -24,7 +24,7 @@ import { auth } from "@/lib/firebase";
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
-  const [activeTab, setActiveTab] = useState("my-plan");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -40,6 +40,7 @@ export default function Home() {
         localStorage.removeItem('workoutPlanInput');
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
+        setActiveTab("dashboard");
       }
     });
     return () => unsubscribe(); // Unsubscribe on cleanup
@@ -83,6 +84,15 @@ export default function Home() {
       localStorage.removeItem('workoutPlanInput');
     }
   };
+  
+  const handlePlanFinished = () => {
+    setWorkoutPlan(null);
+    setWorkoutPlanInput(null);
+    localStorage.removeItem('workoutPlan');
+    localStorage.removeItem('workoutPlanInput');
+    setIsEditingPlan(false);
+    setActiveTab('my-plan'); 
+  }
 
   const handleStartEditing = () => {
     setIsEditingPlan(true);
@@ -127,17 +137,17 @@ export default function Home() {
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
-            <TabsTrigger value="my-plan" className="gap-2">
-              <CalendarCheck className="h-5 w-5" /> Мой план
-            </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
+            </TabsTrigger>
+            <TabsTrigger value="my-plan" className="gap-2">
+              <CalendarCheck className="h-5 w-5" /> Мой план
             </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
               <History className="h-5 w-5" /> История
             </TabsTrigger>
-            <TabsTrigger value="analyze-feedback" className="gap-2">
-              <BarChart3 className="h-5 w-5" /> Анализ
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-5 w-5" /> Аналитика
             </TabsTrigger>
             <TabsTrigger value="maps" className="gap-2">
               <Map className="h-5 w-5" /> Карты
@@ -147,6 +157,10 @@ export default function Home() {
             </TabsTrigger>
           </TabsList>
           
+          <TabsContent value="dashboard">
+            <DashboardPage />
+          </TabsContent>
+
           <TabsContent value="my-plan">
              {isEditingPlan || !workoutPlan ? (
                 <Card>
@@ -168,19 +182,16 @@ export default function Home() {
                   workoutPlan={workoutPlan} 
                   onGeneratePlan={() => setIsEditingPlan(true)}
                   onEditPlan={handleStartEditing}
+                  onFinishPlan={handlePlanFinished}
                 />
              )}
           </TabsContent>
 
-          <TabsContent value="dashboard">
-            <DashboardPage />
-          </TabsContent>
-          
           <TabsContent value="history">
             <WorkoutHistoryPage />
           </TabsContent>
 
-          <TabsContent value="analyze-feedback">
+          <TabsContent value="analytics">
             <AnalyticsPage />
           </TabsContent>
 

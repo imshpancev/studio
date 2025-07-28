@@ -4,18 +4,21 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2 } from 'lucide-react';
+import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2, TrendingUp, BarChart, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type WorkoutSummaryProps = {
   summary: {
     title: string;
-    sport: string;
+    type: string;
+    date: string;
     duration: string;
     calories: number;
     distance?: string;
     avgPace?: string;
     avgHeartRate?: number;
+    peakHeartRate?: number;
+    volume?: string;
   };
 };
 
@@ -29,7 +32,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
         title: "Тренировка сохранена!",
         description: "Отличная работа! Ваши результаты добавлены в историю.",
     });
-    router.push('/');
+    router.push('/?tab=history'); // Redirect to history tab
   };
 
   const handleShare = () => {
@@ -48,33 +51,47 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
           <CardTitle className="mt-4 text-2xl">Отличная работа!</CardTitle>
           <CardDescription>Вы завершили тренировку: {summary.title}</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-center">
-            <div className="rounded-lg bg-muted p-4">
-                <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Clock/>Время</dt>
-                <dd className="mt-1 text-2xl font-semibold">{summary.duration}</dd>
-            </div>
-             <div className="rounded-lg bg-muted p-4">
-                <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Flame/>Калории</dt>
-                <dd className="mt-1 text-2xl font-semibold">{summary.calories} ккал</dd>
-            </div>
-            {summary.distance && (
-                 <div className="rounded-lg bg-muted p-4">
-                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><MapPin/>Дистанция</dt>
-                    <dd className="mt-1 text-2xl font-semibold">{summary.distance}</dd>
+        <CardContent>
+            <dl className="grid grid-cols-2 gap-4 text-center">
+                <div className="rounded-lg bg-muted p-4">
+                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Clock/>Время</dt>
+                    <dd className="mt-1 text-2xl font-semibold">{summary.duration}</dd>
                 </div>
-            )}
-            {summary.avgPace && (
-                 <div className="rounded-lg bg-muted p-4">
-                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Clock/>Сред. темп</dt>
-                    <dd className="mt-1 text-2xl font-semibold">{summary.avgPace}</dd>
+                <div className="rounded-lg bg-muted p-4">
+                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Flame/>Калории</dt>
+                    <dd className="mt-1 text-2xl font-semibold">{summary.calories} ккал</dd>
                 </div>
-            )}
-            {summary.avgHeartRate && (
-                 <div className="rounded-lg bg-muted p-4 col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><HeartPulse/>Сред. пульс</dt>
-                    <dd className="mt-1 text-2xl font-semibold">{summary.avgHeartRate} уд/мин</dd>
-                </div>
-            )}
+                {summary.avgHeartRate && (
+                    <div className="rounded-lg bg-muted p-4">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><HeartPulse/>Сред. пульс</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.avgHeartRate} уд/мин</dd>
+                    </div>
+                )}
+                 {summary.peakHeartRate && (
+                    <div className="rounded-lg bg-muted p-4">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Zap/>Пик. пульс</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.peakHeartRate} уд/мин</dd>
+                    </div>
+                )}
+                {summary.distance && (
+                    <div className="rounded-lg bg-muted p-4">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><MapPin/>Дистанция</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.distance}</dd>
+                    </div>
+                )}
+                {summary.avgPace && (
+                    <div className="rounded-lg bg-muted p-4">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><TrendingUp/>Сред. темп</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.avgPace}</dd>
+                    </div>
+                )}
+                {summary.volume && (
+                    <div className="rounded-lg bg-muted p-4 col-span-2">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><BarChart/>Объем</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.volume}</dd>
+                    </div>
+                )}
+            </dl>
         </CardContent>
         <CardFooter className="flex justify-between gap-4 pt-6">
           <Button variant="outline" onClick={handleShare} className='w-full'>

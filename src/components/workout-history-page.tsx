@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History, HeartPulse, TrendingUp, BarChart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +17,8 @@ const historyItems = [
         distance: "7.5 км",
         avgPace: "6'01\"/км",
         calories: 450,
-        icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue"
+        avgHeartRate: 155,
+        icon: <Map className="h-6 w-6 text-primary" />,
     },
     {
         id: 2,
@@ -28,8 +28,8 @@ const historyItems = [
         duration: "01:10:30",
         volume: "3500 кг",
         calories: 300,
-        icon: <Dumbbell className="h-6 w-6 text-red-500" />,
-        color: "red"
+        avgHeartRate: 130,
+        icon: <Dumbbell className="h-6 w-6 text-destructive" />,
     },
     {
         id: 3,
@@ -38,8 +38,8 @@ const historyItems = [
         date: "2024-07-26",
         duration: "00:55:00",
         calories: 150,
-        icon: <Zap className="h-6 w-6 text-purple-500" />,
-        color: "purple"
+        avgHeartRate: 105,
+        icon: <Zap className="h-6 w-6 text-accent" />,
     },
     {
         id: 4,
@@ -50,10 +50,20 @@ const historyItems = [
         distance: "5.0 км",
         avgPace: "5'30\"/км",
         calories: 380,
-        icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue"
+        avgHeartRate: 168,
+        icon: <Map className="h-6 w-6 text-primary" />,
     },
 ];
+
+const getSportIcon = (type: string) => {
+    switch (type) {
+        case 'Бег': return <Map className="h-6 w-6 text-primary" />;
+        case 'Тренажерный зал': return <Dumbbell className="h-6 w-6 text-destructive" />;
+        case 'Йога': return <Zap className="h-6 w-6 text-accent" />;
+        default: return <History className="h-6 w-6" />;
+    }
+}
+
 
 export function WorkoutHistoryPage() {
     const router = useRouter();
@@ -73,26 +83,29 @@ export function WorkoutHistoryPage() {
                 {historyItems.map((item) => (
                     <Card 
                         key={item.id} 
-                        className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                        className="p-4 flex flex-col sm:flex-row items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer"
                         onClick={() => handleViewDetails(item)}
                     >
                         <div className="p-3 rounded-full bg-muted">
-                           {item.icon}
+                           {getSportIcon(item.type)}
                         </div>
-                        <div className="flex-1 space-y-1">
-                            <div className="flex justify-between items-center">
-                                <h3 className="font-semibold">{item.title}</h3>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" /> {new Date(item.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
-                                </p>
+                        <div className="flex-1 space-y-2">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="font-semibold">{item.title}</h3>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" /> {new Date(item.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                <Badge variant="outline" className="hidden sm:inline-flex">{item.type}</Badge>
                             </div>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                                <Badge variant="outline">{item.type}</Badge>
-                                <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {item.duration}</div>
-                                <div className="flex items-center gap-1"><Flame className="h-4 w-4" /> {item.calories} ккал</div>
-                                {item.distance && <div className="flex items-center gap-1"><Map className="h-4 w-4" /> {item.distance}</div>}
-                                {item.avgPace && <div className="flex items-center gap-1"><Zap className="h-4 w-4" /> {item.avgPace}</div>}
-                                {item.volume && <div className="flex items-center gap-1"><Dumbbell className="h-4 w-4" /> {item.volume}</div>}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-sm text-muted-foreground pt-2 border-t mt-2">
+                                <div className="flex items-center gap-1" title="Длительность"><Clock className="h-4 w-4" /> {item.duration}</div>
+                                <div className="flex items-center gap-1" title="Сожжено калорий"><Flame className="h-4 w-4" /> {item.calories} ккал</div>
+                                <div className="flex items-center gap-1" title="Средний пульс"><HeartPulse className="h-4 w-4" /> {item.avgHeartRate} уд/мин</div>
+                                {item.distance && <div className="flex items-center gap-1" title="Дистанция"><Map className="h-4 w-4" /> {item.distance}</div>}
+                                {item.avgPace && <div className="flex items-center gap-1" title="Средний темп"><TrendingUp className="h-4 w-4" /> {item.avgPace}</div>}
+                                {item.volume && <div className="flex items-center gap-1" title="Объем тренировки"><BarChart className="h-4 w-4" /> {item.volume}</div>}
                             </div>
                         </div>
                     </Card>
@@ -100,7 +113,8 @@ export function WorkoutHistoryPage() {
 
                 {historyItems.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
-                        <p>У вас еще нет завершенных тренировок.</p>
+                        <History className="h-12 w-12 mx-auto mb-4" />
+                        <p className="font-semibold">История пуста</p>
                         <p>Завершите тренировку из вашего плана, и она появится здесь.</p>
                     </div>
                 )}

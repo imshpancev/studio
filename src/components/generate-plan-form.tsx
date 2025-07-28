@@ -5,7 +5,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState, useMemo, useEffect } from 'react';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, CalendarIcon } from 'lucide-react';
+import { format } from "date-fns"
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -21,6 +22,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { allEquipment, allSports, Sport, sportsWithEquipment } from '@/lib/workout-data';
 import { Slider } from './ui/slider';
+import { Calendar } from './ui/calendar';
 
 
 const formSchema = z.object({
@@ -31,11 +33,26 @@ const formSchema = z.object({
   availableEquipment: z.array(z.string()),
   workoutHistory: z.string().min(1, 'История тренировок обязательна.'),
   goals: z.string().min(1, 'Пожалуйста, опишите свои фитнес-цели.'),
+  
+  // Optional fields
   workoutDifficultyFeedback: z.string().optional(),
-  upcomingCompetitionReference: z.string().optional(),
+  
+  // Competition fields (now more structured)
+  competitionGoal: z.enum(['none', '5k', '10k', 'halfMarathon', 'marathon']).optional(),
+  competitionDate: z.date().optional(),
+
   healthDataFromWearables: z.string().optional(),
   exerciseContraindications: z.string().optional(),
+}).refine(data => {
+    if (data.competitionGoal && data.competitionGoal !== 'none' && !data.competitionDate) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Пожалуйста, выберите дату для вашего соревнования",
+    path: ["competitionDate"],
 });
+
 
 type GeneratePlanFormProps = {
   onPlanGenerated: (data: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => void;
@@ -63,7 +80,8 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
       workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года. В основном силовые тренировки.',
       goals: 'Нарастить мышечную массу',
       workoutDifficultyFeedback: '',
-      upcomingCompetitionReference: '',
+      competitionGoal: 'none',
+      competitionDate: undefined,
       healthDataFromWearables: 'Средний пульс в покое: 60 ударов в минуту, Средний сон: 7 часов',
       exerciseContraindications: '',
     },
@@ -73,9 +91,26 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
   useEffect(() => {
     if (existingPlanInput) {
         const sportPrefs = existingPlanInput.sportPreferences.split(',').map(s => s.trim());
+        
+        let competitionData: any = {};
+        if (existingPlanInput.upcomingCompetitionReference) {
+            const competitionString = existingPlanInput.upcomingCompetitionReference.toLowerCase();
+            if (competitionString.includes("5к")) competitionData.competitionGoal = "5k";
+            else if (competitionString.includes("10к")) competitionData.competitionGoal = "10k";
+            else if (competitionString.includes("полумарафон")) competitionData.competitionGoal = "halfMarathon";
+            else if (competitionString.includes("марафон")) competitionData.competitionGoal = "marathon";
+            // A more robust date parsing would be needed for production
+            // This is a simple example
+            const dateMatch = existingPlanInput.upcomingCompetitionReference.match(/(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) {
+                competitionData.competitionDate = new Date(dateMatch[1]);
+            }
+        }
+
         form.reset({
             ...existingPlanInput,
             sportPreferences: sportPrefs, // Ensure it's an array for the form
+            ...competitionData
         });
     }
   }, [existingPlanInput, form]);
@@ -86,17 +121,34 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
     if (!sportPreferences) return false;
     return sportPreferences.some(sport => sportsWithEquipment.includes(sport as Sport))
   }, [sportPreferences]);
+  const showCompetitionFields = useMemo(() => {
+    if (!sportPreferences) return false;
+    return sportPreferences.includes(Sport.Running);
+  }, [sportPreferences]);
   const daysPerWeek = form.watch('workoutDaysPerWeek');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     onPlanGenerated(null, null); // Clear previous plan
     try {
+
+      let upcomingCompetitionReference: string | undefined = undefined;
+      if (values.competitionGoal && values.competitionGoal !== 'none' && values.competitionDate) {
+          const goalMap = {
+              '5k': '5к',
+              '10k': '10к',
+              'halfMarathon': 'полумарафон',
+              'marathon': 'марафон'
+          }
+          upcomingCompetitionReference = `Хочу подготовиться к соревнованию: ${goalMap[values.competitionGoal]} Дата: ${format(values.competitionDate, "yyyy-MM-dd")}.`;
+      }
+
       // Merge form values with the static user profile data
       const fullInput: GenerateWorkoutPlanInput = {
         ...userProfile,
         ...values,
         sportPreferences: values.sportPreferences.join(', '), // Convert array to string for the flow
+        upcomingCompetitionReference: upcomingCompetitionReference,
       };
 
       const result = await generatePlanAction(fullInput);
@@ -342,20 +394,78 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
             </AccordionTrigger>
             <AccordionContent>
               <div className='space-y-6 pt-4'>
-                <FormField
-                  control={form.control}
-                  name="upcomingCompetitionReference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Предстоящие соревнования</FormLabel>
-                      <FormControl>
-                        <Input placeholder="например, Марафон 10 октября 2025 г." {...field} />
-                      </FormControl>
-                      <FormDescription>Расскажите нам о любых предстоящих событиях, к которым вы готовитесь.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {showCompetitionFields && (
+                    <div className="space-y-4 p-4 border rounded-lg">
+                         <p className="font-medium text-sm">Цель соревнований (для бега)</p>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="competitionGoal"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Соревнование</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите дистанцию" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">Нет цели</SelectItem>
+                                            <SelectItem value="5k">5 км</SelectItem>
+                                            <SelectItem value="10k">10 км</SelectItem>
+                                            <SelectItem value="halfMarathon">Полумарафон (21.1 км)</SelectItem>
+                                            <SelectItem value="marathon">Марафон (42.2 км)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="competitionDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Дата соревнования</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP")
+                                                ) : (
+                                                    <span>Выберите дату</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                    date < new Date() || date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                         </div>
+                    </div>
+                )}
                  <FormField
                   control={form.control}
                   name="healthDataFromWearables"
@@ -406,7 +516,7 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
         
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isLoading ? 'Создание плана...' : 'Создать план тренировок'}
+          {isLoading ? 'Создание плана...' : existingPlanInput ? 'Обновить мой план' : 'Создать план тренировок' }
         </Button>
       </form>
     </Form>

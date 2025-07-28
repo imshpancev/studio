@@ -11,8 +11,8 @@ import type { Exercise } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WorkoutSummary } from "@/components/workout-summary";
-import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import { showWarmupNotification } from "@/lib/notifications";
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -25,21 +25,30 @@ export default function WorkoutPage() {
   
   // Overall workout state
   const [time, setTime] = useState(0);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false); // Start paused
   const [calories, setCalories] = useState(0);
   const [heartRate, setHeartRate] = useState(75); // Start with a resting-ish heart rate
+  const [peakHeartRate, setPeakHeartRate] = useState(75);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   
   // For gym workouts
   const [isResting, setIsResting] = useState(false);
   const [restTime, setRestTime] = useState(0);
+  const [totalVolume, setTotalVolume] = useState(0);
+  const [setsCompleted, setSetsCompleted] = useState(0);
 
   // For running workouts
-  const [pace, setPace] = useState({ current: 330, average: 330 }); // seconds per km
+  const [pace, setPace] = useState({ current: 360, average: 360 }); // seconds per km
   const [laps, setLaps] = useState<number[]>([]);
+  const [distance, setDistance] = useState(0); // in meters
 
   const currentExercise = exercises[currentExerciseIndex];
+
+  useEffect(() => {
+    // Show a warmup notification when the page loads
+    showWarmupNotification();
+  }, []);
 
   // Main timer effect
   useEffect(() => {
@@ -49,22 +58,29 @@ export default function WorkoutPage() {
         setTime(prevTime => prevTime + 1);
         
         // Simulate calorie burn and heart rate changes
-        setCalories(c => c + (sport === 'Бег' ? 0.15 : 0.08));
+        const intensityFactor = isResting ? 0.5 : 1;
+        setCalories(c => c + (sport === 'Бег' ? 0.15 : 0.08) * intensityFactor);
+
         setHeartRate(hr => {
             const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
             const baseHr = sport === 'Бег' ? 145 : 120;
-            const targetHr = isResting ? hr - 5 : baseHr + Math.sin(time / 60) * 10;
-            const newHr = Math.max(60, Math.min(180, targetHr + variation)); // Keep HR in a reasonable range
+            const targetHr = isResting ? Math.max(100, hr - 2) : baseHr + Math.sin(time / 60) * 15;
+            const newHr = Math.max(60, Math.min(190, targetHr + variation)); // Keep HR in a reasonable range
+            setPeakHeartRate(p_hr => Math.max(p_hr, newHr));
             return Math.round(newHr);
         });
         
-        // Simulate pace changes for running
-        if (sport === 'Бег' && time > 0 && time % 5 === 0) {
+        // Simulate pace and distance changes for running
+        if (sport === 'Бег' && time > 0) {
+            const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
+            const newCurrentPace = Math.max(240, pace.current + paceVariation); // Max pace of 4:00/km for simulation
+            const metersPerSecond = 1000 / newCurrentPace;
+            
+            setDistance(d => d + metersPerSecond);
+            
             setPace(p => {
-                const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
-                const newCurrent = p.current + paceVariation;
-                const newAverage = ((p.average * (time - 1)) + newCurrent) / time;
-                return { current: Math.round(newCurrent), average: Math.round(newAverage) };
+                const newAverage = (p.average * (time - 1) + newCurrentPace) / time;
+                return { current: Math.round(newCurrentPace), average: Math.round(newAverage) };
             });
         }
 
@@ -83,10 +99,10 @@ export default function WorkoutPage() {
       restInterval = setInterval(() => {
         setRestTime(prev => prev - 1);
       }, 1000);
-    } else if (isResting && restTime === 0) {
+    } else if (isResting && restTime <= 0) {
       setIsResting(false);
-      // Optionally move to next exercise automatically
-      handleNextExercise();
+      // Don't auto-skip, let the user decide
+      // handleNextExercise();
     }
     return () => {
       if (restInterval) clearInterval(restInterval);
@@ -112,13 +128,14 @@ export default function WorkoutPage() {
   
   const formatPace = (seconds: number) => {
       const mins = Math.floor(seconds / 60);
-      const secs = `0${seconds % 60}`.slice(-2);
+      const secs = `0${Math.round(seconds % 60)}`.slice(-2);
       return `${mins}'${secs}"`;
   }
 
   const handleNextExercise = () => {
       setIsResting(false);
       setRestTime(0);
+      setSetsCompleted(0);
       if (currentExerciseIndex < exercises.length - 1) {
           setCurrentExerciseIndex(i => i + 1);
       } else {
@@ -128,6 +145,13 @@ export default function WorkoutPage() {
   }
 
   const handleFinishSet = () => {
+      // Logic to add volume (example: 10 reps * 50kg)
+      // This is a simplification. A real app would have inputs for weight/reps.
+      const weight = 50;
+      const reps = 12;
+      setTotalVolume(v => v + (weight * reps));
+      setSetsCompleted(s => s + 1);
+
       // Example rest time of 60 seconds
       setRestTime(60);
       setIsResting(true);
@@ -149,13 +173,16 @@ export default function WorkoutPage() {
 
   if (isFinished) {
       const summary = {
-          title: `Тренировка: ${day}`,
-          sport: sport,
+          title: day,
+          date: new Date().toISOString(),
+          type: sport,
           duration: formatTime(time),
           calories: Math.round(calories),
           avgPace: sport === 'Бег' ? formatPace(pace.average) : undefined,
-          distance: sport === 'Бег' ? (time / pace.average * 1000 / 1000).toFixed(2) + ' км' : undefined,
-          avgHeartRate: Math.round(heartRate),
+          distance: sport === 'Бег' ? (distance / 1000).toFixed(2) + ' км' : undefined,
+          avgHeartRate: Math.round(time > 0 ? (heartRate / time) * time: heartRate), // simplified avg
+          peakHeartRate: peakHeartRate,
+          volume: sport === 'Тренажерный зал' ? `${totalVolume} кг` : undefined,
       };
       return <WorkoutSummary summary={summary} />;
   }
@@ -196,8 +223,8 @@ export default function WorkoutPage() {
                                     <p className="text-2xl font-bold">{formatPace(pace.current)}</p>
                                 </div>
                                 <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground">Средний темп</p>
-                                    <p className="text-2xl font-bold">{formatPace(pace.average)}</p>
+                                    <p className="text-sm text-muted-foreground">Дистанция</p>
+                                    <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
                                 </div>
                             </>
                         ) : (
@@ -218,35 +245,36 @@ export default function WorkoutPage() {
                          <Card className="bg-muted overflow-hidden">
                              <CardHeader className="pb-2">
                                  <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
-                                 <CardDescription>{currentExercise.details}</CardDescription>
+                                 <CardDescription>{currentExercise.details} (Выполнено подходов: {setsCompleted})</CardDescription>
                              </CardHeader>
                              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                <div className="relative group w-full aspect-square flex-shrink-0">
-                                    <Image
-                                        src={`https://placehold.co/400x400.png`}
-                                        data-ai-hint="exercise animation"
-                                        alt={`Анимация упражнения ${currentExercise.name}`}
-                                        width={400}
-                                        height={400}
+                                <div className="relative group w-full aspect-video flex-shrink-0">
+                                     <video 
+                                        key={currentExercise.name}
                                         className="rounded-lg object-cover w-full h-full"
-                                    />
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                        <PlayCircle className="h-12 w-12 text-white" />
-                                    </div>
+                                        autoPlay 
+                                        loop 
+                                        muted 
+                                        playsInline
+                                        // In a real app, you would have a URL for each exercise video
+                                        src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+                                    >
+                                    </video>
                                 </div>
                                 <div className="text-sm space-y-2">
                                     <h4 className="font-semibold">Техника выполнения:</h4>
-                                    <p>{currentExercise.technique}</p>
+                                    <p className="max-h-[150px] overflow-y-auto">{currentExercise.technique}</p>
                                 </div>
                              </CardContent>
                          </Card>
                     )}
 
                     {isResting && (
-                        <div className="text-center p-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <div className="text-center p-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
                             <p className="text-lg font-bold text-blue-600 dark:text-blue-400">Время отдыха!</p>
                             <p className="font-mono text-5xl mt-2">{formatTime(restTime)}</p>
-                            <Button onClick={() => handleNextExercise()} variant="ghost" size="sm" className="mt-4">
+                            <p className="text-sm text-muted-foreground mt-2">Следующее упражнение: {currentExerciseIndex + 1 < exercises.length ? exercises[currentExerciseIndex+1].name : 'Завершение'}</p>
+                            <Button onClick={() => setRestTime(0)} variant="ghost" size="sm" className="mt-4">
                                 Пропустить отдых <SkipForward className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
@@ -254,18 +282,17 @@ export default function WorkoutPage() {
 
 
                     <div className="flex justify-center gap-4">
-                        <Button onClick={toggleTimer} size="lg" className="w-28" variant="secondary">
-                            {isActive ? <><Pause className="mr-2"/>Пауза</> : <><Play className="mr-2"/>Старт</>}
+                        <Button onClick={toggleTimer} size="lg" className="w-32">
+                            {isActive ? <><Pause className="mr-2"/>Пауза</> : <><Play className="mr-2"/>{time > 0 ? 'Продолжить' : 'Старт'}</>}
                         </Button>
 
                         {sport === 'Бег' ? (
-                            <Button onClick={handleAddLap} variant="outline" size="lg">
+                            <Button onClick={handleAddLap} variant="outline" size="lg" disabled={!isActive}>
                                 <Flag className="mr-2 h-4 w-4" /> Круг
                             </Button>
                         ) : (
-                           <Button onClick={isResting ? () => handleNextExercise() : handleFinishSet} variant="outline" size="lg" disabled={!isActive}>
-                                {isResting ? <SkipForward className="mr-2 h-4 w-4" /> : <Repeat className="mr-2 h-4 w-4" />}
-                                {isResting ? 'Пропустить' : 'Подход'}
+                           <Button onClick={isResting ? () => handleNextExercise() : handleFinishSet} variant="outline" size="lg" disabled={!isActive} className="w-32">
+                                {isResting ? <><SkipForward className="mr-2 h-4 w-4" /> Далее</> : <><Repeat className="mr-2 h-4 w-4" /> Подход</>}
                            </Button>
                         )}
 
