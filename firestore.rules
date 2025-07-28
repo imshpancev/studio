@@ -2,36 +2,28 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can update/delete their own profile.
-    // Any authenticated user can read any profile (for social features like feed/leaderboards).
-    // Any authenticated user can create their own profile document.
+    // Users can read any profile, but only write to their own.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
+
+      // Users can manage their own subcollections (nutrition, water, etc.)
+      match /{subcollection}/{docId} {
+        allow read, write, delete: if request.auth.uid == userId;
+      }
     }
 
-    // Allow users to manage their own subcollections (meals, water, nutrition)
-    match /users/{userId}/{subcollection}/{docId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Workouts collection
+    // Workouts can be read by any authenticated user (for feed, records, etc.)
+    // but only created, updated, or deleted by the owner.
     match /workouts/{workoutId} {
-      // Allow any authenticated user to create a workout
-      allow create: if request.auth != null;
-
-      // Allow any authenticated user to read any workout (for feeds/leaderboards)
       allow read: if request.auth != null;
-
-      // Allow users to update or delete only their own workouts
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
-    // Allow LIST operations (queries) on workouts for authenticated users.
-    // This is crucial for feeds and leaderboards.
-    match /workouts/{workoutId=**} {
-        allow list: if request.auth != null;
+    // Allow listing of workouts for authenticated users (needed for queries).
+    match /workouts/{document=**} {
+      allow list: if request.auth != null;
     }
   }
 }
