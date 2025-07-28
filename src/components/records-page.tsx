@@ -85,7 +85,7 @@ export function RecordsPage() {
                 <Tabs defaultValue="running" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="general" className='gap-2'><Dumbbell />Общие</TabsTrigger>
-                        <TabsTrigger value="running" className='gap-2'><MapIcon />Бег</TabsTrigger>
+                        <TabsTrigger value="running" className='gap-2'><PersonStanding />Бег</TabsTrigger>
                         <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
                         <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>
                     </TabsList>
