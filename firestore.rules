@@ -2,37 +2,47 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Default deny all
+
+    // By default, deny all access.
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Allow users to read any profile, but only write to their own.
-    // This covers create, update, and delete for the user's own document.
+    // Users Collection
+    // - Anyone authenticated can read/list profiles (for feeds, search, etc.)
+    // - A user can only create their own profile.
+    // - A user can only update/delete their own profile.
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId;
+      allow list, read: if request.auth != null;
+      allow create: if request.auth.uid == userId;
+      allow update, delete: if request.auth.uid == userId;
 
-      // Rules for user subcollections
-      match /nutrition/{docId} {
+      // Nutrition Data Subcollection
+      // A user can only access their own nutrition data.
+      match /nutrition/{date} {
         allow read, write: if request.auth.uid == userId;
       }
-      match /meals/{docId} {
-        allow read, write: if request.auth.uid == userId;
+      
+      // Meals Subcollection
+      // A user can only access their own meals.
+      match /meals/{mealId} {
+        allow list, read, write, delete: if request.auth.uid == userId;
       }
-      match /water/{docId} {
+      
+      // Water Data Subcollection
+      // A user can only access their own water data.
+      match /water/{date} {
         allow read, write: if request.auth.uid == userId;
       }
     }
 
-    // Allow authenticated users to read any workout,
-    // but only create, update, and delete their own.
+    // Workouts Collection
+    // - Anyone authenticated can read/list workouts (for feeds, history pages).
+    // - A user can only create a workout for themselves.
+    // - A user can only update/delete their own workout.
     match /workouts/{workoutId} {
-      allow read: if request.auth != null;
-      // For create, check the incoming document's userId
+      allow list, read: if request.auth != null;
       allow create: if request.auth.uid == request.resource.data.userId;
-      // For update/delete, check the existing document's userId
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
   }
