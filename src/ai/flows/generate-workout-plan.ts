@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -160,6 +161,7 @@ Adapt the plan based on the user's entire profile:
   - For rest days, the 'title' should be "День отдыха" and the 'exercises' array should be empty. The 'description' can mention light activity.
   - The final output MUST be a JSON object that perfectly matches the required output schema, including a 'planTitle'.
   - Ensure the response is in Russian.
+  - IMPORTANT: Before finishing, double-check that EVERY day object in EVERY week of the plan contains the required fields: 'day', 'title', and 'exercises' to conform to the schema.
 `,
 });
 
@@ -174,6 +176,18 @@ const generateWorkoutPlanFlow = ai.defineFlow(
     if (!output || !output.workoutPlan || output.workoutPlan.length === 0) {
       throw new Error("AI failed to generate a valid workout plan.");
     }
+    
+    // Defensive code: Ensure every day has an 'exercises' array.
+    output.workoutPlan.forEach(week => {
+      if (week.days) {
+        week.days.forEach(day => {
+          if (!day.exercises) {
+            day.exercises = [];
+          }
+        });
+      }
+    });
+
     return output;
   }
 );
