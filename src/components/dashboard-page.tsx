@@ -219,11 +219,9 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                                         <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                     ))}
                                 </Pie>
+                                <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />} />
                             </PieChart>
                        </ChartContainer>
-                         <ChartLegend
-                            content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />}
-                            />
                     </CardContent>
                 </Card>
             </div>
