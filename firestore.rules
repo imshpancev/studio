@@ -3,29 +3,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read any profile, but only write to their own.
+    // Users can be read by anyone authenticated, but only created or updated by the owner.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
 
-      // Users can only manage their own nutrition, meals, and water data.
-      match /nutrition/{docId} {
-        allow read, write: if request.auth.uid == userId;
+      // Nutrition and water data is private to the user.
+      match /nutrition/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-      match /meals/{docId} {
-        allow read, write: if request.auth.uid == userId;
+      match /meals/{mealId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-      match /water/{docId} {
-        allow read, write: if request.auth.uid == userId;
+      match /water/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
-    // Anyone authenticated can read and create workouts.
-    // Only the owner can update or delete their own workout.
+    // Workouts can be listed and read by any authenticated user (for feeds, records).
+    // Creation is allowed for any authenticated user.
+    // Update and delete are restricted to the owner of the workout.
     match /workouts/{workoutId} {
-      allow read, create: if request.auth != null;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+      allow list, get: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
-
   }
 }
