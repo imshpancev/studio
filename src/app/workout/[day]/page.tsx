@@ -194,16 +194,20 @@ export default function WorkoutPage() {
   }, [heartRate]);
 
   if (isFinished) {
+      // A simplified average heart rate calculation
+      const avgHeartRate = time > 0 
+          ? Math.round(peakHeartRate * 0.75) // simplified calculation for demo
+          : heartRate;
+
       const summary = {
           title: day,
-          date: new Date().toISOString(),
           type: sport,
           duration: formatTime(time),
           calories: Math.round(calories),
           avgPace: sport === Sport.Running ? formatPace(pace.average) : undefined,
           avgSpeed: sport === Sport.Cycling ? formatSpeed(pace.average) : undefined,
           distance: isCardio ? (distance / 1000).toFixed(2) + ' км' : undefined,
-          avgHeartRate: Math.round(time > 0 ? (heartRate / time) * time: heartRate), // simplified avg
+          avgHeartRate: avgHeartRate,
           peakHeartRate: Math.round(peakHeartRate),
           volume: !isCardio ? `${totalVolume} кг` : undefined,
       };

@@ -18,7 +18,6 @@ type WorkoutSummaryProps = {
   summary: {
     title: string;
     type: Sport;
-    date: string;
     duration: string;
     calories: number;
     distance?: string;
