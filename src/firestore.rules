@@ -1,0 +1,39 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users Collection
+    // - Authenticated users can read public user profiles (for feed, leaderboards, user search).
+    // - Users can only write to their own profile.
+    match /users/{userId} {
+      allow get, list: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+
+      // Nutrition Subcollections
+      // - Users can only read/write their own nutrition data.
+      match /meals/{mealId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /nutrition/{date} {
+         allow read, write: if request.auth.uid == userId;
+      }
+      
+      match /water/{date} {
+         allow read, write: if request.auth.uid == userId;
+      }
+    }
+
+    // Workouts Collection
+    // - Authenticated users can read workouts (for feed, records page).
+    // - Authenticated users can create their own workouts.
+    // - Users can only update or delete their own workouts.
+    match /workouts/{workoutId} {
+      allow get, list: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+  }
+}
