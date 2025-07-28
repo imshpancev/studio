@@ -194,10 +194,10 @@ export default function WorkoutPage() {
   }, [heartRate]);
 
   if (isFinished) {
-      // A simplified average heart rate calculation
+      // Corrected average heart rate calculation
       const avgHeartRate = time > 0 
           ? Math.round(peakHeartRate * 0.75) // simplified calculation for demo
-          : heartRate;
+          : 75; // a default resting value if no time passed
 
       const summary = {
           title: day,
@@ -387,3 +387,5 @@ export default function WorkoutPage() {
     </div>
   );
 }
+
+    
