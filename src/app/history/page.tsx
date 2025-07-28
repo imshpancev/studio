@@ -2,8 +2,9 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 // Mock data for workout history
 const historyItems = [
@@ -17,7 +18,20 @@ const historyItems = [
         avgPace: "6'01\"/км",
         calories: 450,
         icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue"
+        color: "blue",
+        avgHeartRate: 156,
+        elevationGain: "22 м",
+        avgCadence: "165 SPM",
+        avgPower: "210 Вт",
+        splits: [
+            { pace: "6'10\"/км", heartRate: "150 BPM" },
+            { pace: "6'05\"/км", heartRate: "155 BPM" },
+            { pace: "6'00\"/км", heartRate: "158 BPM" },
+            { pace: "5'55\"/км", heartRate: "162 BPM" },
+            { pace: "5'50\"/км", heartRate: "165 BPM" },
+            { pace: "6'05\"/км", heartRate: "160 BPM" },
+            { pace: "6'15\"/км", heartRate: "154 BPM" },
+        ]
     },
     {
         id: 2,
@@ -50,23 +64,40 @@ const historyItems = [
         avgPace: "5'30\"/км",
         calories: 380,
         icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue"
+        color: "blue",
+        avgHeartRate: 168,
+        elevationGain: "15 м",
+        avgCadence: "175 SPM",
+        avgPower: "250 Вт",
+        splits: [
+            { pace: "5'40\"/км", heartRate: "160 BPM" },
+            { pace: "5'30\"/км", heartRate: "165 BPM" },
+            { pace: "5'20\"/км", heartRate: "172 BPM" },
+            { pace: "5'25\"/км", heartRate: "175 BPM" },
+            { pace: "5'35\"/км", heartRate: "170 BPM" },
+        ]
     },
 ];
 
-
 export default function WorkoutHistoryPage() {
+    const router = useRouter();
+
+    const handleCardClick = (item: typeof historyItems[0]) => {
+        const itemQuery = encodeURIComponent(JSON.stringify(item));
+        router.push(`/history/${item.id}?data=${itemQuery}`);
+    };
+
     return (
         <div className="max-w-4xl mx-auto">
              <Card>
                 <CardHeader>
                   <CardTitle>История тренировок</CardTitle>
-                  <CardDescription>Здесь хранятся все ваши завершенные тренировки.</CardDescription>
+                  <CardDescription>Здесь хранятся все ваши завершенные тренировки. Нажмите, чтобы посмотреть детали.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {historyItems.map((item) => (
-                        <Card key={item.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
-                            <div className={`p-3 rounded-full bg-${item.color}-100 dark:bg-${item.color}-900/30`}>
+                        <Card key={item.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleCardClick(item)}>
+                            <div className={`p-3 rounded-full bg-muted`}>
                                {item.icon}
                             </div>
                             <div className="flex-1 space-y-1">
@@ -81,7 +112,7 @@ export default function WorkoutHistoryPage() {
                                     <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {item.duration}</div>
                                     <div className="flex items-center gap-1"><Flame className="h-4 w-4" /> {item.calories} ккал</div>
                                     {item.distance && <div className="flex items-center gap-1"><Map className="h-4 w-4" /> {item.distance}</div>}
-                                    {item.avgPace && <div className="flex items-center gap-1"><Zap className="h-4 w-4" /> {item.avgPace}</div>}
+                                    {item.avgPace && <div className="flex items-center gap-1"><TrendingUp className="h-4 w-4" /> {item.avgPace}</div>}
                                     {item.volume && <div className="flex items-center gap-1"><Dumbbell className="h-4 w-4" /> {item.volume}</div>}
                                 </div>
                             </div>
