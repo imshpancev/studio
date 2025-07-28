@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { NotificationsSettings } from './notifications-settings';
 
 const profileSchema = z.object({
   // Basic Info
@@ -71,7 +72,8 @@ export function ProfilePage() {
       toast({
         title: 'Вы вышли из системы',
       });
-      router.push('/login');
+      // This will trigger the auth listener on the main page to redirect
+      // and clear local state.
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -82,7 +84,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-8">
        <Card>
         <CardHeader>
           <CardTitle>Ваш Профиль</CardTitle>
@@ -192,6 +194,8 @@ export function ProfilePage() {
             </Button>
          </CardFooter>
        </Card>
+
+       <NotificationsSettings />
     </div>
   );
 }
