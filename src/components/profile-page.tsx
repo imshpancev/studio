@@ -73,6 +73,10 @@ const profileSchema = z.object({
   // Gear
   runningShoes: z.array(runningShoeSchema).optional(),
   bikes: z.array(bikeSchema).optional(),
+
+  // Workout Plan
+  workoutPlan: z.any().optional(),
+  workoutPlanInput: z.any().optional(),
 });
 
 
@@ -100,6 +104,8 @@ export function ProfilePage() {
         mainGoal: '',
         runningShoes: [],
         bikes: [],
+        workoutPlan: null,
+        workoutPlanInput: null,
     },
   });
   

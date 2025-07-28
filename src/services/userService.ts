@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -24,6 +25,8 @@ export interface UserProfile {
     mainGoal?: string;
     runningShoes?: any[];
     bikes?: any[];
+    workoutPlan?: any | null;
+    workoutPlanInput?: any | null;
     // For leaderboard purposes
     totalDistance?: number;
     totalSteps?: number;
@@ -49,6 +52,8 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
     avgSleepDuration: 7,
     runningShoes: [],
     bikes: [],
+    workoutPlan: null,
+    workoutPlanInput: null,
     totalDistance: 0,
     totalSteps: 0,
     totalCalories: 0,

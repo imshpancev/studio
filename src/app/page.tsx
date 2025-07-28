@@ -22,6 +22,7 @@ import WorkoutHistoryPage from "./history/page";
 import { RecordsPage } from "@/components/records-page";
 import { FeedPage } from "@/components/feed-page";
 import { NutritionDiaryPage } from "@/components/nutrition-diary-page";
+import { getUserProfile, updateUserProfile } from "@/services/userService";
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
@@ -33,65 +34,51 @@ export default function Home() {
 
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      setLoadingAuth(false);
       if (!currentUser) {
         // Clear user-specific data on logout
-        localStorage.removeItem('workoutPlan');
-        localStorage.removeItem('workoutPlanInput');
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
         setActiveTab("analytics");
+        setLoadingAuth(false);
+      } else {
+         // Fetch profile and workout plan from Firestore
+        try {
+            const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
+            if (userProfile.workoutPlan) {
+                setWorkoutPlan(userProfile.workoutPlan);
+            }
+             if (userProfile.workoutPlanInput) {
+                setWorkoutPlanInput(userProfile.workoutPlanInput);
+            }
+        } catch (e) {
+            console.error("Failed to fetch user profile or plan", e);
+        } finally {
+            setLoadingAuth(false);
+        }
       }
     });
     return () => unsubscribe(); // Unsubscribe on cleanup
   }, []);
 
-  // Load workout plan and input from localStorage on initial render for logged in user
-  useEffect(() => {
-    if (user) {
-        const savedPlan = localStorage.getItem('workoutPlan');
-        const savedInput = localStorage.getItem('workoutPlanInput');
-        if (savedPlan) {
-          try {
-            setWorkoutPlan(JSON.parse(savedPlan));
-          } catch (e) {
-            console.error("Failed to parse saved workout plan", e);
-            localStorage.removeItem('workoutPlan');
-          }
-        }
-         if (savedInput) {
-          try {
-            setWorkoutPlanInput(JSON.parse(savedInput));
-          } catch (e) {
-            console.error("Failed to parse saved workout input", e);
-            localStorage.removeItem('workoutPlanInput');
-          }
-        }
-    }
-  }, [user]);
 
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
     setWorkoutPlanInput(input);
     setIsEditingPlan(false); // Exit editing mode
     if (plan && input) {
-      localStorage.setItem('workoutPlan', JSON.stringify(plan));
-      localStorage.setItem('workoutPlanInput', JSON.stringify(input));
-      // Switch to "My Plan" tab after generating a new plan
+      // The plan is already saved in Firestore via the action, so we just switch tabs.
       setActiveTab("my-plan");
-    } else {
-      localStorage.removeItem('workoutPlan');
-      localStorage.removeItem('workoutPlanInput');
     }
   };
   
-  const handlePlanFinished = () => {
+  const handlePlanFinished = async () => {
+    if (user) {
+        await updateUserProfile(user.uid, { workoutPlan: null, workoutPlanInput: null });
+    }
     setWorkoutPlan(null);
     setWorkoutPlanInput(null);
-    localStorage.removeItem('workoutPlan');
-    localStorage.removeItem('workoutPlanInput');
     setIsEditingPlan(false);
     setActiveTab('my-plan'); 
   }
