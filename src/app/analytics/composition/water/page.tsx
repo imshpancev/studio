@@ -4,12 +4,44 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Droplets, Droplet } from 'lucide-react';
+import { ArrowLeft, Droplets, Droplet, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { WaterIntakeCard } from '@/components/water-intake-card';
+import { useEffect, useState } from 'react';
+import { getUserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function WaterPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const user = auth.currentUser;
+  const [water, setWater] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+        setIsLoading(false);
+        return;
+    }
+    async function fetchData() {
+        try {
+            const profile = await getUserProfile(user.uid, user.email || '');
+            setWater(profile.water || 48.6); // fallback to mock
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о воде в организме.' });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchData();
+  }, [user, toast]);
+
+  const status = water ? (water < 50 ? '(Низкий)' : '(Норма)') : '';
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -25,7 +57,7 @@ export default function WaterPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Вода в организме</CardTitle>
-                 <CardDescription className="text-lg text-blue-500 font-bold">48.6% (Низкий)</CardDescription>
+                 <CardDescription className="text-lg text-blue-500 font-bold">{water}% {status}</CardDescription>
             </div>
           </div>
         </CardHeader>

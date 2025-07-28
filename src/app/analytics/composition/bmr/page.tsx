@@ -4,11 +4,41 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Flame, Brain, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Flame, Brain, Dumbbell, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEffect, useState } from 'react';
+import { getUserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BmrPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const user = auth.currentUser;
+  const [bmr, setBmr] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+        setIsLoading(false);
+        return;
+    }
+    async function fetchData() {
+        try {
+            const profile = await getUserProfile(user.uid, user.email || '');
+            setBmr(profile.bmr || 1919); // fallback to mock
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о СООВ.' });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchData();
+  }, [user, toast]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -24,7 +54,7 @@ export default function BmrPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Базальный метаболизм (СООВ)</CardTitle>
-                 <CardDescription className="text-lg text-red-500 font-bold">1919 ккал/день</CardDescription>
+                 <CardDescription className="text-lg text-red-500 font-bold">{bmr} ккал/день</CardDescription>
             </div>
           </div>
         </CardHeader>

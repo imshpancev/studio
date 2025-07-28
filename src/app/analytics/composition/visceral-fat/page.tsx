@@ -4,11 +4,43 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, ShieldAlert, Heart, Brain } from 'lucide-react';
+import { ArrowLeft, FileText, ShieldAlert, Heart, Brain, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEffect, useState } from 'react';
+import { getUserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function VisceralFatPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const user = auth.currentUser;
+  const [visceralFat, setVisceralFat] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+        setIsLoading(false);
+        return;
+    }
+    async function fetchData() {
+        try {
+            const profile = await getUserProfile(user.uid, user.email || '');
+            setVisceralFat(profile.visceralFat || 11); // fallback to mock
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о висцеральном жире.' });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchData();
+  }, [user, toast]);
+
+  const status = visceralFat ? (visceralFat >= 10 ? '(Высокий)' : '(Норма)') : '';
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -24,7 +56,7 @@ export default function VisceralFatPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Висцеральный жир</CardTitle>
-                 <CardDescription className="text-lg text-purple-500 font-bold">Индекс: 11 (Высокий)</CardDescription>
+                 <CardDescription className="text-lg text-purple-500 font-bold">Индекс: {visceralFat} {status}</CardDescription>
             </div>
           </div>
         </CardHeader>
