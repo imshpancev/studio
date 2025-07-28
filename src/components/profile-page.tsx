@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,25 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut } from 'lucide-react';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { NotificationsSettings } from './notifications-settings';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Textarea } from './ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
+import { allSports } from '@/lib/workout-data';
+import { cn } from '@/lib/utils';
 
 const profileSchema = z.object({
   // Basic Info
+  name: z.string().min(1, 'Имя обязательно.'),
+  username: z.string().min(1, 'Имя пользователя обязательно.'),
+  bio: z.string().optional(),
+  favoriteSports: z.array(z.string()).optional(),
   gender: z.enum(['male', 'female', 'other']),
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
   weight: z.coerce.number().min(1, 'Вес обязателен.'),
@@ -45,11 +55,15 @@ export function ProfilePage() {
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
+      name: 'Сергей Рахманинов',
+      username: '@sergei_rachmaninoff',
+      bio: 'Композитор, пианист и просто хороший человек. Люблю долгие прогулки и умеренные тренировки.',
+      favoriteSports: ['Бег', 'Йога'],
       gender: 'male',
       age: 30,
       weight: 80,
       height: 180,
-      mainGoal: 'Нарастить мышечную массу',
+      mainGoal: 'Поддерживать форму',
       restingHeartRate: 60,
       hrv: 45,
       dailySteps: 8000,
@@ -94,6 +108,106 @@ export function ProfilePage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               
+              <div className="flex flex-col items-center gap-4">
+                 <Avatar className="h-24 w-24">
+                    <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704a" alt="User avatar" />
+                    <AvatarFallback>SR</AvatarFallback>
+                </Avatar>
+                <Button type="button" variant="outline">
+                    <Camera className="mr-2 h-4 w-4"/>
+                    Изменить фото
+                </Button>
+              </div>
+
+               <div className="space-y-4">
+                 <h3 className="text-lg font-medium text-primary">Публичная информация</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Полное имя</FormLabel>
+                        <FormControl><Input placeholder="Сергей Рахманинов" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                     <FormField control={form.control} name="username" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Имя пользователя</FormLabel>
+                        <FormControl><Input placeholder="@sergei_rachmaninoff" {...field} /></FormControl>
+                         <FormMessage />
+                      </FormItem>
+                    )} />
+                 </div>
+                 <FormField control={form.control} name="bio" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>О себе</FormLabel>
+                    <FormControl><Textarea placeholder="Расскажите немного о себе..." {...field} /></FormControl>
+                     <FormMessage />
+                  </FormItem>
+                )} />
+                 <Controller
+                    control={form.control}
+                    name="favoriteSports"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Любимые виды спорта</FormLabel>
+                        <Popover>
+                        <PopoverTrigger asChild>
+                            <FormControl>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                "w-full justify-between",
+                                !field.value?.length && "text-muted-foreground"
+                                )}
+                            >
+                                {field.value?.length > 0
+                                ? field.value.join(", ")
+                                : "Выберите виды спорта"}
+                            </Button>
+                            </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <Command>
+                            <CommandInput placeholder="Поиск..." />
+                            <CommandList>
+                                <CommandEmpty>Ничего не найдено.</CommandEmpty>
+                                <CommandGroup>
+                                {allSports.map((sport) => (
+                                    <CommandItem
+                                    key={sport}
+                                    value={sport}
+                                    onSelect={(currentValue) => {
+                                        const currentValueArray = field.value || [];
+                                        const isSelected = currentValueArray.includes(currentValue);
+                                        const newValue = isSelected
+                                        ? currentValueArray.filter((s) => s !== currentValue)
+                                        : [...currentValueArray, currentValue];
+                                        field.onChange(newValue);
+                                    }}
+                                    >
+                                    <Check
+                                        className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value?.includes(sport)
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                    />
+                                    {sport}
+                                    </CommandItem>
+                                ))}
+                                </CommandGroup>
+                            </CommandList>
+                            </Command>
+                        </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+              </div>
+
               {/* Personal Info Section */}
               <div className="space-y-4">
                  <h3 className="text-lg font-medium text-primary">Основная информация</h3>
@@ -199,3 +313,5 @@ export function ProfilePage() {
     </div>
   );
 }
+
+    
