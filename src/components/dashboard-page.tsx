@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, PersonStanding, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
+import { Activity, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart, Area, AreaChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +12,7 @@ import { allSports, Sport } from "@/lib/workout-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { historyItems } from '@/app/history/page';
+import { RunIcon } from './icons/run-icon';
 
 
 const weeklyActivityData = [
@@ -156,9 +157,9 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
 
              <Tabs defaultValue="running" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="running" className='gap-2'><PersonStanding />Бег</TabsTrigger>
-                    <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
-                    <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>
+                    <TabsTrigger value="running" className='gap-2'><RunIcon className="h-5 w-5" />Бег</TabsTrigger>
+                    <TabsTrigger value="cycling" className='gap-2'><Bike className="h-5 w-5" />Велоспорт</TabsTrigger>
+                    <TabsTrigger value="swimming" className='gap-2'><Waves className="h-5 w-5" />Плавание</TabsTrigger>
                 </TabsList>
                 <TabsContent value="running">
                     <Card className='mt-2'>
@@ -267,3 +268,5 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         </div>
     );
 }
+
+    

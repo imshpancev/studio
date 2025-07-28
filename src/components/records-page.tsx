@@ -4,8 +4,9 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, PersonStanding, Dumbbell } from 'lucide-react';
+import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, Dumbbell } from 'lucide-react';
 import { historyItems } from '@/app/history/page'; // We'll use this mock data
+import { RunIcon } from './icons/run-icon';
 
 // Mock records data, in a real app this would be calculated
 const recordsData = {
@@ -85,7 +86,7 @@ export function RecordsPage() {
                 <Tabs defaultValue="running" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="general" className='gap-2'><Dumbbell />Общие</TabsTrigger>
-                        <TabsTrigger value="running" className='gap-2'><PersonStanding />Бег</TabsTrigger>
+                        <TabsTrigger value="running" className='gap-2'><RunIcon className="h-5 w-5" />Бег</TabsTrigger>
                         <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
                         <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>
                     </TabsList>
@@ -106,3 +107,5 @@ export function RecordsPage() {
         </Card>
     );
 }
+
+    

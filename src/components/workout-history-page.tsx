@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History, HeartPulse, TrendingUp, BarChart, Bike, Waves } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { RunIcon } from "./icons/run-icon";
 
 // Mock data for workout history
 const historyItems = [
@@ -18,7 +19,7 @@ const historyItems = [
         avgPace: "6'01\"/км",
         calories: 450,
         avgHeartRate: 155,
-        icon: <Map className="h-6 w-6 text-primary" />,
+        icon: <RunIcon className="h-6 w-6 text-primary" />,
     },
     {
         id: 2,
@@ -51,13 +52,13 @@ const historyItems = [
         avgPace: "5'30\"/км",
         calories: 380,
         avgHeartRate: 168,
-        icon: <Map className="h-6 w-6 text-primary" />,
+        icon: <RunIcon className="h-6 w-6 text-primary" />,
     },
 ];
 
 const getSportIcon = (type: string) => {
     switch (type) {
-        case 'Бег': return <Map className="h-6 w-6 text-primary" />;
+        case 'Бег': return <RunIcon className="h-6 w-6 text-primary" />;
         case 'Тренажерный зал': return <Dumbbell className="h-6 w-6 text-destructive" />;
         case 'Йога': return <Zap className="h-6 w-6 text-accent" />;
         case 'Велоспорт': return <Bike className="h-6 w-6 text-green-500" />;
@@ -124,3 +125,5 @@ export function WorkoutHistoryPage() {
         </Card>
     );
 }
+
+    

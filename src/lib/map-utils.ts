@@ -12,9 +12,9 @@ function encodePolyline(points: Point[]): string {
         return "";
     }
 
-    let encoded = '';
     let plat = 0;
     let plng = 0;
+    let encoded = '';
 
     for (const point of points) {
         const lat = Math.round(point.lat * 1e5);
@@ -62,13 +62,17 @@ export function getStaticMapUrl(track: Point[], width = 600, height = 400): stri
     const accessToken = 'pk.eyJ1IjoiZGV2c2VlZCIsImEiOiJjbHJsMWhjOWEwMWd2MmtvNjRjM29kcnVlIn0.WM0-c8y6x2-s_gJ_V5J1vQ';
 
     if (!track || track.length < 2) {
+        // Return a placeholder if the track is invalid
         return `https://placehold.co/${width}x${height}.png`;
     }
     
+    // The polyline encoding function needs to be correct.
     const encodedPath = encodePolyline(track);
-    // The path overlay should come before the 'auto' parameter.
+    
+    // The overlay parameter for the path
     const path = `path-5+f44-0.8(${encodeURIComponent(encodedPath)})`;
 
-    // Construct the final URL with the correct parameter order.
+    // The final URL structure should be: /styles/v1/{username}/{style_id}/static/{overlay}/{lon},{lat},{zoom}/{width}x{height}
+    // Using 'auto' will automatically determine the bounding box, zoom, and center.
     return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${path}/auto/${width}x${height}?access_token=${accessToken}`;
 }

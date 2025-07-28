@@ -11,15 +11,16 @@ import { useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
+import { RunIcon } from "./icons/run-icon";
 
 const sportIcons: Record<Sport, React.ReactNode> = {
-    [Sport.Running]: <Map className="h-10 w-10 text-primary" />,
+    [Sport.Running]: <RunIcon className="h-10 w-10 text-primary" />,
     [Sport.Gym]: <Dumbbell className="h-10 w-10 text-destructive" />,
     [Sport.Swimming]: <Waves className="h-10 w-10 text-blue-500" />,
     [Sport.Yoga]: <Zap className="h-10 w-10 text-accent" />,
     [Sport.Cycling]: <Bike className="h-10 w-10 text-green-500" />,
     [Sport.Home]: <Dumbbell className="h-10 w-10 text-purple-500" />,
-    [Sport.Triathlon]: <div className="flex gap-1"><Map/><Bike/><Waves/></div>
+    [Sport.Triathlon]: <div className="flex gap-1"><RunIcon className="h-6 w-6" /><Bike className="h-6 w-6" /><Waves className="h-6 w-6" /></div>
 };
 
 // Muscle groups in Russian
@@ -130,3 +131,5 @@ export function QuickStartPage() {
         </>
     );
 }
+
+    
