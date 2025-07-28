@@ -59,11 +59,13 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
     setIsLoading(true);
 
     try {
+        const workoutData: ProcessWorkoutSummaryInput['workout'] = {
+            ...summary,
+            date: new Date().toISOString(),
+        };
+
         const input: ProcessWorkoutSummaryInput = {
-            workout: {
-                ...summary,
-                date: new Date().toISOString(),
-            },
+            workout: workoutData,
             feedback: {
                 difficulty: feedbackDifficulty,
                 notes: feedbackNotes,
