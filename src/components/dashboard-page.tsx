@@ -5,16 +5,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
+import { Activity, Calendar, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart, Area, AreaChart } from 'recharts';
+import { Bar, BarChart, Pie, Cell, XAxis, YAxis, CartesianGrid, LineChart, PieChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { allSports, Sport } from "@/lib/workout-data";
+import { Sport } from "@/lib/workout-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Badge } from './ui/badge';
-import { historyItems } from '@/app/history/page';
-import { RunIcon } from './icons/run-icon';
-
 
 const weeklyActivityData = [
   { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0, swimming: 0, home: 20 },
@@ -24,15 +20,6 @@ const weeklyActivityData = [
   { day: 'Пт', running: 60, gym: 0, yoga: 0, cycling: 90, swimming: 0, home: 0 },
   { day: 'Сб', running: 90, gym: 0, yoga: 60, cycling: 120, swimming: 60, home: 0 },
   { day: 'Вс', running: 0, gym: 0, yoga: 0, cycling: 0, swimming: 0, home: 0 },
-];
-
-const progressData = [
-  { month: 'Янв', weight: 85, endurance: 5.0 },
-  { month: 'Фев', weight: 84, endurance: 5.5 },
-  { month: 'Мар', weight: 83, endurance: 6.0 },
-  { month: 'Апр', weight: 82.5, endurance: 6.2 },
-  { month: 'Май', weight: 81, endurance: 6.8 },
-  { month: 'Июн', weight: 80, endurance: 7.5 },
 ];
 
 const allPieChartData = [
@@ -63,13 +50,7 @@ const barChartConfig = {
   home: { label: 'Дома', color: 'hsl(var(--chart-1))' },
 };
 
-const lineChartConfig = {
-    weight: { label: 'Вес (кг)', color: 'hsl(var(--chart-1))' },
-    endurance: { label: 'Выносливость (км)', color: 'hsl(var(--chart-2))' },
-}
-
 export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
-    const router = useRouter();
     const [timePeriod, setTimePeriod] = useState('week');
 
     const totalTime = weeklyActivityData.reduce((acc, day) => acc + day.running + day.gym + day.yoga + day.cycling + day.swimming + day.home, 0);
@@ -78,13 +59,12 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         setActiveTab('records');
     }
 
-
     return (
         <div className="space-y-8">
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <h2 className="text-3xl font-bold tracking-tight">Дашборд</h2>
                  <Select value={timePeriod} onValueChange={setTimePeriod}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Период" />
                     </SelectTrigger>
                     <SelectContent>
@@ -153,7 +133,7 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
 
              <Tabs defaultValue="running" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="running" className='gap-2'><RunIcon className="h-5 w-5" />Бег</TabsTrigger>
+                    <TabsTrigger value="running" className='gap-2'><Footprints className="h-5 w-5" />Бег</TabsTrigger>
                     <TabsTrigger value="cycling" className='gap-2'><Bike className="h-5 w-5" />Велоспорт</TabsTrigger>
                     <TabsTrigger value="swimming" className='gap-2'><Waves className="h-5 w-5" />Плавание</TabsTrigger>
                 </TabsList>
@@ -229,10 +209,9 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <Activity className="h-5 w-5" />
                             Виды активностей
                         </CardTitle>
-                        <CardDescription>Соотношение времени</CardDescription>
                     </CardHeader>
-                    <CardContent className="h-[250px] flex flex-col items-center justify-center">
-                       <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-full">
+                    <CardContent className="flex flex-col items-center justify-center">
+                       <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-[200px]">
                             <PieChart>
                                 <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
                                 <Pie data={allPieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} labelLine={false} paddingAngle={2}>
@@ -240,16 +219,14 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                                         <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                     ))}
                                 </Pie>
-                                <ChartLegend
-                                    content={<ChartLegendContent nameKey="name" className="flex-wrap" />}
-                                    />
                             </PieChart>
                        </ChartContainer>
+                         <ChartLegend
+                            content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />}
+                            />
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
 }
-
-    

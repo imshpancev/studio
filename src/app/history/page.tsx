@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp, Bike, Waves, History, Footprints } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { RunIcon } from "@/components/icons/run-icon";
 
 // Mock data for workout history
 export const historyItems = [
@@ -142,7 +141,7 @@ export default function WorkoutHistoryPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {historyItems.map((item) => (
-                        <Card key={item.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleCardClick(item)}>
+                        <Card key={item.id} className="p-4 flex flex-col sm:flex-row items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleCardClick(item)}>
                             <div className={`p-3 rounded-full bg-muted`}>
                                {getIcon(item.type)}
                             </div>
@@ -176,5 +175,3 @@ export default function WorkoutHistoryPage() {
         </div>
     );
 }
-
-    

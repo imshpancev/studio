@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -110,18 +111,19 @@ export default function HistoryDetailPage() {
                         </dl>
                         
                         {mapUrl && (
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="font-semibold mb-2">Карта маршрута</h3>
-                                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                                        <Image
-                                            src={mapUrl}
-                                            width={600}
-                                            height={400}
-                                            style={{ width: '100%', height: 'auto', border: 0 }}
-                                            alt={`Карта маршрута для ${item.title}`}
-                                        />
-                                    </div>
+                             <div className="space-y-2">
+                                <h3 className="font-semibold">Карта маршрута</h3>
+                                <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                    <iframe
+                                        src={mapUrl}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ border: 0 }}
+                                        allowFullScreen={false}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        title={`Карта маршрута для ${item.title}`}
+                                    ></iframe>
                                 </div>
                             </div>
                         )}
@@ -161,5 +163,3 @@ export default function HistoryDetailPage() {
         </div>
     );
 }
-
-    

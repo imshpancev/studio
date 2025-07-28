@@ -84,7 +84,7 @@ export function RecordsPage() {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="running" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
                         <TabsTrigger value="general" className='gap-2'><Dumbbell />Общие</TabsTrigger>
                         <TabsTrigger value="running" className='gap-2'><Footprints />Бег</TabsTrigger>
                         <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
@@ -107,5 +107,3 @@ export function RecordsPage() {
         </Card>
     );
 }
-
-    

@@ -132,10 +132,10 @@ export default function Home() {
           ) : (
             <div className="flex gap-2">
                 <Button asChild variant="ghost">
-                    <Link href="/login"><LogIn className="h-5 w-5" /> Войти</Link>
+                    <Link href="/login"><LogIn className="h-5 w-5 mr-2" /> Войти</Link>
                 </Button>
                 <Button asChild>
-                    <Link href="/signup"><UserPlus className="h-5 w-5" /> Регистрация</Link>
+                    <Link href="/signup"><UserPlus className="h-5 w-5 mr-2" /> Регистрация</Link>
                 </Button>
             </div>
           )}
@@ -144,33 +144,33 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 md:grid-cols-9 max-w-6xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-5 md:grid-cols-9 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="gap-2">
-              <LayoutDashboard className="h-5 w-5" /> Дашборд
+              <LayoutDashboard className="h-5 w-5" /> <span className="hidden md:inline">Дашборд</span>
             </TabsTrigger>
              <TabsTrigger value="feed" className="gap-2">
-              <Rss className="h-5 w-5" /> Лента
+              <Rss className="h-5 w-5" /> <span className="hidden md:inline">Лента</span>
             </TabsTrigger>
             <TabsTrigger value="my-plan" className="gap-2">
-              <CalendarCheck className="h-5 w-5" /> Мой план
+              <CalendarCheck className="h-5 w-5" /> <span className="hidden md:inline">Мой план</span>
             </TabsTrigger>
              <TabsTrigger value="quick-start" className="gap-2">
-              <Rocket className="h-5 w-5" /> Быстрый старт
+              <Rocket className="h-5 w-5" /> <span className="hidden md:inline">Быстрый старт</span>
             </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
-              <History className="h-5 w-5" /> История
+              <History className="h-5 w-5" /> <span className="hidden md:inline">История</span>
             </TabsTrigger>
              <TabsTrigger value="records" className="gap-2">
-              <Trophy className="h-5 w-5" /> Рекорды
+              <Trophy className="h-5 w-5" /> <span className="hidden md:inline">Рекорды</span>
             </TabsTrigger>
              <TabsTrigger value="routes" className="gap-2">
-              <Map className="h-5 w-5" /> Маршруты
+              <Map className="h-5 w-5" /> <span className="hidden md:inline">Маршруты</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="h-5 w-5" /> Аналитика
+              <BarChart3 className="h-5 w-5" /> <span className="hidden md:inline">Аналитика</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
-              <User className="h-5 w-5" /> Профиль
+              <User className="h-5 w-5" /> <span className="hidden md:inline">Профиль</span>
             </TabsTrigger>
           </TabsList>
           
@@ -241,10 +241,10 @@ export default function Home() {
                     </CardHeader>
                      <CardContent className="flex justify-center gap-4">
                         <Button asChild>
-                            <Link href="/login"><LogIn className="mr-2" /> Войти</Link>
+                            <Link href="/login"><LogIn className="mr-2 h-5 w-5" /> Войти</Link>
                         </Button>
                         <Button asChild variant="secondary">
-                            <Link href="/signup"><UserPlus className="mr-2" /> Зарегистрироваться</Link>
+                            <Link href="/signup"><UserPlus className="mr-2 h-5 w-5" /> Зарегистрироваться</Link>
                         </Button>
                     </CardContent>
                 </Card>
