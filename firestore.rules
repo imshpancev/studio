@@ -1,37 +1,31 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default to locked down
+    
+    // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Allow authenticated users to read any user's profile
-    // Allow users to create and update their own profile
+    // Allow authenticated users to read profiles, but only owners to write.
     match /users/{userId} {
-      allow list, read: if request.auth != null;
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == userId && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth.uid == userId;
     }
 
-    // Allow authenticated users to read any workout
-    // Allow users to create, update, and delete their own workouts
+    // Allow authenticated users to read workouts, but only owners to write.
     match /workouts/{workoutId} {
-      allow list, read: if request.auth != null;
-      // Check the userId field in the document data
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read, list: if request.auth != null;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
-    // Allow users to read and write to their own nutrition, meals, and water subcollections
-    match /users/{userId}/nutrition/{date} {
-       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-     match /users/{userId}/meals/{mealId} {
-       allow read, list, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-     match /users/{userId}/water/{date} {
-       allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Subcollections can only be accessed by the profile owner.
+    match /users/{userId}/{collection}/{docId} {
+        allow read, list, write: if request.auth.uid == userId;
     }
   }
 }

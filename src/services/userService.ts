@@ -145,7 +145,7 @@ export async function updateUserProfile(userId: string, data: Partial<UserProfil
     // Ensure the userId is always part of the document data for rule validation
     const dataToSave = {
         ...data,
-        uid: userId,
+        userId: userId,
     };
     await setDoc(userDocRef, dataToSave, { merge: true });
 }
