@@ -3,25 +3,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only update/delete their own profile, but anyone can read public profiles.
-    // This is needed for the feed and user search functionality.
+    // Users can read any profile, but only write to their own.
     match /users/{userId} {
-      allow read;
+      allow read: if request.auth != null;
       allow write: if request.auth.uid == userId;
 
-      // Rules for user's subcollections
-      match /{subcollection}/{docId} {
+      // Users can only manage their own nutrition, meals, and water data.
+      match /nutrition/{docId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /meals/{docId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /water/{docId} {
         allow read, write: if request.auth.uid == userId;
       }
     }
 
-    // Anyone can read the list of workouts for the feed/records pages.
-    // Users can only create workouts for themselves.
-    // Users can only update/delete their own workouts.
+    // Anyone authenticated can read and create workouts.
+    // Only the owner can update or delete their own workout.
     match /workouts/{workoutId} {
-      allow read;
-      allow create: if request.auth.uid == request.resource.data.userId;
+      allow read, create: if request.auth != null;
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
+
   }
 }
