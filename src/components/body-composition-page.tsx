@@ -5,24 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowDown, ChevronRight, Scale, BrainCircuit, Droplets, Flame, Dumbbell, FileText, PersonStanding, Bot, Percent } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { getUserProfile, UserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "./ui/skeleton";
 
-const bodyCompData = {
-    weight: { value: 99.3, unit: 'кг', trend: -0.2, trendPercent: -0.6 },
-    bodyFat: { value: 27.8, unit: '%', status: 'high' },
-    muscleMass: { value: 68.4, unit: '%', status: 'normal' },
-    visceralFat: { value: 11, unit: '', status: 'high' },
-    bmr: { value: 1919, unit: 'ккал', status: 'normal' },
-    water: { value: 48.6, unit: '%', status: 'low' },
-    skeletalMuscle: { value: 37.9, unit: '%', status: 'normal' },
-    score: { value: 4.1, max: 10 },
-    bodyType: 'Крупное'
-};
 
-const MetricRow = ({ title, value, unit, icon, metricId }: { title: string, value: number | string, unit: string, icon: React.ReactNode, metricId: string }) => {
+const MetricRow = ({ title, value, unit, icon, metricId, status }: { title: string, value?: number | string, unit: string, icon: React.ReactNode, metricId: string, status?: string }) => {
     const router = useRouter();
     const statusColor = 
-        (metricId === 'body-fat' || metricId === 'visceral-fat') && bodyCompData[metricId === 'body-fat' ? 'bodyFat' : 'visceralFat'].status === 'high' ? 'text-orange-500' :
-        metricId === 'water' && bodyCompData.water.status === 'low' ? 'text-yellow-500' :
+        status === 'high' ? 'text-orange-500' :
+        status === 'low' ? 'text-yellow-500' :
         'text-foreground';
 
     return (
@@ -41,6 +35,60 @@ const MetricRow = ({ title, value, unit, icon, metricId }: { title: string, valu
 
 
 export function BodyCompositionPage() {
+    const { toast } = useToast();
+    const user = auth.currentUser;
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const bodyCompData = {
+        weight: { value: profile?.weight, unit: 'кг', metricId: 'weight' },
+        bodyFat: { value: profile?.bodyFat, unit: '%', status: 'high', metricId: 'body-fat' },
+        muscleMass: { value: profile?.muscleMass, unit: '%', status: 'normal', metricId: 'muscle-mass' },
+        visceralFat: { value: profile?.visceralFat, unit: '', status: 'high', metricId: 'visceral-fat' },
+        bmr: { value: profile?.bmr, unit: 'ккал', status: 'normal', metricId: 'bmr' },
+        water: { value: profile?.water, unit: '%', status: 'low', metricId: 'water' },
+        skeletalMuscle: { value: profile?.skeletalMuscle, unit: '%', status: 'normal', metricId: 'skeletal-muscle' },
+        score: { value: 4.1, max: 10 },
+        bodyType: 'Крупное'
+    };
+    
+    useEffect(() => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
+        async function fetchData() {
+            try {
+                const userProfile = await getUserProfile(user!.uid, user!.email || '');
+                setProfile(userProfile);
+            } catch (error) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Ошибка',
+                    description: 'Не удалось загрузить данные о составе тела.',
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, [user, toast]);
+
+    if(isLoading) {
+        return (
+            <Card>
+                <CardHeader><Skeleton className="h-8 w-1/2" /><Skeleton className="h-4 w-3/4 mt-2" /></CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <div className="space-y-2">
+                        {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -97,12 +145,12 @@ export function BodyCompositionPage() {
                     <h3 className="text-lg font-semibold text-foreground mb-4">Требующие особого внимания</h3>
                     <div className="space-y-2">
                         <MetricRow title="Вес тела" value={bodyCompData.weight.value} unit="кг" icon={<Scale className="h-6 w-6 text-primary"/>} metricId="weight" />
-                        <MetricRow title="Телесный жир" value={bodyCompData.bodyFat.value} unit="%" icon={<Percent className="h-6 w-6 text-primary"/>} metricId="body-fat" />
-                        <MetricRow title="Мышцы" value={bodyCompData.muscleMass.value} unit="%" icon={<Dumbbell className="h-6 w-6 text-primary"/>} metricId="muscle-mass" />
-                        <MetricRow title="Индекс висцерального жира" value={bodyCompData.visceralFat.value} unit="" icon={<FileText className="h-6 w-6 text-primary"/>} metricId="visceral-fat" />
-                        <MetricRow title="СООВ" value={bodyCompData.bmr.value} unit="ккал" icon={<Flame className="h-6 w-6 text-primary"/>} metricId="bmr" />
-                        <MetricRow title="Вода в организме" value={bodyCompData.water.value} unit="%" icon={<Droplets className="h-6 w-6 text-primary"/>} metricId="water" />
-                        <MetricRow title="Скелетные мышцы" value={bodyCompData.skeletalMuscle.value} unit="%" icon={<PersonStanding className="h-6 w-6 text-primary"/>} metricId="skeletal-muscle" />
+                        <MetricRow title="Телесный жир" value={bodyCompData.bodyFat.value} unit="%" icon={<Percent className="h-6 w-6 text-primary"/>} metricId="body-fat" status={bodyCompData.bodyFat.status} />
+                        <MetricRow title="Мышцы" value={bodyCompData.muscleMass.value} unit="%" icon={<Dumbbell className="h-6 w-6 text-primary"/>} metricId="muscle-mass" status={bodyCompData.muscleMass.status} />
+                        <MetricRow title="Индекс висцерального жира" value={bodyCompData.visceralFat.value} unit="" icon={<FileText className="h-6 w-6 text-primary"/>} metricId="visceral-fat" status={bodyCompData.visceralFat.status} />
+                        <MetricRow title="СООВ" value={bodyCompData.bmr.value} unit="ккал" icon={<Flame className="h-6 w-6 text-primary"/>} metricId="bmr" status={bodyCompData.bmr.status} />
+                        <MetricRow title="Вода в организме" value={bodyCompData.water.value} unit="%" icon={<Droplets className="h-6 w-6 text-primary"/>} metricId="water" status={bodyCompData.water.status} />
+                        <MetricRow title="Скелетные мышцы" value={bodyCompData.skeletalMuscle.value} unit="%" icon={<PersonStanding className="h-6 w-6 text-primary"/>} metricId="skeletal-muscle" status={bodyCompData.skeletalMuscle.status}/>
                     </div>
                 </div>
             </CardContent>

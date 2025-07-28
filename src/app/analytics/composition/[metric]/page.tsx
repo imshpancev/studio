@@ -5,20 +5,23 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
-import WeightPage from '@/app/analytics/composition/weight/page';
-import BodyFatPage from '@/app/analytics/composition/body-fat/page';
-import MuscleMassPage from '@/app/analytics/composition/muscle-mass/page';
+import WeightPage from './weight/page';
+import BodyFatPage from './body-fat/page';
+import MuscleMassPage from './muscle-mass/page';
+import VisceralFatPage from './visceral-fat/page';
+import BmrPage from './bmr/page';
+import WaterPage from './water/page';
+import SkeletalMusclePage from './skeletal-muscle/page';
 
 
 const componentMap: Record<string, React.ComponentType> = {
     'weight': WeightPage,
     'body-fat': BodyFatPage,
     'muscle-mass': MuscleMassPage,
-    // Add other detail pages here as they are created
-    // 'visceral-fat': VisceralFatPage,
-    // 'bmr': BmrPage,
-    // 'water': WaterPage,
-    // 'skeletal-muscle': SkeletalMusclePage,
+    'visceral-fat': VisceralFatPage,
+    'bmr': BmrPage,
+    'water': WaterPage,
+    'skeletal-muscle': SkeletalMusclePage,
 };
 
 export default function CompositionMetricDetailPage() {

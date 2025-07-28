@@ -18,15 +18,28 @@ export interface UserProfile {
     weight?: number;
     height?: number;
     language?: 'ru' | 'en';
+    
+    // Analytics Data
     restingHeartRate?: number;
     hrv?: number;
     dailySteps?: number;
     avgSleepDuration?: number;
     mainGoal?: string;
+    bodyFat?: number;
+    muscleMass?: number;
+    visceralFat?: number;
+    bmr?: number;
+    water?: number;
+    skeletalMuscle?: number;
+    
+    // Gear
     runningShoes?: any[];
     bikes?: any[];
+
+    // Workout Plan
     workoutPlan?: any | null;
     workoutPlanInput?: any | null;
+
     // For leaderboard purposes
     totalDistance?: number;
     totalSteps?: number;
@@ -50,6 +63,12 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
     hrv: 40,
     dailySteps: 5000,
     avgSleepDuration: 7,
+    bodyFat: 27.8,
+    muscleMass: 68.4,
+    visceralFat: 11,
+    bmr: 1919,
+    water: 48.6,
+    skeletalMuscle: 37.9,
     runningShoes: [],
     bikes: [],
     workoutPlan: null,
@@ -71,7 +90,7 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
     const userDocSnap = await getDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-        return userDocSnap.data() as UserProfile;
+        return { uid: userId, ...userDocSnap.data() } as UserProfile;
     } else {
         // Document does not exist, create a default profile
         const newProfile: UserProfile = {
