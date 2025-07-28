@@ -131,10 +131,10 @@ export default function Home() {
           ) : (
             <div className="flex gap-2">
                 <Button asChild variant="ghost">
-                    <Link href="/login"><LogIn /> Войти</Link>
+                    <Link href="/login"><LogIn className="h-5 w-5" /> Войти</Link>
                 </Button>
                 <Button asChild>
-                    <Link href="/signup"><UserPlus /> Регистрация</Link>
+                    <Link href="/signup"><UserPlus className="h-5 w-5" /> Регистрация</Link>
                 </Button>
             </div>
           )}
