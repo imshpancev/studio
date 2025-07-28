@@ -1,49 +1,41 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowUp, Bone, Droplets, HeartPulse, Info, Leaf, LineChart, Scale, Trash2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowDown, ChevronRight, Scale, BrainCircuit, Droplets, Flame, Dumbbell, FileText, PersonStanding, Bot, Percent } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-// Mock data, in a real app this would be fetched from a health service
 const bodyCompData = {
+    weight: { value: 99.3, unit: 'кг', trend: -0.2, trendPercent: -0.6 },
+    bodyFat: { value: 27.8, unit: '%', status: 'high' },
+    muscleMass: { value: 68.4, unit: '%', status: 'normal' },
+    visceralFat: { value: 11, unit: '', status: 'high' },
+    bmr: { value: 1919, unit: 'ккал', status: 'normal' },
+    water: { value: 48.6, unit: '%', status: 'low' },
     skeletalMuscle: { value: 37.9, unit: '%', status: 'normal' },
-    protein: { value: 19.8, unit: '%', status: 'normal' },
-    boneMass: { value: 3.8, unit: 'кг', status: 'normal' },
-    bmi: { value: 28.1, unit: '', status: 'high' },
-    bodyTone: { value: 6.3, unit: '', status: 'normal' },
-    restingHeartRate: { value: 100, unit: 'уд/мин', status: 'high' },
-    bodyType: { value: 'Крупное', description: 'Пищевой дисбаланс; потребление большого объема пищи, сидячий образ жизни ...' },
-    metabolicAge: { value: 35, unit: 'лет', status: 'normal' },
-    measurementTime: '21/июля/2025 07:52'
+    score: { value: 4.1, max: 10 },
+    bodyType: 'Крупное'
 };
 
-const statusColors = {
-    normal: 'text-green-500',
-    high: 'text-orange-500',
-    low: 'text-yellow-500',
-};
+const MetricRow = ({ title, value, unit, icon, metricId }: { title: string, value: number | string, unit: string, icon: React.ReactNode, metricId: string }) => {
+    const router = useRouter();
+    const statusColor = 
+        (metricId === 'body-fat' || metricId === 'visceral-fat') && bodyCompData[metricId === 'body-fat' ? 'bodyFat' : 'visceralFat'].status === 'high' ? 'text-orange-500' :
+        metricId === 'water' && bodyCompData.water.status === 'low' ? 'text-yellow-500' :
+        'text-foreground';
 
-const statusArrows = {
-    normal: <LineChart className="h-4 w-4" />,
-    high: <ArrowUp className="h-4 w-4" />,
-    low: <ArrowDown className="h-4 w-4" />,
-}
-
-
-const MetricCard = ({ title, value, unit, status, icon }: { title: string, value: number | string, unit: string, status: 'normal' | 'high' | 'low', icon: React.ReactNode }) => {
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">{icon}{title}</CardTitle>
-                 <div className={statusColors[status]}>
-                     {statusArrows[status]}
-                 </div>
-            </CardHeader>
-            <CardContent>
-                <div className={`text-2xl font-bold ${statusColors[status]}`}>{value} <span className="text-sm font-normal text-muted-foreground">{unit}</span></div>
-            </CardContent>
-        </Card>
+        <div onClick={() => router.push(`/analytics/composition/${metricId}`)} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted">
+            <div className="flex items-center gap-3">
+                {icon}
+                <span className="font-medium">{title}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className={`font-semibold text-lg ${statusColor}`}>{value}{unit}</span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+        </div>
     )
 };
 
@@ -52,44 +44,66 @@ export function BodyCompositionPage() {
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Отчет об измерениях</CardTitle>
-                        <CardDescription>
-                            Данные синхронизированы с Apple Health. Последнее измерение: {bodyCompData.measurementTime}
-                        </CardDescription>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                </div>
+                <CardTitle>Отчет об измерениях</CardTitle>
+                <CardDescription>
+                    Данные синхронизированы с Apple Health.
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div>
-                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Стандартный и безопасный</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <MetricCard title="Скелетные мышцы" value={bodyCompData.skeletalMuscle.value} unit={bodyCompData.skeletalMuscle.unit} status={bodyCompData.skeletalMuscle.status as any} icon={<Leaf />} />
-                        <MetricCard title="Белок" value={bodyCompData.protein.value} unit={bodyCompData.protein.unit} status={bodyCompData.protein.status as any} icon={<Droplets />} />
-                        <MetricCard title="Костная масса" value={bodyCompData.boneMass.value} unit={bodyCompData.boneMass.unit} status={bodyCompData.boneMass.status as any} icon={<Bone />} />
+
+                {/* Body Visual */}
+                <div className="p-4 rounded-lg bg-muted">
+                    <div className="flex justify-around items-center">
+                        <div className="space-y-8 text-right">
+                           <div className="space-y-1">
+                             <p className="text-sm text-muted-foreground">Вес</p>
+                             <p className="text-xl font-bold">{bodyCompData.weight.value}кг</p>
+                           </div>
+                           <div className="space-y-1">
+                             <p className="text-sm text-muted-foreground">Телесный жир</p>
+                             <p className="text-xl font-bold">{bodyCompData.bodyFat.value}%</p>
+                           </div>
+                        </div>
+
+                        <div className="relative w-24 h-48">
+                             {/* Abstract Body Shape */}
+                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-40 bg-primary/20 rounded-full blur-sm"></div>
+                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-32 bg-primary/50 rounded-full"></div>
+                             <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary/50 rounded-full"></div>
+                        </div>
+
+                        <div className="space-y-8 text-left">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground">Оценка</p>
+                                <p className="text-xl font-bold">{bodyCompData.score.value}<span className="text-base text-muted-foreground">/10</span></p>
+                            </div>
+                           <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground">Телосложение</p>
+                                <p className="text-xl font-bold">{bodyCompData.bodyType}</p>
+                           </div>
+                        </div>
                     </div>
                 </div>
-                 <div>
-                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Другие индикаторы</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <MetricCard title="Индекс массы тела (ИМТ)" value={bodyCompData.bmi.value} unit={bodyCompData.bmi.unit} status={bodyCompData.bmi.status as any} icon={<Scale />} />
-                        <MetricCard title="Пульс в состоянии покоя" value={bodyCompData.restingHeartRate.value} unit={bodyCompData.restingHeartRate.unit} status={bodyCompData.restingHeartRate.status as any} icon={<HeartPulse />} />
-                        <MetricCard title="Метаболический возраст" value={bodyCompData.metabolicAge.value} unit={bodyCompData.metabolicAge.unit} status={bodyCompData.metabolicAge.status as any} icon={<Info />} />
-                    </div>
-                </div>
+
+                <Alert>
+                    <Bot className="h-4 w-4"/>
+                    <AlertTitle className="flex items-center gap-2">Анализ от умного помощника</AlertTitle>
+                    <AlertDescription>
+                        За последние дни почти ничего не изменилось. Однако с точки зрения долгосрочных тенденций, вы на правильном пути.
+                    </AlertDescription>
+                </Alert>
+                
                 <div>
-                     <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Общее заключение</h3>
-                     <Card>
-                        <CardContent className="p-6">
-                             <CardTitle className="mb-2">Телосложение: {bodyCompData.bodyType.value}</CardTitle>
-                             <p className="text-muted-foreground">{bodyCompData.bodyType.description}</p>
-                             <Button variant="link" className="px-0">Все виды телосложения</Button>
-                        </CardContent>
-                     </Card>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Требующие особого внимания</h3>
+                    <div className="space-y-2">
+                        <MetricRow title="Вес тела" value={bodyCompData.weight.value} unit="кг" icon={<Scale className="h-6 w-6 text-primary"/>} metricId="weight" />
+                        <MetricRow title="Телесный жир" value={bodyCompData.bodyFat.value} unit="%" icon={<Percent className="h-6 w-6 text-primary"/>} metricId="body-fat" />
+                        <MetricRow title="Мышцы" value={bodyCompData.muscleMass.value} unit="%" icon={<Dumbbell className="h-6 w-6 text-primary"/>} metricId="muscle-mass" />
+                        <MetricRow title="Индекс висцерального жира" value={bodyCompData.visceralFat.value} unit="" icon={<FileText className="h-6 w-6 text-primary"/>} metricId="visceral-fat" />
+                        <MetricRow title="СООВ" value={bodyCompData.bmr.value} unit="ккал" icon={<Flame className="h-6 w-6 text-primary"/>} metricId="bmr" />
+                        <MetricRow title="Вода в организме" value={bodyCompData.water.value} unit="%" icon={<Droplets className="h-6 w-6 text-primary"/>} metricId="water" />
+                        <MetricRow title="Скелетные мышцы" value={bodyCompData.skeletalMuscle.value} unit="%" icon={<PersonStanding className="h-6 w-6 text-primary"/>} metricId="skeletal-muscle" />
+                    </div>
                 </div>
             </CardContent>
         </Card>
