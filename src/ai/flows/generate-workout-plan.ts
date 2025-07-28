@@ -52,15 +52,11 @@ const GenerateWorkoutPlanInputSchema = z.object({
       'The user fitness level, e.g., beginner, intermediate, advanced.'
     ),
   workoutDaysPerWeek: z.number().min(1).max(7).describe('The number of days per week the user wants to train.'),
+  planDurationWeeks: z.number().min(1).max(12).describe('The total duration of the workout plan in weeks.'),
   availableEquipment: z
     .array(z.string())
     .describe(
       'The equipment available to the user, e.g., ["treadmill", "weights", "resistance bands"]. Can be an empty array.'
-    ),
-  workoutHistory: z
-    .string()
-    .describe(
-      'A summary of the user past workout history, including frequency, duration, and types of exercises performed.'
     ),
   goals: z
     .string()
@@ -94,10 +90,18 @@ const DayPlanSchema = z.object({
   day: z.string().describe('The day of the workout, e.g., "День 1".'),
   title: z.string().describe('The title for the workout day, e.g., "Силовая тренировка на все тело".'),
   exercises: z.array(ExerciseSchema),
+  description: z.string().optional().describe('A brief description of the workout for this day, its purpose and focus.'),
+});
+
+const WeekPlanSchema = z.object({
+  week: z.number().describe('The week number, e.g., 1.'),
+  weekGoal: z.string().describe('The main goal for this specific week of training, e.g., "Focus on increasing volume" or "Technique improvement week".'),
+  days: z.array(DayPlanSchema),
 });
 
 const GenerateWorkoutPlanOutputSchema = z.object({
-  workoutPlan: z.array(DayPlanSchema).describe('A detailed personalized workout plan based on the user input, as an array of DayPlan objects.'),
+  planTitle: z.string().describe('A catchy and motivating title for the entire workout plan.'),
+  workoutPlan: z.array(WeekPlanSchema).describe('A detailed personalized workout plan, as an array of WeekPlan objects.'),
 });
 
 export type GenerateWorkoutPlanOutput = z.infer<typeof GenerateWorkoutPlanOutputSchema>;
@@ -111,11 +115,13 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   input: {schema: GenerateWorkoutPlanInputSchema},
   output: {schema: GenerateWorkoutPlanOutputSchema},
   tools: [getWorkoutDatabase],
-  prompt: `You are an expert personal trainer. Your task is to create a personalized weekly workout plan.
+  prompt: `You are an expert personal trainer. Your task is to create a personalized, multi-week workout plan. The total duration of the plan must be exactly {{{planDurationWeeks}}} weeks.
 
 First, use the 'getWorkoutDatabase' tool to fetch the available workouts and exercises for the user's specified 'sportPreferences'.
 
-Then, using ONLY the exercises from the provided database, create a structured plan for a 7-day week. The plan must contain exactly {{{workoutDaysPerWeek}}} workout days and the rest should be rest days.
+Then, using ONLY the exercises from the provided database, create a structured plan. For EACH week, you must define a 'weekGoal' and create a 7-day plan. Each day's plan must contain a 'day', a 'title', a 'description' of the day's workout, and an array of 'exercises'.
+
+The plan MUST contain exactly {{{workoutDaysPerWeek}}} workout days per week, and the rest should be rest days.
 
 When selecting exercises, you MUST consider the user's 'availableEquipment'. If an exercise requires equipment not in the user's list, you MUST NOT include it.
 
@@ -127,8 +133,8 @@ Adapt the plan based on the user's entire profile:
   - Height: {{{height}}} cm
   - Fitness Level: {{{fitnessLevel}}}
   - Workout Days Per Week: {{{workoutDaysPerWeek}}}
+  - Total Plan Duration: {{{planDurationWeeks}}} weeks
   - Available Equipment: {{#if availableEquipment}}{{#each availableEquipment}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
-  - Workout History: {{{workoutHistory}}}
   - Goals: {{{goals}}}
   - Sport Preferences: {{{sportPreferences}}}
   {{#if workoutDifficultyFeedback}}
@@ -145,13 +151,14 @@ Adapt the plan based on the user's entire profile:
   {{/if}}
 
 - Plan Requirements:
-  - The plan should be for a 7-day week.
-  - Distribute the {{{workoutDaysPerWeek}}} workout days evenly throughout the week, with appropriate rest days in between (e.g., Day 1, Day 3, Day 5 for 3 days/week).
-  - For each workout day, select a suitable workout type from the database (e.g., 'Interval Run', 'Full Body Strength').
-  - For each workout, select a set of exercises from the database. For each exercise, you MUST include the 'name', 'details', 'technique', and 'description' from the database.
-  - Specify the 'details' for each exercise (e.g., "3 подхода по 12 повторений, отдых 60 сек.", "30 минут в умеренном темпе", "5 км"). Adapt sets, reps, duration, and intensity based on the user's fitness level and goals.
-  - For rest days, the 'title' should be "День отдыха" and the 'exercises' array can be empty or contain one activity like "Легкая активность" or "Растяжка".
-  - The final output MUST be a JSON object that perfectly matches the required output schema.
+  - The plan should be for exactly {{{planDurationWeeks}}} weeks.
+  - For each week, define a specific 'weekGoal'.
+  - For each day in the week, define a 'day' (e.g., "День 1"), a 'title', a brief 'description', and an array of 'exercises'.
+  - Distribute the {{{workoutDaysPerWeek}}} workout days evenly throughout the week, with appropriate rest days in between.
+  - For each workout day, select a suitable workout type and a set of exercises from the database. For each exercise, you MUST include 'name', 'details', 'technique', and 'description'.
+  - Adapt sets, reps, duration, and intensity based on the user's fitness level, goals, and the week number (e.g., progressive overload).
+  - For rest days, the 'title' should be "День отдыха" and the 'exercises' array should be empty. The 'description' can mention light activity.
+  - The final output MUST be a JSON object that perfectly matches the required output schema, including a 'planTitle'.
   - Ensure the response is in Russian.
 `,
 });

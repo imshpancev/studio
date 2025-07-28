@@ -1,20 +1,25 @@
 
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
-import { PlayCircle, Info, Bot, Terminal, Forward } from 'lucide-react';
+import { PlayCircle, Info, Bot, Terminal, Forward, Calendar, Target, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
 import { Sport } from '@/lib/workout-data';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
+  onFinishPlan: () => void;
 };
 
 function findSportForWorkout(title: string): Sport {
@@ -26,12 +31,11 @@ function findSportForWorkout(title: string): Sport {
 }
 
 
-export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
+export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayProps) {
   const router = useRouter();
+  const [currentWeek, setCurrentWeek] = useState(0);
 
   if (!data) {
-    // This part is now handled by the parent component (MyPlanPage)
-    // but kept as a fallback.
     return (
         <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
             <CardHeader>
@@ -49,7 +53,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     );
   }
   
-  const { workoutPlan: structuredPlan } = data;
+  const { planTitle, workoutPlan: structuredPlan } = data;
 
   if (!structuredPlan || !Array.isArray(structuredPlan) || structuredPlan.length === 0) {
     return (
@@ -80,86 +84,132 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     router.push(`/workout/${encodeURIComponent(dayPlan.day)}?sport=${encodeURIComponent(sport)}&exercises=${exercisesQuery}`);
   };
 
+  const selectedWeek = structuredPlan[currentWeek];
+
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Ваш персональный недельный план</CardTitle>
-        <CardDescription>Вот ваш индивидуальный план тренировок, созданный ИИ.</CardDescription>
+        <div className="flex justify-between items-start">
+            <div>
+                 <CardTitle>{planTitle}</CardTitle>
+                <CardDescription>Ваш персональный многонедельный план тренировок.</CardDescription>
+            </div>
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Завершить план
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Завершить весь план?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Это действие завершит и удалит ваш текущий план тренировок. Вы сможете сгенерировать новый.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogAction onClick={onFinishPlan}>Завершить план</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[70vh] pr-4">
-          <Accordion type="single" collapsible defaultValue="item-0" className="w-full space-y-4">
-            {structuredPlan.map((dayPlan, index) => (
-              <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
-                <Card className="overflow-hidden rounded-lg">
-                   <AccordionTrigger className="p-4 hover:no-underline flex justify-between items-center w-full bg-muted/50 data-[state=open]:bg-muted">
-                        <div className="text-left">
-                            <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
-                            <p className="text-muted-foreground">{dayPlan.title}</p>
-                        </div>
-                   </AccordionTrigger>
-                   {dayPlan.exercises && dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
-                         <div className="px-4 pb-4 bg-muted/50 data-[state=open]:bg-muted">
-                             <Button 
+        <Tabs value={String(currentWeek)} onValueChange={(val) => setCurrentWeek(Number(val))} className="w-full">
+          <div className="flex justify-between items-center mb-4">
+            <Button onClick={() => setCurrentWeek(w => w - 1)} disabled={currentWeek === 0} variant="outline" size="icon"><ChevronLeft/></Button>
+            <TabsList>
+                {structuredPlan.map((week, index) => (
+                    <TabsTrigger key={index} value={String(index)}>Неделя {week.week}</TabsTrigger>
+                ))}
+            </TabsList>
+             <Button onClick={() => setCurrentWeek(w => w + 1)} disabled={currentWeek === structuredPlan.length - 1} variant="outline" size="icon"><ChevronRight/></Button>
+          </div>
+
+            <div className="my-4 p-4 border rounded-lg bg-muted/50">
+                <h3 className="font-semibold flex items-center gap-2"><Target className="h-5 w-5 text-primary"/>Цель на неделю:</h3>
+                <p className="text-muted-foreground">{selectedWeek.weekGoal}</p>
+            </div>
+
+            <ScrollArea className="h-[60vh] pr-4">
+              <Accordion type="single" collapsible defaultValue="item-0" className="w-full space-y-4">
+                {selectedWeek.days.map((dayPlan, index) => (
+                  <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
+                    <Card className="overflow-hidden rounded-lg">
+                       <AccordionTrigger className="p-4 hover:no-underline flex justify-between items-center w-full bg-muted/50 data-[state=open]:bg-muted">
+                            <div className="text-left">
+                                <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
+                                <p className="text-muted-foreground">{dayPlan.title}</p>
+                            </div>
+                       </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="p-4 border-t space-y-4">
+                            {dayPlan.description && (
+                                 <Alert>
+                                    <AlertDescription>{dayPlan.description}</AlertDescription>
+                                </Alert>
+                            )}
+
+                          {(dayPlan.exercises && dayPlan.exercises.length === 0) || dayPlan.title === "День отдыха" ? (
+                            <p className='text-muted-foreground'>Запланирован отдых. Восстановление — ключ к успеху!</p>
+                          ) : (
+                            <>
+                            <Button 
                                 variant="default" 
                                 size="sm" 
-                                onClick={(e) => {
-                                    e.stopPropagation(); // Prevent accordion from toggling
-                                    handleStartWorkout(dayPlan)
-                                }}
+                                onClick={() => handleStartWorkout(dayPlan)}
                                 className='w-full'
                               >
                                <Forward className="mr-2 h-4 w-4" /> Начать тренировку
                              </Button>
-                         </div>
-                      )}
-                  <AccordionContent>
-                    <div className="p-4 border-t space-y-4">
-                      {dayPlan.exercises && dayPlan.exercises.length === 0 || dayPlan.title === "День отдыха" ? (
-                        <p className='text-muted-foreground'>Запланирован отдых. Восстановление — ключ к успеху!</p>
-                      ) : dayPlan.exercises.map((exercise, exIndex) => (
-                        <div key={exIndex} className="flex gap-4 items-start">
-                          <div className="relative group w-[100px] h-[100px] flex-shrink-0">
-                            <Image
-                              src={`https://placehold.co/100x100.png`}
-                              data-ai-hint="exercise fitness"
-                              alt={exercise.name}
-                              width={100}
-                              height={100}
-                              className="rounded-lg object-cover w-full h-full"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                              <PlayCircle className="h-8 w-8 text-white" />
+                            {dayPlan.exercises.map((exercise, exIndex) => (
+                            <div key={exIndex} className="flex gap-4 items-start pt-4 border-t">
+                              <div className="relative group w-[100px] h-[100px] flex-shrink-0">
+                                <Image
+                                  src={`https://placehold.co/100x100.png`}
+                                  data-ai-hint="exercise fitness"
+                                  alt={exercise.name}
+                                  width={100}
+                                  height={100}
+                                  className="rounded-lg object-cover w-full h-full"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                  <PlayCircle className="h-8 w-8 text-white" />
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                 <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold text-base">{exercise.name}</h4>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-bold">Описание</p>
+                                        <p>{exercise.description}</p>
+                                        <p className="font-bold mt-2">Техника выполнения</p>
+                                        <p>{exercise.technique}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                                <p className="text-muted-foreground text-sm">{exercise.details}</p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex-1">
-                             <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-base">{exercise.name}</h4>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <p className="font-bold">Описание</p>
-                                    <p>{exercise.description}</p>
-                                    <p className="font-bold mt-2">Техника выполнения</p>
-                                    <p>{exercise.technique}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <p className="text-muted-foreground text-sm">{exercise.details}</p>
-                          </div>
+                            ))}
+                            </>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </Card>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </ScrollArea>
+                      </AccordionContent>
+                    </Card>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </ScrollArea>
+        </Tabs>
       </CardContent>
     </Card>
   );

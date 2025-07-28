@@ -30,8 +30,8 @@ const formSchema = z.object({
   sportPreferences: z.array(z.string()).nonempty({ message: "Пожалуйста, выберите хотя бы один вид спорта." }),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
   workoutDaysPerWeek: z.number().min(1).max(7),
+  planDurationWeeks: z.number().min(1).max(12),
   availableEquipment: z.array(z.string()),
-  workoutHistory: z.string().min(1, 'История тренировок обязательна.'),
   goals: z.string().min(1, 'Пожалуйста, опишите свои фитнес-цели.'),
   
   // Optional fields
@@ -76,8 +76,8 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
       sportPreferences: [Sport.Gym],
       fitnessLevel: 'intermediate',
       workoutDaysPerWeek: 3,
+      planDurationWeeks: 4,
       availableEquipment: [],
-      workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года. В основном силовые тренировки.',
       goals: 'Нарастить мышечную массу',
       workoutDifficultyFeedback: '',
       competitionGoal: 'none',
@@ -99,8 +99,7 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
             else if (competitionString.includes("10к")) competitionData.competitionGoal = "10k";
             else if (competitionString.includes("полумарафон")) competitionData.competitionGoal = "halfMarathon";
             else if (competitionString.includes("марафон")) competitionData.competitionGoal = "marathon";
-            // A more robust date parsing would be needed for production
-            // This is a simple example
+            
             const dateMatch = existingPlanInput.upcomingCompetitionReference.match(/(\d{4}-\d{2}-\d{2})/);
             if (dateMatch) {
                 competitionData.competitionDate = new Date(dateMatch[1]);
@@ -126,6 +125,7 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
     return sportPreferences.includes(Sport.Running);
   }, [sportPreferences]);
   const daysPerWeek = form.watch('workoutDaysPerWeek');
+  const planDuration = form.watch('planDurationWeeks');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -208,11 +208,13 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
                               {allSports.map((sport) => (
                                 <CommandItem
                                   key={sport}
-                                  onSelect={() => {
-                                    const currentValue = field.value || [];
-                                    const newValue = currentValue.includes(sport)
-                                      ? currentValue.filter((s) => s !== sport)
-                                      : [...currentValue, sport];
+                                  value={sport}
+                                  onSelect={(currentValue) => {
+                                    const currentValueArray = field.value || [];
+                                    const isSelected = currentValueArray.includes(currentValue);
+                                    const newValue = isSelected
+                                      ? currentValueArray.filter((s) => s !== currentValue)
+                                      : [...currentValueArray, currentValue];
                                     field.onChange(newValue);
                                   }}
                                 >
@@ -286,26 +288,48 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
             )}
           />
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+                control={form.control}
+                name="workoutDaysPerWeek"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Тренировок в неделю: <span className="text-primary font-bold">{daysPerWeek}</span></FormLabel>
+                    <FormControl>
+                       <Slider
+                          min={1}
+                          max={7}
+                          step={1}
+                          defaultValue={[field.value]}
+                          onValueChange={(value) => field.onChange(value[0])}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            <FormField
+                control={form.control}
+                name="planDurationWeeks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Длительность плана (недель): <span className="text-primary font-bold">{planDuration}</span></FormLabel>
+                    <FormControl>
+                       <Slider
+                          min={1}
+                          max={12}
+                          step={1}
+                          defaultValue={[field.value]}
+                          onValueChange={(value) => field.onChange(value[0])}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+            />
+        </div>
 
-        <FormField
-            control={form.control}
-            name="workoutDaysPerWeek"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Количество тренировок в неделю: <span className="text-primary font-bold">{daysPerWeek}</span></FormLabel>
-                <FormControl>
-                   <Slider
-                      min={1}
-                      max={7}
-                      step={1}
-                      defaultValue={[field.value]}
-                      onValueChange={(value) => field.onChange(value[0])}
-                    />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
         {showEquipmentSelector && (
            <Controller
@@ -340,11 +364,13 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
                           {allEquipment.map((equipment) => (
                             <CommandItem
                               key={equipment.id}
-                              onSelect={() => {
-                                const currentValue = field.value || [];
-                                const newValue = currentValue.includes(equipment.label)
-                                  ? currentValue.filter((id) => id !== equipment.label)
-                                  : [...currentValue, equipment.label];
+                              value={equipment.label}
+                              onSelect={(currentValue) => {
+                                const currentValueArray = field.value || [];
+                                const isSelected = currentValueArray.includes(currentValue);
+                                const newValue = isSelected
+                                  ? currentValueArray.filter((item) => item !== currentValue)
+                                  : [...currentValueArray, currentValue];
                                 field.onChange(newValue);
                               }}
                             >
@@ -373,20 +399,6 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
           />
         )}
         
-        <FormField
-          control={form.control}
-          name="workoutHistory"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>История тренировок</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Опишите ваш опыт тренировок: как часто, как долго, какие упражнения вы делали." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="advanced-options" className='border-b-0'>
             <AccordionTrigger className="hover:no-underline text-sm">

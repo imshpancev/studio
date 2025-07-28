@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BatteryFull, Activity, Flame, ShieldCheck } from "lucide-react";
+import { BatteryFull, Activity, Flame, ShieldCheck, HeartCrack, Smile } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 
@@ -12,6 +12,8 @@ export function AnalyticsPage() {
     const trainingLoadRatio = 1.1; // Example: 1.1 means slightly overreaching
     const caloriesThisWeek = 2340;
     const recoveryHours = 28;
+    const stressLevel = 25; // Example: out of 100
+    const bodyBattery = 78; // Example: out of 100
 
     const getReadinessColor = (score: number) => {
         if (score > 80) return "bg-green-500";
@@ -41,16 +43,27 @@ export function AnalyticsPage() {
                     </CardDescription>
                 </CardHeader>
             </Card>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Готовность к тренировке</CardTitle>
-                        <BatteryFull className="h-4 w-4 text-muted-foreground" />
+                        <Smile className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{readinessScore}%</div>
                         <p className="text-xs text-muted-foreground">На основе ВСР, сна и недавней нагрузки</p>
                         <Progress value={readinessScore} className="mt-4 h-2" indicatorClassName={getReadinessColor(readinessScore)} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Готовность тела</CardTitle>
+                        <BatteryFull className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{bodyBattery}%</div>
+                        <p className="text-xs text-muted-foreground">Оценка запаса энергии вашего тела</p>
+                        <Progress value={bodyBattery} className="mt-4 h-2" indicatorClassName={getReadinessColor(bodyBattery)} />
                     </CardContent>
                 </Card>
                 <Card>
@@ -83,6 +96,16 @@ export function AnalyticsPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{recoveryHours} часов</div>
                         <p className="text-xs text-muted-foreground">Рекомендуемое время до следующей тяжелой тренировки</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Уровень стресса</CardTitle>
+                        <HeartCrack className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stressLevel} / 100</div>
+                        <p className="text-xs text-muted-foreground">На основе вариабельности сердечного ритма</p>
                     </CardContent>
                 </Card>
             </div>
