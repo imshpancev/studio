@@ -54,13 +54,14 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            onboardingCompleted: true, // Mark onboarding as complete
+            userId: user.uid, // CRITICAL FIX: Add the userId to the document data
+            onboardingCompleted: true,
         });
         toast({
             title: 'Профиль создан!',
             description: 'Добро пожаловать! Давайте начнем ваш путь к лучшей форме.',
         });
-        router.push('/'); // Redirect to the main app
+        router.push('/');
     } catch (error) {
         console.error("Failed to save onboarding data:", error);
         toast({
