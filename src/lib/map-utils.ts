@@ -2,7 +2,7 @@
 type Point = { lat: number; lng: number };
 
 /**
- * Generates a URL for a static map image from OpenStreetMap using a third-party service.
+ * Generates a URL for a static map image from a third-party service that renders OpenStreetMap tiles.
  * @param track An array of points representing the workout track.
  * @param width The width of the map image.
  * @param height The height of the map image.
@@ -13,17 +13,18 @@ export function getStaticMapUrl(track: Point[], width = 600, height = 400): stri
         return `https://placehold.co/${width}x${height}.png`;
     }
 
-    // Convert track points to the format expected by the static map service
+    // Convert track points to the format expected by the static map service: "lon,lat"
     const path = track.map(p => `${p.lng},${p.lat}`).join('|');
     
-    // Using a free static map generator for OpenStreetMap
-    const serviceUrl = 'https://img.q_vis.as/path';
+    // Using a free static map generator for OpenStreetMap that supports paths
+    const serviceUrl = 'https://map.isellcoffee.de/static-map'; 
     
     // Construct the URL with parameters
     const params = new URLSearchParams({
-        path: `color:ff0000,weight:3|${path}`,
+        path: `color:ff0000;weight:3;${path}`,
         size: `${width}x${height}`,
-        zoom: 'auto',
+        // Using 'auto' is better than manually calculating bbox, as it handles different geographic scales
+        zoom: 'auto', 
     });
 
     return `${serviceUrl}?${params.toString()}`;
