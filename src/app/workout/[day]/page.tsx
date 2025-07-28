@@ -6,24 +6,20 @@ import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Pla
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { type Exercise } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WorkoutSummary } from "@/components/workout-summary";
 
-type WorkoutPageProps = {
-    params: {
-        day: string;
-    }
-}
-
-export default function WorkoutPage({ params }: WorkoutPageProps) {
+export default function WorkoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const day = decodeURIComponent(params.day);
-  const exercises: Exercise[] = JSON.parse(searchParams.get('exercises') || '[]');
-  const sport = searchParams.get('sport') || 'Тренировка';
+  const params = useParams();
+  
+  const day = useMemo(() => decodeURIComponent(Array.isArray(params.day) ? params.day[0] : params.day), [params.day]);
+  const exercises: Exercise[] = useMemo(() => JSON.parse(searchParams.get('exercises') || '[]'), [searchParams]);
+  const sport = useMemo(() => searchParams.get('sport') || 'Тренировка', [searchParams]);
   
   // Overall workout state
   const [time, setTime] = useState(0);
@@ -46,7 +42,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
   // Main timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (isActive) {
+    if (isActive && !isFinished) {
       interval = setInterval(() => {
         setTime(prevTime => prevTime + 1);
         
@@ -75,7 +71,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time, sport, isResting]);
+  }, [isActive, time, sport, isResting, isFinished]);
 
 
   // Rest timer effect
@@ -208,7 +204,7 @@ export default function WorkoutPage({ params }: WorkoutPageProps) {
                                     <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
                                     <p className="text-xl font-bold">{heartRateZone.name}</p>
                                     <div className="w-full mt-1">
-                                        <Progress value={heartRateZone.percentage} className={cn("h-2", heartRateZone.color)} />
+                                        <Progress value={heartRateZone.percentage} indicatorClassName={cn(heartRateZone.color)} />
                                     </div>
                                 </div>
                             </>
