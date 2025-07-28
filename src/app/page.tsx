@@ -22,8 +22,6 @@ import WorkoutHistoryPage from "./history/page";
 import { RecordsPage } from "@/components/records-page";
 import { FeedPage } from "@/components/feed-page";
 import { NutritionDiaryPage } from "@/components/nutrition-diary-page";
-import { BodyCompositionPage } from "@/components/body-composition-page";
-
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
@@ -143,12 +141,9 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-6 md:grid-cols-9 max-w-6xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-5 md:grid-cols-8 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-5 w-5" /> <span className="hidden md:inline">Аналитика</span>
-            </TabsTrigger>
-             <TabsTrigger value="body-comp" className="gap-2">
-              <PersonStanding className="h-5 w-5" /> <span className="hidden md:inline">Состояние</span>
             </TabsTrigger>
              <TabsTrigger value="feed" className="gap-2">
               <Rss className="h-5 w-5" /> <span className="hidden md:inline">Лента</span>
@@ -175,10 +170,6 @@ export default function Home() {
           
           <TabsContent value="analytics">
             <AnalyticsPage setActiveTab={setActiveTab}/>
-          </TabsContent>
-
-          <TabsContent value="body-comp">
-            <BodyCompositionPage />
           </TabsContent>
 
            <TabsContent value="feed">
