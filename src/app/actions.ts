@@ -1,11 +1,23 @@
+
 'use server';
 
-import { generateWorkoutPlan, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
-import { analyzeWorkoutFeedback, type AnalyzeWorkoutFeedbackInput, type AnalyzeWorkoutFeedbackOutput } from '@/ai/flows/analyze-workout-feedback';
+import {
+  generateWorkoutPlan,
+  type GenerateWorkoutPlanInput,
+  type GenerateWorkoutPlanOutput,
+} from '@/ai/flows/generate-workout-plan';
+import {
+  analyzeWorkoutFeedback,
+  type AnalyzeWorkoutFeedbackInput,
+  type AnalyzeWorkoutFeedbackOutput,
+} from '@/ai/flows/analyze-workout-feedback';
 import { Sport, workoutDatabase } from '@/lib/workout-data';
 
-export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promise<GenerateWorkoutPlanOutput> {
+export async function generatePlanAction(
+  input: GenerateWorkoutPlanInput
+): Promise<GenerateWorkoutPlanOutput> {
   // AI-less fallback implementation
+  /*
   try {
     const sportKey = input.sportPreferences as Sport;
     const sportData = workoutDatabase[sportKey];
@@ -92,8 +104,9 @@ export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promi
     }
     throw new Error('An unknown error occurred while generating the workout plan.');
   }
+  */
 
-  /*
+  
   // Original AI implementation
   try {
     const output = await generateWorkoutPlan(input);
@@ -105,10 +118,11 @@ export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promi
     }
     throw new Error('An unknown error occurred while generating the workout plan.');
   }
-  */
 }
 
-export async function analyzeFeedbackAction(input: AnalyzeWorkoutFeedbackInput): Promise<AnalyzeWorkoutFeedbackOutput> {
+export async function analyzeFeedbackAction(
+  input: AnalyzeWorkoutFeedbackInput
+): Promise<AnalyzeWorkoutFeedbackOutput> {
   try {
     const output = await analyzeWorkoutFeedback(input);
     return output;
