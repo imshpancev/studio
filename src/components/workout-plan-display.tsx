@@ -20,7 +20,6 @@ import { Skeleton } from './ui/skeleton';
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput | null;
-  onFinishPlan: () => void;
 };
 
 function findSportForWorkout(title: string): Sport {
@@ -31,8 +30,18 @@ function findSportForWorkout(title: string): Sport {
   return Sport.Home;
 }
 
+const handleFinishPlan = () => {
+  // This would typically involve a state update in the parent component
+  // For now, we can just log it and potentially clear it from localStorage
+  console.log("Plan finished");
+  localStorage.removeItem('workoutPlan');
+  localStorage.removeItem('workoutPlanInput');
+  // In a real app, you'd probably call a prop function like onFinishPlan()
+  window.location.reload(); // Simple way to reset state for demo
+};
 
-export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayProps) {
+
+export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   const router = useRouter();
   const [currentWeek, setCurrentWeek] = useState(0);
 
@@ -111,7 +120,7 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Отмена</AlertDialogCancel>
-                    <AlertDialogAction onClick={onFinishPlan}>Завершить план</AlertDialogAction>
+                    <AlertDialogAction onClick={handleFinishPlan}>Завершить план</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -138,7 +147,7 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
 
                     <ScrollArea className="h-[60vh] pr-4">
                       <Accordion type="single" collapsible defaultValue="item-0" className="w-full space-y-4">
-                        {selectedWeek.days.map((dayPlan, index) => (
+                        {selectedWeek.days && selectedWeek.days.map((dayPlan, index) => (
                           <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
                             <Card className="overflow-hidden rounded-lg">
                                <AccordionTrigger className="p-4 hover:no-underline flex justify-between items-center w-full bg-muted/50 data-[state=open]:bg-muted">
@@ -167,7 +176,7 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
                                       >
                                        <Forward className="mr-2 h-4 w-4" /> Начать тренировку
                                      </Button>
-                                    {dayPlan.exercises.map((exercise, exIndex) => (
+                                    {dayPlan.exercises && dayPlan.exercises.map((exercise, exIndex) => (
                                     <div key={exIndex} className="flex gap-4 items-start pt-4 border-t">
                                       <div className="relative group w-[100px] h-[100px] flex-shrink-0">
                                         <Image
