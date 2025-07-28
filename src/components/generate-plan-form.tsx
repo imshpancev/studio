@@ -61,6 +61,7 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    onPlanGenerated(null as any); // Clear previous plan
     try {
       const result = await generatePlanAction(values);
       onPlanGenerated(result);
@@ -69,10 +70,12 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
         description: 'Ваш новый план тренировок был сгенерирован.',
       });
     } catch (error) {
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте еще раз.';
       toast({
         variant: 'destructive',
         title: 'Произошла ошибка.',
-        description: 'Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте еще раз.',
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

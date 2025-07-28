@@ -8,8 +8,12 @@ export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promi
     const output = await generateWorkoutPlan(input);
     return output;
   } catch (error) {
-    console.error('Error generating workout plan:', error);
-    throw new Error('Failed to generate workout plan.');
+    console.error('Error generating workout plan in action:', error);
+    // Re-throwing the error to be caught by the form handler
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate workout plan: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while generating the workout plan.');
   }
 }
 

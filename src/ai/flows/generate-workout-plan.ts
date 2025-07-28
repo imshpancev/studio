@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for generating personalized workout plans.
+ * @fileoverview This file defines a Genkit flow for generating personalized workout plans.
  * The flow takes user preferences, fitness level, available equipment, workout history, and goals as input,
  * and outputs a personalized workout plan.
  *
@@ -46,7 +46,7 @@ const GenerateWorkoutPlanInputSchema = z.object({
   height: z.number().describe("The user's height in centimeters."),
   sportPreferences: z
     .string()
-    .describe('The user sport preferences, e.g., running, gym workouts, outdoor activities, home workouts. Multiple sports can be specified, separated by commas.'),
+    .describe('The user sport preferences, e.g., running, gym workouts, outdoor activities, home workouts.'),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced'])
     .describe(
       'The user fitness level, e.g., beginner, intermediate, advanced.'
@@ -54,7 +54,7 @@ const GenerateWorkoutPlanInputSchema = z.object({
   availableEquipment: z
     .string()
     .describe(
-      'The equipment available to the user, e.g., treadmill, weights, resistance bands. Specify none if no equipment is available. Multiple items can be specified, separated by commas.'
+      'The equipment available to the user, e.g., treadmill, weights, resistance bands. Specify none if no equipment is available.'
     ),
   workoutHistory: z
     .string()
@@ -166,6 +166,9 @@ const generateWorkoutPlanFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await generateWorkoutPlanPrompt(input);
-    return output!;
+    if (!output || !output.workoutPlan || output.workoutPlan.length === 0) {
+      throw new Error("AI failed to generate a valid workout plan.");
+    }
+    return output;
   }
 );
