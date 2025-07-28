@@ -25,6 +25,7 @@ export interface UserRecords {
 
 // Helper to parse duration string "HH:MM:SS" into seconds
 const durationToSeconds = (duration: string): number => {
+    if (!duration) return 0;
     const parts = duration.split(':').map(Number);
     if (parts.length === 3) {
         return parts[0] * 3600 + parts[1] * 60 + parts[2];
@@ -44,9 +45,13 @@ const secondsToDuration = (seconds: number): string => {
 }
 
 // Helper to parse pace string "M'SS\"" to seconds
-const paceToSeconds = (pace: string): number => {
-  const parts = pace.replace('"', '').split("'").map(Number);
-  return parts[0] * 60 + parts[1];
+const paceToSeconds = (pace?: string): number => {
+    if (!pace) return Infinity;
+    const parts = pace.replace('"', '').split("'").map(Number);
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        return Infinity;
+    }
+    return parts[0] * 60 + parts[1];
 };
 
 // Helper to format seconds to pace string "M'SS\""
@@ -75,34 +80,46 @@ export async function getUserRecords(userId: string): Promise<UserRecords> {
         sports: [],
     };
 
-    if (workouts.length === 0) return records;
+    if (workouts.length === 0) {
+        // Return structure with empty records for all sports to prevent UI errors
+        records.sports.push({ sport: 'general', records: [] });
+        records.sports.push({ sport: Sport.Running, records: [] });
+        records.sports.push({ sport: Sport.Cycling, records: [] });
+        records.sports.push({ sport: Sport.Swimming, records: [] });
+        records.sports.push({ sport: Sport.Triathlon, records: [] });
+        return records;
+    }
 
     // --- General Records ---
     const generalRecords: Record[] = [];
-    const longestWorkout = workouts.reduce((prev, current) => {
-        return durationToSeconds(prev.duration) > durationToSeconds(current.duration) ? prev : current;
-    });
-    generalRecords.push({
-        name: 'Самая долгая тренировка',
-        value: longestWorkout.duration,
-        date: longestWorkout.date,
-        workoutId: longestWorkout.id!,
-    });
+    if (workouts.length > 0) {
+        const longestWorkout = workouts.reduce((prev, current) => {
+            return durationToSeconds(prev.duration) > durationToSeconds(current.duration) ? prev : current;
+        });
+        generalRecords.push({
+            name: 'Самая долгая тренировка',
+            value: longestWorkout.duration,
+            date: longestWorkout.date,
+            workoutId: longestWorkout.id!,
+        });
 
-    const mostCalories = workouts.reduce((prev, current) => {
-        return (prev.calories || 0) > (current.calories || 0) ? prev : current;
-    });
-    generalRecords.push({
-        name: 'Больше всего калорий',
-        value: `${mostCalories.calories} ккал`,
-        date: mostCalories.date,
-        workoutId: mostCalories.id!,
-    });
+        const mostCalories = workouts.filter(w => w.calories).reduce((prev, current) => {
+            return (prev.calories || 0) > (current.calories || 0) ? prev : current;
+        });
+        if (mostCalories) {
+            generalRecords.push({
+                name: 'Больше всего калорий',
+                value: `${mostCalories.calories} ккал`,
+                date: mostCalories.date,
+                workoutId: mostCalories.id!,
+            });
+        }
+    }
     records.sports.push({ sport: 'general', records: generalRecords });
 
 
     // --- Running Records ---
-    const runningWorkouts = workouts.filter(w => w.type === Sport.Running);
+    const runningWorkouts = workouts.filter(w => w.type === Sport.Running && w.distance);
     const runningRecords: Record[] = [];
     if (runningWorkouts.length > 0) {
         const longestRun = runningWorkouts.reduce((prev, current) => {
@@ -118,8 +135,8 @@ export async function getUserRecords(userId: string): Promise<UserRecords> {
         // Best pace records (simplified - checks average pace of workout)
         // A real implementation would parse splits/laps data.
         const fastest5k = runningWorkouts
-            .filter(w => parseFloat(w.distance || '0') >= 5)
-            .sort((a, b) => paceToSeconds(a.avgPace || "99'99\"") - paceToSeconds(b.avgPace || "99'99\""))[0];
+            .filter(w => w.avgPace && parseFloat(w.distance || '0') >= 5)
+            .sort((a, b) => paceToSeconds(a.avgPace) - paceToSeconds(b.avgPace))[0];
         
         if (fastest5k) {
              runningRecords.push({
@@ -130,11 +147,11 @@ export async function getUserRecords(userId: string): Promise<UserRecords> {
             });
         }
     }
-     records.sports.push({ sport: Sport.Running, records: runningRecords });
+    records.sports.push({ sport: Sport.Running, records: runningRecords });
 
 
     // --- Cycling Records ---
-    const cyclingWorkouts = workouts.filter(w => w.type === Sport.Cycling);
+    const cyclingWorkouts = workouts.filter(w => w.type === Sport.Cycling && w.distance);
     const cyclingRecords: Record[] = [];
     if (cyclingWorkouts.length > 0) {
         const longestRide = cyclingWorkouts.reduce((prev, current) => {
