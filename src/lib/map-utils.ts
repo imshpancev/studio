@@ -2,30 +2,32 @@
 type Point = { lat: number; lng: number };
 
 /**
- * Generates a URL for a static map image from a third-party service that renders OpenStreetMap tiles.
+ * Generates an embeddable URL for an OpenStreetMap iframe, centered on the first point of the track.
  * @param track An array of points representing the workout track.
- * @param width The width of the map image.
- * @param height The height of the map image.
- * @returns A URL string for the static map image.
+ * @returns A URL string for the iframe.
  */
-export function getStaticMapUrl(track: Point[], width = 600, height = 400): string {
+export function getMapEmbedUrl(track: Point[]): string {
     if (!track || track.length === 0) {
-        return `https://placehold.co/${width}x${height}.png`;
+        // Fallback to a default location if track is empty
+        return `https://www.openstreetmap.org/export/embed.html?bbox=-0.1,51.5,-0.09,51.51&layer=mapnik`;
     }
 
-    // Convert track points to the format expected by the static map service: "lon,lat"
-    const path = track.map(p => `${p.lng},${p.lat}`).join('|');
-    
-    // Using a free static map generator for OpenStreetMap that supports paths
-    const serviceUrl = 'https://map.isellcoffee.de/static-map'; 
-    
-    // Construct the URL with parameters
+    const firstPoint = track[0];
+    const { lat, lng } = firstPoint;
+
+    // A small bounding box around the first point to define the view
+    const bbox = [
+        lng - 0.005,
+        lat - 0.005,
+        lng + 0.005,
+        lat + 0.005
+    ].join(',');
+
     const params = new URLSearchParams({
-        path: `color:ff0000;weight:3;${path}`,
-        size: `${width}x${height}`,
-        // Using 'auto' is better than manually calculating bbox, as it handles different geographic scales
-        zoom: 'auto', 
+        bbox: bbox,
+        layer: 'mapnik',
+        marker: `${lat},${lng}`
     });
 
-    return `${serviceUrl}?${params.toString()}`;
+    return `https://www.openstreetmap.org/export/embed.html?${params.toString()}`;
 }

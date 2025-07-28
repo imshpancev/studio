@@ -2,12 +2,11 @@
 'use client';
 
 import { useState } from "react";
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Map, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { historyItems } from "@/app/history/page";
-import { getStaticMapUrl } from "@/lib/map-utils";
+import { getMapEmbedUrl } from "@/lib/map-utils";
 
 const workoutsWithRoutes = historyItems.filter(item => item.track && item.track.length > 0);
 
@@ -43,7 +42,7 @@ export function RoutesPage() {
         setSelectedWorkoutIndex(prev => (prev === workoutsWithRoutes.length - 1 ? 0 : prev + 1));
     };
     
-    const mapUrl = getStaticMapUrl(selectedWorkout.track);
+    const mapUrl = getMapEmbedUrl(selectedWorkout.track);
 
 
     return (
@@ -58,15 +57,18 @@ export function RoutesPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col gap-4">
-                 <div className="aspect-video w-full rounded-lg overflow-hidden border relative bg-muted">
-                    <Image
+                 <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                    <iframe
                         key={selectedWorkout.id}
                         src={mapUrl}
-                        alt={`Карта маршрута для ${selectedWorkout.title}`}
-                        layout="fill"
-                        objectFit="cover"
-                        unoptimized
-                    />
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen={false}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title={`Карта маршрута для ${selectedWorkout.title}`}
+                    ></iframe>
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <Button onClick={handlePrev} variant="outline" size="icon">

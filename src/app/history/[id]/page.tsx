@@ -2,12 +2,12 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, Bike, Waves } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getStaticMapUrl } from '@/lib/map-utils';
+import { getMapEmbedUrl } from '@/lib/map-utils';
+import { RunIcon } from '@/components/icons/run-icon';
 
 export default function HistoryDetailPage() {
     const router = useRouter();
@@ -23,10 +23,10 @@ export default function HistoryDetailPage() {
     }
     
     const item = JSON.parse(dataString);
-    const mapUrl = item.track ? getStaticMapUrl(item.track) : null;
+    const mapUrl = item.track ? getMapEmbedUrl(item.track) : null;
 
     const getIcon = (type: string) => {
-        if (type === 'Бег') return <Map className="h-8 w-8 text-primary" />;
+        if (type === 'Бег') return <RunIcon className="h-8 w-8 text-primary" />;
         if (type === 'Тренажерный зал') return <Dumbbell className="h-8 w-8 text-destructive" />;
         if (type === 'Йога') return <Zap className="h-8 w-8 text-accent" />;
         if (type === 'Велоспорт') return <Bike className="h-8 w-8 text-green-500" />;
@@ -113,14 +113,17 @@ export default function HistoryDetailPage() {
                             <div className="space-y-4">
                                 <div>
                                     <h3 className="font-semibold mb-2">Карта маршрута</h3>
-                                    <div className="aspect-video w-full rounded-lg overflow-hidden border relative bg-muted">
-                                        <Image
+                                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                        <iframe
                                             src={mapUrl}
-                                            alt={`Карта маршрута для ${item.title}`}
-                                            layout="fill"
-                                            objectFit="cover"
-                                            unoptimized
-                                        />
+                                            width="100%"
+                                            height="100%"
+                                            style={{ border: 0 }}
+                                            allowFullScreen={false}
+                                            loading="lazy"
+                                            referrerPolicy="no-referrer-when-downgrade"
+                                            title={`Карта маршрута для ${item.title}`}
+                                        ></iframe>
                                     </div>
                                 </div>
                             </div>
