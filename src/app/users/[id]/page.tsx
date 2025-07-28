@@ -5,13 +5,12 @@
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, MessageSquare, History, Rss, Bike, Waves, Map as MapIcon, Dumbbell } from 'lucide-react';
+import { ArrowLeft, UserPlus, MessageSquare, History, Rss, Bike, Waves, Map as MapIcon, Dumbbell, Footprints } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { WorkoutHistoryPage } from '@/components/workout-history-page';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { allSports } from '@/lib/workout-data';
-import { RunIcon } from '@/components/icons/run-icon';
 
 
 // Mock data for profiles - in a real app this would be fetched
@@ -26,12 +25,12 @@ type UserKey = keyof typeof mockUsers;
 
 const getSportIcon = (sport: string) => {
     switch (sport) {
-        case 'Бег': return <RunIcon className="h-4 w-4" />;
+        case 'Бег': return <Footprints className="h-4 w-4" />;
         case 'Тренажерный зал': return <Dumbbell className="h-4 w-4" />;
         case 'Йога': return <Rss className="h-4 w-4" />;
         case 'Велоспорт': return <Bike className="h-4 w-4" />;
         case 'Плавание': return <Waves className="h-4 w-4" />;
-        default: return <RunIcon className="h-4 w-4" />;
+        default: return <Footprints className="h-4 w-4" />;
     }
 }
 
@@ -119,3 +118,5 @@ export default function UserProfilePage() {
         </div>
     )
 }
+
+    

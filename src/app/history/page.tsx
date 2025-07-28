@@ -3,7 +3,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp, Bike, Waves, History } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp, Bike, Waves, History, Footprints } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { RunIcon } from "@/components/icons/run-icon";
@@ -116,7 +116,7 @@ export const historyItems = [
 
 const getIcon = (type: string) => {
     switch (type) {
-        case 'Бег': return <RunIcon className="h-6 w-6 text-primary" />;
+        case 'Бег': return <Footprints className="h-6 w-6 text-primary" />;
         case 'Тренажерный зал': return <Dumbbell className="h-6 w-6 text-destructive" />;
         case 'Йога': return <Zap className="h-6 w-6 text-accent" />;
         case 'Велоспорт': return <Bike className="h-6 w-6 text-green-500" />;
@@ -176,3 +176,5 @@ export default function WorkoutHistoryPage() {
         </div>
     );
 }
+
+    

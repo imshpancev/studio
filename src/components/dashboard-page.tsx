@@ -224,14 +224,12 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                 </Card>
 
                  <Card className="lg:col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <Activity className="h-5 w-5" />
-                                Виды активностей
-                            </CardTitle>
-                            <CardDescription>Соотношение времени</CardDescription>
-                        </div>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <Activity className="h-5 w-5" />
+                            Виды активностей
+                        </CardTitle>
+                        <CardDescription>Соотношение времени</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[250px] flex flex-col items-center justify-center">
                        <ChartContainer config={pieChartConfig} className="mx-auto aspect-square h-full">
@@ -253,3 +251,5 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         </div>
     );
 }
+
+    

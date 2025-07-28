@@ -11,13 +11,13 @@ export const RunIcon = ({ className }: { className?: string }) => (
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className={cn("lucide lucide-run", className)}
+        className={cn("lucide lucide-footprints", className)}
     >
-        <circle cx="12" cy="4" r="1" />
-        <path d="M15.5 8.5L12 12.5 10.5 11" />
-        <path d="M9.5 17.5L8.5 14" />
-        <path d="m14.5 17.5 1-3.5" />
-        <path d="M7 12.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" />
-        <path d="M17 12.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" />
+      <path d="M4 16.8V11a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v5.8a2 2 0 0 1-1.2 1.8l-2.1.8a2 2 0 0 0-1.2 1.8V22" />
+      <path d="M8.2 13.5A2 2 0 0 0 7 11.8V9.5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2.3a2 2 0 0 1-1.2 1.8l-2.1.8a2 2 0 0 0-1.2 1.8V22" />
+      <path d="M12.8 13.5a2 2 0 0 0-1.2-1.8V9.5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2.3a2 2 0 0 1-1.2 1.8l-2.1.8a2 2 0 0 0-1.2 1.8V22" />
+      <path d="M17 16.8V11a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v5.8a2 2 0 0 1-1.2 1.8l-2.1.8a2 2 0 0 0-1.2 1.8V22" />
     </svg>
 );
+
+    
