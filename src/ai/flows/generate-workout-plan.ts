@@ -177,12 +177,18 @@ const generateWorkoutPlanFlow = ai.defineFlow(
       throw new Error("AI failed to generate a valid workout plan.");
     }
     
-    // Defensive code: Ensure every day has an 'exercises' array.
+    // Defensive code: Ensure every day has an 'exercises' array and each exercise has all required fields.
     output.workoutPlan.forEach(week => {
       if (week.days) {
         week.days.forEach(day => {
           if (!day.exercises) {
             day.exercises = [];
+          } else {
+            day.exercises.forEach(exercise => {
+              if (!exercise.details) exercise.details = 'N/A';
+              if (!exercise.technique) exercise.technique = 'Техника не указана.';
+              if (!exercise.description) exercise.description = 'Описание не указано.';
+            });
           }
         });
       }
