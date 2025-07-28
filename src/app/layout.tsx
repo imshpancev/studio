@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'OptimumPulse',
-  description: 'Планировщик тренировок на базе ИИ',
+  title: 'The LighSport',
+  description: 'Твой умный спортивный помощник',
 };
 
 export default function RootLayout({

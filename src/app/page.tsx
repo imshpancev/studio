@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, Dumbbell, BarChart3, Bot } from "lucide-react";
+import { Dumbbell, BarChart3, Bot } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { WorkoutPlanDisplay } from "@/components/workout-plan-display";
 import type { GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { FeedbackAnalysisDisplay } from "@/components/feedback-analysis-display";
 import type { AnalyzeWorkoutFeedbackOutput } from "@/ai/flows/analyze-workout-feedback";
+import { LighSportLogo } from "@/components/logo";
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
@@ -21,10 +22,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <header className="text-center mb-12">
           <div className="inline-flex items-center gap-4 mb-4">
-            <Activity className="h-12 w-12 text-primary" />
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight font-headline">
-              OptimumPulse
-            </h1>
+            <LighSportLogo className="h-12 w-auto" />
           </div>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             Ваш помощник на базе ИИ для персональных тренировок, интеллектуального отслеживания и достижения пиковой производительности.
