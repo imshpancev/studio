@@ -13,9 +13,11 @@ export const RunIcon = ({ className }: { className?: string }) => (
         strokeLinejoin="round" 
         className={cn("lucide lucide-run", className)}
     >
-        <path d="M13 18m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
-        <path d="M8.5 13.5l-2.5 -6l-3.5 4l2.5 4l3.5 -2"></path>
-        <path d="M12.5 13.5l2.5 -6l3.5 4l-2.5 4l-3.5 -2"></path>
-        <path d="M5.5 13.5l2.5 -2.5l2.5 2.5"></path>
+        <circle cx="12" cy="4" r="1" />
+        <path d="M15.5 8.5L12 12.5 10.5 11" />
+        <path d="M9.5 17.5L8.5 14" />
+        <path d="m14.5 17.5 1-3.5" />
+        <path d="M7 12.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" />
+        <path d="M17 12.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z" />
     </svg>
 );

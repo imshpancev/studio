@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -268,5 +269,3 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         </div>
     );
 }
-
-    
