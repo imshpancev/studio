@@ -7,12 +7,19 @@ import SleepDetailPage from '../sleep/page';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
+import TrainingLoadPage from '../training-load/page';
+import BodyBatteryPage from '../body-battery/page';
+import StressPage from '../stress/page';
+import RecoveryPage from '../recovery/page';
 
 
 const componentMap: Record<string, React.ComponentType> = {
     readiness: ReadinessDetailPage,
     sleep: SleepDetailPage,
-    // Add other detail pages here as they are created
+    'training-load': TrainingLoadPage,
+    'body-battery': BodyBatteryPage,
+    stress: StressPage,
+    recovery: RecoveryPage,
 };
 
 export default function MetricDetailPage() {

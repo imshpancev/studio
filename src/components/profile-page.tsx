@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2 } from 'lucide-react';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -45,6 +45,7 @@ const profileSchema = z.object({
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
   weight: z.coerce.number().min(1, 'Вес обязателен.'),
   height: z.coerce.number().min(1, 'Рост обязателен.'),
+  language: z.enum(['ru', 'en']).default('ru'),
   
   // Vitals
   restingHeartRate: z.coerce.number().optional(),
@@ -80,6 +81,7 @@ export function ProfilePage() {
       age: 30,
       weight: 80,
       height: 180,
+      language: 'ru',
       mainGoal: 'Поддерживать форму',
       restingHeartRate: 60,
       hrv: 45,
@@ -303,22 +305,36 @@ export function ProfilePage() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-primary">Цели</h3>
-                 <FormField control={form.control} name="mainGoal" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='flex items-center gap-2'><Target className='w-4 h-4' />Основная цель</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Выберите вашу основную цель" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="Похудеть">Похудеть</SelectItem>
-                          <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
-                          <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
-                          <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
-                          <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
-                        </SelectContent>
-                      </Select>
-                  </FormItem>
-                )} />
+                <h3 className="text-lg font-medium text-primary">Цели и настройки</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="mainGoal" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className='flex items-center gap-2'><Target className='w-4 h-4' />Основная цель</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Выберите вашу основную цель" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                            <SelectItem value="Похудеть">Похудеть</SelectItem>
+                            <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
+                            <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
+                            <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
+                            <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="language" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className='flex items-center gap-2'><Languages className='w-4 h-4' />Язык</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Выберите язык" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="ru">Русский</SelectItem>
+                                    <SelectItem value="en">English</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </FormItem>
+                    )} />
+                 </div>
               </div>
               
                 <Separator />
