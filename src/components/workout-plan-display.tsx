@@ -92,27 +92,24 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
             {structuredPlan.map((dayPlan, index) => (
               <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
                 <Card className="overflow-hidden rounded-lg">
-                  <AccordionTrigger className="p-4 hover:no-underline bg-muted/50 data-[state=open]:bg-muted">
-                    <div className="flex justify-between items-center w-full">
-                       <div className="text-left">
-                          <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
-                          <p className="text-muted-foreground">{dayPlan.title}</p>
-                        </div>
-                        {dayPlan.exercises && dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
-                           <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent accordion from toggling
-                                handleStartWorkout(dayPlan);
-                              }}
-                              className='mr-2'
-                            >
-                             <Forward className="mr-2 h-4 w-4" /> Начать
-                           </Button>
-                        )}
-                    </div>
-                  </AccordionTrigger>
+                   <div className="flex items-center justify-between p-4 bg-muted/50 data-[state=open]:bg-muted">
+                      <AccordionTrigger className="p-0 hover:no-underline flex-1">
+                        <div className="text-left">
+                            <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
+                            <p className="text-muted-foreground">{dayPlan.title}</p>
+                          </div>
+                      </AccordionTrigger>
+                      {dayPlan.exercises && dayPlan.exercises.length > 0 && dayPlan.title !== "День отдыха" && (
+                         <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleStartWorkout(dayPlan)}
+                            className='ml-4' // Use margin left to space it out
+                          >
+                           <Forward className="mr-2 h-4 w-4" /> Начать
+                         </Button>
+                      )}
+                  </div>
                   <AccordionContent>
                     <div className="p-4 border-t space-y-4">
                       {dayPlan.exercises && dayPlan.exercises.length === 0 || dayPlan.title === "День отдыха" ? (
