@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, TrendingUp, Calendar, Filter } from 'lucide-react';
+import { Activity, TrendingUp, Calendar, Filter, Dumbbell } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -61,7 +61,7 @@ const lineChartConfig = {
 export function DashboardPage() {
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <h2 className="text-3xl font-bold tracking-tight">Дашборд</h2>
                 <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-muted-foreground" />
@@ -74,6 +74,17 @@ export function DashboardPage() {
                             <SelectItem value="last_30_days">Последние 30 дней</SelectItem>
                             <SelectItem value="last_3_months">Последние 3 месяца</SelectItem>
                             <SelectItem value="all_time">За все время</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     <Select defaultValue="all">
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Фильтр по спорту" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все виды спорта</SelectItem>
+                            {allSports.map(sport => (
+                                <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -141,20 +152,22 @@ export function DashboardPage() {
                         </CardTitle>
                         <CardDescription>Соотношение времени по видам спорта</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-center">
-                        <ChartContainer config={pieChartConfig} className="h-[200px] w-[250px]">
+                    <CardContent className="h-[240px] flex flex-col items-center justify-center">
+                        <ChartContainer config={pieChartConfig} className="h-[150px] w-[250px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Tooltip content={<ChartTooltipContent nameKey="name" />} />
                                     <Pie data={pieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
                                         {pieChartData.map((entry) => (
-                                            <Cell key={entry.name} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
+                                            <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                         ))}
                                     </Pie>
-                                    <ChartLegend content={<ChartLegendContent nameKey="name" />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </ChartContainer>
+                        <div className="w-full mt-4">
+                             <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center"/>} payload={pieChartData} />
+                        </div>
                     </CardContent>
                 </Card>
             </div>

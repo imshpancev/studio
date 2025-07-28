@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
-import { PlayCircle, Info, Bot, Terminal, Forward, Calendar, Target, ChevronLeft, ChevronRight, CheckCircle, Lock } from 'lucide-react';
+import { PlayCircle, Info, Bot, Terminal, Forward, Calendar, Target, ChevronLeft, ChevronRight, CheckCircle, Lock, Eye } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Button } from './ui/button';
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 type WorkoutPlanDisplayProps = {
@@ -37,9 +38,8 @@ function findSportForWorkout(title: string): Sport {
 export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [currentWeek, setCurrentWeek] = useState(0);
-  // This would normally come from a database, tracking completed workouts.
-  const [completedWorkouts, setCompletedWorkouts] = useState<string[]>([]); 
+  const [activeWeek, setActiveWeek] = useState(0);
+  const [viewedWeek, setViewedWeek] = useState(0);
 
   if (!data) {
     return (
@@ -85,27 +85,25 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
   }
 
   const handleStartWorkout = (dayPlan: any, weekIndex: number) => {
-    if (weekIndex !== currentWeek) {
+    if (weekIndex !== activeWeek) {
         toast({
             variant: "destructive",
             title: "Неверная неделя",
-            description: "Вы можете начинать тренировки только из текущей недели.",
+            description: "Вы можете начинать тренировки только из текущей активной недели.",
         });
         return;
     }
     const sport = findSportForWorkout(dayPlan.title);
     const exercisesQuery = encodeURIComponent(JSON.stringify(dayPlan.exercises));
     router.push(`/workout/${encodeURIComponent(dayPlan.day)}?sport=${encodeURIComponent(sport)}&exercises=${exercisesQuery}`);
-    
-    // Mock completing a workout to test week progression
-    // setCompletedWorkouts(prev => [...prev, `${weekIndex}-${dayPlan.day}`]);
   };
 
   const handleFinishWeek = () => {
-    if (currentWeek < structuredPlan.length - 1) {
-        setCurrentWeek(w => w + 1);
+    if (activeWeek < structuredPlan.length - 1) {
+        setActiveWeek(w => w + 1);
+        setViewedWeek(w => w + 1);
         toast({
-            title: `Неделя ${currentWeek + 1} завершена!`,
+            title: `Неделя ${activeWeek + 1} завершена!`,
             description: "Отличная работа! Теперь доступна следующая неделя.",
         });
     } else {
@@ -117,9 +115,9 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
     }
   }
   
-  const isWeekLocked = (weekIndex: number) => weekIndex > currentWeek;
-
-  const selectedWeek = structuredPlan[currentWeek];
+  const isWeekLocked = (weekIndex: number) => weekIndex > activeWeek;
+  
+  const weekForDisplay = structuredPlan[viewedWeek];
 
   return (
     <Card className="h-full">
@@ -152,40 +150,30 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs value={String(currentWeek)} onValueChange={(val) => {
-            if (Number(val) > currentWeek) {
-                 toast({
-                    variant: "destructive",
-                    title: "Неделя заблокирована",
-                    description: "Сначала завершите текущую неделю.",
-                });
-                return;
-            }
-            setCurrentWeek(Number(val))
-        }} className="w-full">
+        <Tabs value={String(viewedWeek)} onValueChange={(val) => setViewedWeek(Number(val))} className="w-full">
           <div className="flex justify-center items-center mb-4">
             <TabsList>
                 {structuredPlan.map((week, index) => (
-                    <TabsTrigger key={index} value={String(index)} disabled={isWeekLocked(index)}>
-                        {isWeekLocked(index) && <Lock className='mr-2'/>}
+                    <TabsTrigger key={index} value={String(index)}>
+                        {isWeekLocked(index) ? <Eye className='mr-2'/> : (index < activeWeek ? <CheckCircle className='mr-2 text-green-500'/> : <PlayCircle className='mr-2 text-primary' />)}
                         Неделя {week.week}
                     </TabsTrigger>
                 ))}
             </TabsList>
           </div>
             
-            {selectedWeek ? (
+            {weekForDisplay ? (
                 <>
                     <div className="my-4 p-4 border rounded-lg bg-muted/50">
                         <h3 className="font-semibold flex items-center gap-2"><Target className="h-5 w-5 text-primary"/>Цель на неделю:</h3>
-                        <p className="text-muted-foreground">{selectedWeek.weekGoal}</p>
+                        <p className="text-muted-foreground">{weekForDisplay.weekGoal}</p>
                     </div>
 
                     <ScrollArea className="h-[60vh] pr-4">
                       <Accordion type="single" collapsible defaultValue="item-0" className="w-full space-y-4">
-                        {selectedWeek.days && selectedWeek.days.map((dayPlan, index) => (
+                        {weekForDisplay.days && weekForDisplay.days.map((dayPlan, index) => (
                           <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
-                            <Card className="overflow-hidden rounded-lg">
+                            <Card className={cn("overflow-hidden rounded-lg", isWeekLocked(viewedWeek) && "opacity-70")}>
                                <AccordionTrigger className="p-4 hover:no-underline flex justify-between items-center w-full bg-muted/50 data-[state=open]:bg-muted">
                                     <div className="text-left">
                                         <p className="font-bold text-lg text-primary">{dayPlan.day}</p>
@@ -207,10 +195,12 @@ export function WorkoutPlanDisplay({ data, onFinishPlan }: WorkoutPlanDisplayPro
                                     <Button 
                                         variant="default" 
                                         size="sm" 
-                                        onClick={() => handleStartWorkout(dayPlan, currentWeek)}
+                                        onClick={() => handleStartWorkout(dayPlan, viewedWeek)}
                                         className='w-full'
+                                        disabled={isWeekLocked(viewedWeek)}
                                       >
-                                       <Forward className="mr-2 h-4 w-4" /> Начать тренировку
+                                       {isWeekLocked(viewedWeek) ? <Lock className="mr-2 h-4 w-4" /> : <Forward className="mr-2 h-4 w-4" />}
+                                       {isWeekLocked(viewedWeek) ? 'Неделя заблокирована' : 'Начать тренировку'}
                                      </Button>
                                     {dayPlan.exercises && dayPlan.exercises.map((exercise, exIndex) => (
                                     <div key={exIndex} className="flex gap-4 items-start pt-4 border-t">
