@@ -63,6 +63,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
     try {
         const workoutData: Omit<Workout, 'id' | 'createdAt'> = {
             ...summary,
+            date: new Date().toISOString(), // Use current ISO date for storage
             userId: user.uid,
             // In a real app, you'd add selected gear here
         }
