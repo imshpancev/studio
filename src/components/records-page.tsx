@@ -33,8 +33,23 @@ const recordsData = {
         { name: '400 м', value: '08:30', workoutId: 6, date: '2024-07-23', icon: <Trophy /> },
         { name: '1500 м', value: '35:10', workoutId: 6, date: '2024-07-23', icon: <Trophy /> },
         { name: 'Самый длинный заплыв', value: '2.5 км', workoutId: 6, date: '2024-07-23', icon: <MapIcon /> },
+    ],
+    triathlon: [
+        { name: 'Спринт', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
+        { name: 'Олимпийка', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
+        { name: 'Полу-Ironman (70.3)', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
+        { name: 'Ironman', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
     ]
 };
+
+
+const TriathlonIcon = () => (
+    <div className="flex gap-1 items-center">
+        <Footprints className="h-3 w-3" />
+        <Bike className="h-3 w-3" />
+        <Waves className="h-3 w-3" />
+    </div>
+)
 
 
 export function RecordsPage() {
@@ -83,11 +98,12 @@ export function RecordsPage() {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="running" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
                         <TabsTrigger value="general" className='gap-2'><Dumbbell />Общие</TabsTrigger>
                         <TabsTrigger value="running" className='gap-2'><Footprints />Бег</TabsTrigger>
                         <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
                         <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>
+                        <TabsTrigger value="triathlon" className='gap-2'><TriathlonIcon />Триатлон</TabsTrigger>
                     </TabsList>
                     <TabsContent value="general" className="mt-4">
                         {renderRecordList(recordsData.general)}
@@ -100,6 +116,9 @@ export function RecordsPage() {
                     </TabsContent>
                     <TabsContent value="swimming" className="mt-4">
                          {renderRecordList(recordsData.swimming)}
+                    </TabsContent>
+                    <TabsContent value="triathlon" className="mt-4">
+                         {renderRecordList(recordsData.triathlon)}
                     </TabsContent>
                 </Tabs>
             </CardContent>
