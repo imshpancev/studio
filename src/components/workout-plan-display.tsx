@@ -6,6 +6,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
 import { PlayCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Terminal } from 'lucide-react';
 
 type WorkoutPlanDisplayProps = {
   data: GenerateWorkoutPlanOutput;
@@ -22,40 +24,45 @@ interface DayPlan {
   exercises: Exercise[];
 }
 
-const parseWorkoutPlan = (plan: string): DayPlan[] => {
-  const daySections = plan.split(/\*\*(День \d+:.*?)\*\*/).filter(Boolean);
-  const structuredPlan: DayPlan[] = [];
-
-  for (let i = 0; i < daySections.length; i += 2) {
-    const header = daySections[i];
-    const content = daySections[i + 1];
-
-    if (header && content) {
-      const dayMatch = header.match(/День \d+/);
-      const day = dayMatch ? dayMatch[0] : `День ${structuredPlan.length + 1}`;
-      const title = header.replace(/День \d+:/, '').trim();
-
-      const exerciseItems = content.split('* ').filter(item => item.trim() !== '');
-      const exercises: Exercise[] = exerciseItems.map(item => {
-        const parts = item.split(':');
-        const name = parts[0]?.trim() || 'Упражнение';
-        const details = parts.slice(1).join(':').trim();
-        return { name, details };
-      });
-
-      structuredPlan.push({ day, title, exercises });
+const parseWorkoutPlan = (plan: string): DayPlan[] | null => {
+  try {
+    const parsed = JSON.parse(plan);
+    // Basic validation to ensure it's an array of objects with expected keys.
+    if (Array.isArray(parsed) && parsed.every(day => day.day && day.title && Array.isArray(day.exercises))) {
+      return parsed;
     }
+    return null;
+  } catch (error) {
+    console.error("Failed to parse workout plan JSON:", error);
+    return null;
   }
-
-  if (structuredPlan.length === 0 && plan.length > 0) {
-    return [{ day: 'Полный план', title: 'Ваш план тренировок', exercises: [{ name: 'Детали', details: plan }] }];
-  }
-
-  return structuredPlan;
 };
 
 export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   const structuredPlan = parseWorkoutPlan(data.workoutPlan);
+
+  if (!structuredPlan) {
+    return (
+       <Card className="h-full">
+        <CardHeader>
+          <CardTitle>Ваш персональный план</CardTitle>
+        </CardHeader>
+        <CardContent>
+           <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Ошибка обработки</AlertTitle>
+            <AlertDescription>
+              Не удалось обработать план тренировок, полученный от ИИ. Попробуйте сгенерировать его снова.
+            </AlertDescription>
+          </Alert>
+          <p className="mt-4 text-xs text-muted-foreground">Необработанный ответ:</p>
+          <pre className="w-full mt-2 rounded-md bg-muted p-4 text-sm overflow-x-auto">
+            <code>{data.workoutPlan}</code>
+          </pre>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="h-full">

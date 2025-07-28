@@ -39,7 +39,7 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      sportPreferences: 'Бег, тренажерный зал',
+      sportPreferences: 'Бег',
       fitnessLevel: 'intermediate',
       availableEquipment: 'Гантели, эспандеры',
       workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года.',
@@ -78,13 +78,24 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           <FormField
             control={form.control}
             name="sportPreferences"
-            render={({ field }) => (
+             render={({ field }) => (
               <FormItem>
                 <FormLabel>Предпочтения в спорте</FormLabel>
-                <FormControl>
-                  <Input placeholder="например, Бег, тренажерный зал" {...field} />
-                </FormControl>
-                <FormDescription>Разделяйте запятыми.</FormDescription>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите ваш вид спорта" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Бег">Бег</SelectItem>
+                    <SelectItem value="Тренажерный зал">Тренажерный зал</SelectItem>
+                    <SelectItem value="Домашние тренировки">Домашние тренировки</SelectItem>
+                    <SelectItem value="Плавание">Плавание</SelectItem>
+                    <SelectItem value="Йога">Йога</SelectItem>
+                     <SelectItem value="Другое">Другое (укажите в целях)</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
