@@ -46,14 +46,14 @@ export function UsersPage() {
 
             <div className="space-y-4">
                 {users.map(user => (
-                    <div key={user.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
-                         <Link href={`/users/${user.id}`} className="flex items-center gap-4 flex-1">
+                    <div key={user.id} className="flex items-center gap-4">
+                         <Link href={`/users/${user.id}`} className="flex items-center gap-4 flex-1 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={user.avatar} alt={user.name} />
                                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                                <p className="font-semibold hover:underline">{user.name}</p>
+                                <p className="font-semibold">{user.name}</p>
                                 <p className="text-sm text-muted-foreground">{user.handle}</p>
                                 <p className="text-xs text-muted-foreground mt-1 truncate">{user.bio}</p>
                             </div>

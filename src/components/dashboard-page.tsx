@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
+import { Activity, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, PersonStanding, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart, Area, AreaChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,12 +77,8 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
     
     const totalTime = weeklyActivityData.reduce((acc, day) => acc + day.running + day.gym + day.yoga + day.cycling + day.swimming + day.home, 0);
 
-    const handleRecordClick = (workoutId: number) => {
-        const workout = historyItems.find(item => item.id === workoutId);
-        if (workout) {
-            const itemQuery = encodeURIComponent(JSON.stringify(workout));
-            router.push(`/history/${workout.id}?data=${itemQuery}`);
-        }
+    const handleRecordClick = () => {
+        setActiveTab('records');
     }
 
 
@@ -143,7 +139,7 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             </p>
                         </CardContent>
                     </Card>
-                     <Card className="cursor-pointer hover:border-primary" onClick={() => setActiveTab('records')}>
+                     <Card className="cursor-pointer hover:border-primary" onClick={handleRecordClick}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Личные рекорды</CardTitle>
                             <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +156,7 @@ export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) =>
 
              <Tabs defaultValue="running" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="running" className='gap-2'><TrendingUpIcon />Бег</TabsTrigger>
+                    <TabsTrigger value="running" className='gap-2'><PersonStanding />Бег</TabsTrigger>
                     <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
                     <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>
                 </TabsList>

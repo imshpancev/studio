@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, PersonStanding } from 'lucide-react';
+import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, PersonStanding, Dumbbell } from 'lucide-react';
 import { historyItems } from '@/app/history/page'; // We'll use this mock data
 
 // Mock records data, in a real app this would be calculated
@@ -84,7 +84,7 @@ export function RecordsPage() {
             <CardContent>
                 <Tabs defaultValue="running" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="general" className='gap-2'><PersonStanding />Общие</TabsTrigger>
+                        <TabsTrigger value="general" className='gap-2'><Dumbbell />Общие</TabsTrigger>
                         <TabsTrigger value="running" className='gap-2'><MapIcon />Бег</TabsTrigger>
                         <TabsTrigger value="cycling" className='gap-2'><Bike />Велоспорт</TabsTrigger>
                         <TabsTrigger value="swimming" className='gap-2'><Waves />Плавание</TabsTrigger>

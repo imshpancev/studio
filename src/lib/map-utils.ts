@@ -52,8 +52,9 @@ export function getStaticMapUrl(track: Point[], width = 600, height = 400): stri
     const path = `path-5+f44-0.8(${encodeURIComponent(encodedPath)})`;
 
     // The 'auto' parameter tells Mapbox to automatically determine the zoom and center
-    const overlay = `${path}/auto`;
+    // The overlay needs to be the last path parameter before the dimensions
+    const overlay = `${path}`;
 
     // Construct the final URL
-    return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${overlay}/${width}x${height}?access_token=${accessToken}`;
+    return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${overlay}/auto/${width}x${height}?access_token=${accessToken}`;
 }

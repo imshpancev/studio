@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages, Pencil, X } from 'lucide-react';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages, Pencil, X, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -23,17 +23,22 @@ import { allSports } from '@/lib/workout-data';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { useState } from 'react';
+import Image from 'next/image';
 
 const runningShoeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Название обязательно."),
   mileage: z.coerce.number().min(0).default(0),
+  isDefault: z.boolean().default(false),
+  imageUrl: z.string().optional(),
 });
 
 const bikeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Название обязательно."),
   mileage: z.coerce.number().min(0).default(0),
+  isDefault: z.boolean().default(false),
+  imageUrl: z.string().optional(),
 });
 
 const profileSchema = z.object({
@@ -89,20 +94,32 @@ export function ProfilePage() {
       hrv: 45,
       dailySteps: 8000,
       avgSleepDuration: 7.5,
-      runningShoes: [{ id: '1', name: 'Hoka Clifton 9', mileage: 250 }],
-      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500 }],
+      runningShoes: [{ id: '1', name: 'Hoka Clifton 9', mileage: 250, isDefault: true, imageUrl: 'https://placehold.co/100x100.png' }],
+      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500, isDefault: false, imageUrl: 'https://placehold.co/100x100.png' }],
     },
   });
   
-  const { fields: shoes, append: appendShoe, remove: removeShoe } = useFieldArray({
+  const { fields: shoes, append: appendShoe, remove: removeShoe, update: updateShoe } = useFieldArray({
       control: form.control,
       name: "runningShoes"
   });
 
-  const { fields: bikes, append: appendBike, remove: removeBike } = useFieldArray({
+  const { fields: bikes, append: appendBike, remove: removeBike, update: updateBike } = useFieldArray({
       control: form.control,
       name: "bikes"
   });
+
+  const setDefaultShoe = (index: number) => {
+    shoes.forEach((shoe, i) => {
+        updateShoe(i, { ...shoe, isDefault: i === index });
+    });
+  }
+
+  const setDefaultBike = (index: number) => {
+    bikes.forEach((bike, i) => {
+        updateBike(i, { ...bike, isDefault: i === index });
+    });
+  }
 
 
   function onSubmit(values: z.infer<typeof profileSchema>) {
@@ -367,8 +384,16 @@ export function ProfilePage() {
                         <div className="space-y-4">
                             <h4 className="font-semibold flex items-center gap-2"><Footprints/>Кроссовки</h4>
                             {shoes.map((shoe, index) => (
-                                <div key={shoe.id} className="flex gap-2 items-end p-2 border rounded-lg">
-                                    <div className='flex-1 space-y-2'>
+                                <Card key={shoe.id} className="p-4 flex gap-4 items-start">
+                                    <div className="relative w-24 h-24 flex-shrink-0">
+                                         <Image src={shoe.imageUrl || "https://placehold.co/100x100.png"} alt={shoe.name} width={100} height={100} className="rounded-md object-cover"/>
+                                         {isEditing && (
+                                            <Button size="icon" variant="secondary" className="absolute -top-2 -right-2 h-7 w-7">
+                                                 <Camera className="h-4 w-4"/>
+                                            </Button>
+                                         )}
+                                    </div>
+                                    <div className="flex-grow space-y-2">
                                         <FormField
                                             control={form.control}
                                             name={`runningShoes.${index}.name`}
@@ -379,17 +404,23 @@ export function ProfilePage() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <p className="text-xs text-muted-foreground">Пробег: {shoe.mileage} км</p>
+                                        <p className="text-sm text-muted-foreground">Пробег: {shoe.mileage} км</p>
+                                        {isEditing && (
+                                           <div className="flex gap-2 items-center">
+                                                <Button type="button" variant={shoe.isDefault ? "default" : "outline"} size="sm" onClick={() => setDefaultShoe(index)}>
+                                                    <Star className={cn("h-4 w-4", shoe.isDefault && "mr-2")}/>
+                                                    {shoe.isDefault && "По умолч."}
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeShoe(index)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
+                                           </div>
+                                        )}
                                     </div>
-                                    {isEditing && (
-                                      <Button type="button" variant="ghost" size="icon" onClick={() => removeShoe(index)}>
-                                          <Trash2 className="h-4 w-4 text-destructive"/>
-                                      </Button>
-                                    )}
-                                </div>
+                                </Card>
                             ))}
                             {isEditing && (
-                              <Button type="button" variant="outline" size="sm" onClick={() => appendShoe({ id: crypto.randomUUID(), name: '', mileage: 0 })}>
+                              <Button type="button" variant="outline" size="sm" onClick={() => appendShoe({ id: crypto.randomUUID(), name: '', mileage: 0, isDefault: false, imageUrl: 'https://placehold.co/100x100.png' })}>
                                   Добавить кроссовки
                               </Button>
                             )}
@@ -399,8 +430,16 @@ export function ProfilePage() {
                         <div className="space-y-4">
                             <h4 className="font-semibold flex items-center gap-2"><Bike/>Велосипеды</h4>
                              {bikes.map((bike, index) => (
-                                <div key={bike.id} className="flex gap-2 items-end p-2 border rounded-lg">
-                                    <div className='flex-1 space-y-2'>
+                                <Card key={bike.id} className="p-4 flex gap-4 items-start">
+                                    <div className="relative w-24 h-24 flex-shrink-0">
+                                        <Image src={bike.imageUrl || "https://placehold.co/100x100.png"} alt={bike.name} width={100} height={100} className="rounded-md object-cover"/>
+                                        {isEditing && (
+                                            <Button size="icon" variant="secondary" className="absolute -top-2 -right-2 h-7 w-7">
+                                                    <Camera className="h-4 w-4"/>
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="flex-grow space-y-2">
                                         <FormField
                                             control={form.control}
                                             name={`bikes.${index}.name`}
@@ -411,17 +450,23 @@ export function ProfilePage() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <p className="text-xs text-muted-foreground">Пробег: {bike.mileage} км</p>
+                                        <p className="text-sm text-muted-foreground">Пробег: {bike.mileage} км</p>
+                                        {isEditing && (
+                                            <div className="flex gap-2 items-center">
+                                                <Button type="button" variant={bike.isDefault ? "default" : "outline"} size="sm" onClick={() => setDefaultBike(index)}>
+                                                    <Star className={cn("h-4 w-4", bike.isDefault && "mr-2")}/>
+                                                    {bike.isDefault && "По умолч."}
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeBike(index)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
+                                           </div>
+                                        )}
                                     </div>
-                                     {isEditing && (
-                                      <Button type="button" variant="ghost" size="icon" onClick={() => removeBike(index)}>
-                                          <Trash2 className="h-4 w-4 text-destructive"/>
-                                      </Button>
-                                     )}
-                                </div>
+                                </Card>
                             ))}
                              {isEditing && (
-                              <Button type="button" variant="outline" size="sm" onClick={() => appendBike({ id: crypto.randomUUID(), name: '', mileage: 0 })}>
+                              <Button type="button" variant="outline" size="sm" onClick={() => appendBike({ id: crypto.randomUUID(), name: '', mileage: 0, isDefault: false, imageUrl: 'https://placehold.co/100x100.png' })}>
                                   Добавить велосипед
                               </Button>
                              )}
