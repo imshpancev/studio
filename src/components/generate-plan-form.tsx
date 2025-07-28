@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Apple, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -43,10 +43,10 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
       fitnessLevel: 'intermediate',
       availableEquipment: 'Гантели, эспандеры',
       workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года.',
-      goals: 'Нарастить мышечную массу и улучшить сердечно-сосудистую выносливость.',
+      goals: 'Нарастить мышечную массу',
       workoutDifficultyFeedback: '',
       upcomingCompetitionReference: '',
-      healthDataFromWearables: '',
+      healthDataFromWearables: 'Средний пульс в покое: 60 ударов в минуту, Средний сон: 7 часов',
       exerciseContraindications: '',
     },
   });
@@ -144,9 +144,21 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Основные цели</FormLabel>
-              <FormControl>
-                <Textarea placeholder="например, Похудеть, нарастить мышцы, пробежать 5 км" {...field} />
-              </FormControl>
+               <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите вашу основную цель" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Похудеть">Похудеть</SelectItem>
+                    <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
+                    <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
+                    <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
+                    <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
+                    <SelectItem value="Другое">Другое (уточните ниже)</SelectItem>
+                  </SelectContent>
+                </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -158,9 +170,14 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>История тренировок</FormLabel>
+               <Button type="button" variant="outline" className='w-full justify-start' onClick={() => toast({ title: 'Функция в разработке', description: 'Интеграция с Apple Health появится в будущем.'})}>
+                <Apple className="mr-2 h-4 w-4" />
+                Подключить Apple Health
+              </Button>
               <FormControl>
-                <Textarea placeholder="Опишите свои недавние тренировочные привычки." {...field} />
+                <Textarea className="hidden" {...field} />
               </FormControl>
+               <FormDescription>Мы автоматически загрузим вашу историю.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -194,10 +211,14 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Сводка данных о здоровье</FormLabel>
+                       <Button type="button" variant="outline" className='w-full justify-start' onClick={() => toast({ title: 'Функция в разработке', description: 'Интеграция с Apple Health появится в будущем.'})}>
+                        <Apple className="mr-2 h-4 w-4" />
+                        Подключить Apple Health
+                      </Button>
                       <FormControl>
-                        <Textarea placeholder="например, Средний пульс в покое: 60 ударов в минуту, Средний сон: 7 часов" {...field} />
+                        <Textarea className="hidden" {...field} />
                       </FormControl>
-                      <FormDescription>Предоставьте сводку соответствующих данных о состоянии здоровья с ваших носимых устройств.</FormDescription>
+                      <FormDescription>Мы автоматически загрузим данные с ваших устройств.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

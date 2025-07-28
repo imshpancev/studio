@@ -1,16 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
 import { ScrollArea } from './ui/scroll-area';
 import { PlayCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Terminal } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 type WorkoutPlanDisplayProps = {
-  data: GenerateWorkoutPlanOutput;
+  data: GenerateWorkoutPlanOutput | null;
 };
 
 interface Exercise {
@@ -24,24 +25,28 @@ interface DayPlan {
   exercises: Exercise[];
 }
 
-const parseWorkoutPlan = (plan: string): DayPlan[] | null => {
-  try {
-    const parsed = JSON.parse(plan);
-    // Basic validation to ensure it's an array of objects with expected keys.
-    if (Array.isArray(parsed) && parsed.every(day => day.day && day.title && Array.isArray(day.exercises))) {
-      return parsed;
-    }
-    return null;
-  } catch (error) {
-    console.error("Failed to parse workout plan JSON:", error);
-    return null;
-  }
-};
-
 export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
-  const structuredPlan = parseWorkoutPlan(data.workoutPlan);
+  if (!data || !data.workoutPlan) {
+    return (
+        <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
+            <CardHeader>
+            <CardTitle className="flex items-center justify-center gap-2">
+                <Bot className="h-8 w-8 text-primary" />
+                Ваш план, сгенерированный ИИ
+            </CardTitle>
+            </CardHeader>
+            <CardContent>
+            <p className="text-muted-foreground">
+                Ваш персональный план тренировок появится здесь после его создания. Заполните форму, чтобы начать!
+            </p>
+            </CardContent>
+        </Card>
+    );
+  }
+  
+  const { workoutPlan: structuredPlan } = data;
 
-  if (!structuredPlan) {
+  if (!structuredPlan || !Array.isArray(structuredPlan) || structuredPlan.length === 0) {
     return (
        <Card className="h-full">
         <CardHeader>
@@ -57,7 +62,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
           </Alert>
           <p className="mt-4 text-xs text-muted-foreground">Необработанный ответ:</p>
           <pre className="w-full mt-2 rounded-md bg-muted p-4 text-sm overflow-x-auto">
-            <code>{data.workoutPlan}</code>
+            <code>{JSON.stringify(data, null, 2)}</code>
           </pre>
         </CardContent>
       </Card>
@@ -68,6 +73,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Ваш персональный план</CardTitle>
+        <CardDescription>Вот ваш индивидуальный план тренировок, созданный ИИ.</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[70vh] pr-4">

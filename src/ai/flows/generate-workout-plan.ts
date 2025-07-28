@@ -64,7 +64,7 @@ const DayPlanSchema = z.object({
 });
 
 const GenerateWorkoutPlanOutputSchema = z.object({
-  workoutPlan: z.string().describe('A detailed personalized workout plan based on the user input, formatted as a JSON string representing an array of DayPlan objects.'),
+  workoutPlan: z.array(DayPlanSchema).describe('A detailed personalized workout plan based on the user input, as an array of DayPlan objects.'),
 });
 
 export type GenerateWorkoutPlanOutput = z.infer<typeof GenerateWorkoutPlanOutputSchema>;
@@ -99,28 +99,30 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   {{/if}}
 
   Create a detailed and personalized workout plan for the user.
-  The output MUST be a JSON string that parses into an array of objects, where each object represents a workout day.
+  The output MUST be a JSON object that parses into an object with a "workoutPlan" property, which is an array of objects, where each object represents a workout day.
   Each day object must have the following properties: "day", "title", and "exercises".
   The "exercises" property must be an array of objects, where each object has "name" and "details" properties.
   For example:
-  [
-    {
-      "day": "День 1",
-      "title": "Силовая тренировка на все тело",
-      "exercises": [
-        { "name": "Приседания", "details": "3 подхода по 12 повторений, отдых 60 сек." },
-        { "name": "Отжимания", "details": "3 подхода до отказа, отдых 60 сек." }
-      ]
-    },
-    {
-      "day": "День 2",
-      "title": "Кардио и кор",
-      "exercises": [
-        { "name": "Бег", "details": "30 минут в умеренном темпе" },
-        { "name": "Планка", "details": "3 подхода по 60 секунд" }
-      ]
-    }
-  ]
+  {
+    "workoutPlan": [
+      {
+        "day": "День 1",
+        "title": "Силовая тренировка на все тело",
+        "exercises": [
+          { "name": "Приседания", "details": "3 подхода по 12 повторений, отдых 60 сек." },
+          { "name": "Отжимания", "details": "3 подхода до отказа, отдых 60 сек." }
+        ]
+      },
+      {
+        "day": "День 2",
+        "title": "Кардио и кор",
+        "exercises": [
+          { "name": "Бег", "details": "30 минут в умеренном темпе" },
+          { "name": "Планка", "details": "3 подхода по 60 секунд" }
+        ]
+      }
+    ]
+  }
   `,
 });
 

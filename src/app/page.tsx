@@ -22,7 +22,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <header className="text-center mb-12">
           <div className="inline-flex items-center gap-4 mb-4">
-            <LighSportLogo className="h-12 w-auto" />
+            <LighSportLogo className="h-16 w-auto" />
           </div>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             Ваш помощник на базе ИИ для персональных тренировок, интеллектуального отслеживания и достижения пиковой производительности.
@@ -53,23 +53,7 @@ export default function Home() {
                 </CardContent>
               </Card>
               <div className="lg:sticky top-8">
-                {workoutPlan ? (
-                  <WorkoutPlanDisplay data={workoutPlan} />
-                ) : (
-                  <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
-                     <CardHeader>
-                      <CardTitle className="flex items-center justify-center gap-2">
-                        <Bot className="h-8 w-8 text-primary" />
-                        Ваш план, сгенерированный ИИ
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">
-                        Ваш персональный план тренировок появится здесь после его создания. Заполните форму, чтобы начать!
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                <WorkoutPlanDisplay data={workoutPlan} />
               </div>
             </div>
           </TabsContent>
