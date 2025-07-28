@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const profileSchema = z.object({
   // Basic Info
@@ -34,11 +36,8 @@ const profileSchema = z.object({
   mainGoal: z.string().min(1, "Цель обязательна."),
 });
 
-type ProfilePageProps = {
-    onLogout: () => void;
-}
 
-export function ProfilePage({ onLogout }: ProfilePageProps) {
+export function ProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
 
@@ -59,19 +58,27 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
 
   function onSubmit(values: z.infer<typeof profileSchema>) {
     console.log(values);
+    // Here you would typically save the data to your database (e.g., Firestore)
     toast({
       title: 'Профиль обновлен!',
       description: 'Ваши данные были успешно сохранены.',
     });
   }
 
-  function handleLogout() {
-     toast({
-      title: 'Вы вышли из системы',
-      description: 'Вы будете перенаправлены на главную страницу.',
-    });
-    onLogout();
-    router.push('/login');
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      toast({
+        title: 'Вы вышли из системы',
+      });
+      router.push('/login');
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка выхода',
+        description: 'Не удалось выйти из системы. Попробуйте еще раз.',
+      });
+    }
   }
 
   return (

@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Map, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus } from "lucide-react";
+import { BarChart3, User, Map, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { DashboardPage } from "@/components/dashboard-page";
 import { Button } from "@/components/ui/button";
 import { WorkoutHistoryPage } from "@/components/workout-history-page";
 import { AnalyticsPage } from "@/components/analytics-page";
+import { auth } from "@/lib/firebase";
 
 
 export default function Home() {
@@ -24,47 +26,48 @@ export default function Home() {
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
   const [activeTab, setActiveTab] = useState("my-plan");
   const [isEditingPlan, setIsEditingPlan] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Start as logged out
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
-  // Load workout plan and input from localStorage on initial render
+  // Listen for auth state changes
   useEffect(() => {
-    const savedPlan = localStorage.getItem('workoutPlan');
-    const savedInput = localStorage.getItem('workoutPlanInput');
-    if (savedPlan) {
-      try {
-        setWorkoutPlan(JSON.parse(savedPlan));
-      } catch (e) {
-        console.error("Failed to parse saved workout plan", e);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoadingAuth(false);
+      if (!currentUser) {
+        // Clear user-specific data on logout
         localStorage.removeItem('workoutPlan');
-      }
-    }
-     if (savedInput) {
-      try {
-        setWorkoutPlanInput(JSON.parse(savedInput));
-      } catch (e) {
-        console.error("Failed to parse saved workout input", e);
         localStorage.removeItem('workoutPlanInput');
+        setWorkoutPlan(null);
+        setWorkoutPlanInput(null);
       }
-    }
-
-    // Check auth state from localStorage
-    const authState = localStorage.getItem('isAuthenticated');
-    if (authState === 'true') {
-      setIsAuthenticated(true);
-    }
-
+    });
+    return () => unsubscribe(); // Unsubscribe on cleanup
   }, []);
 
-  const handleSetAuthenticated = (status: boolean) => {
-    setIsAuthenticated(status);
-    if (status) {
-      localStorage.setItem('isAuthenticated', 'true');
-    } else {
-      localStorage.removeItem('isAuthenticated');
-       // Also clear user-specific data on logout
-      handlePlanGenerated(null, null);
+  // Load workout plan and input from localStorage on initial render for logged in user
+  useEffect(() => {
+    if (user) {
+        const savedPlan = localStorage.getItem('workoutPlan');
+        const savedInput = localStorage.getItem('workoutPlanInput');
+        if (savedPlan) {
+          try {
+            setWorkoutPlan(JSON.parse(savedPlan));
+          } catch (e) {
+            console.error("Failed to parse saved workout plan", e);
+            localStorage.removeItem('workoutPlan');
+          }
+        }
+         if (savedInput) {
+          try {
+            setWorkoutPlanInput(JSON.parse(savedInput));
+          } catch (e) {
+            console.error("Failed to parse saved workout input", e);
+            localStorage.removeItem('workoutPlanInput');
+          }
+        }
     }
-  }
+  }, [user]);
 
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
@@ -86,6 +89,14 @@ export default function Home() {
     setActiveTab("my-plan");
   }
 
+  if (loadingAuth) {
+    return (
+        <div className="flex min-h-screen items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin" />
+        </div>
+    )
+  }
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -96,7 +107,7 @@ export default function Home() {
                 <LighSportLogo className="h-16 w-auto" />
              </Link>
           </div>
-          {isAuthenticated ? (
+          {user ? (
              <p className="text-lg md:text-xl text-muted-foreground max-w-3xl text-center">
                 Ваш помощник на базе ИИ для персональных тренировок.
              </p>
@@ -113,7 +124,7 @@ export default function Home() {
 
         </header>
 
-       {isAuthenticated ? (
+       {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
             <TabsTrigger value="my-plan" className="gap-2">
@@ -177,7 +188,7 @@ export default function Home() {
             <WorkoutTrackingPage />
           </TabsContent>
           <TabsContent value="profile">
-            <ProfilePage onLogout={() => handleSetAuthenticated(false)} />
+            <ProfilePage />
           </TabsContent>
         </Tabs>
         ) : (

@@ -8,12 +8,14 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
 
 const signupSchema = z.object({
   email: z.string().email('Неверный формат email.'),
@@ -40,15 +42,26 @@ export default function SignupPage() {
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-
-    toast({
+    try {
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      toast({
         title: 'Аккаунт создан!',
-        description: 'Вы будете перенаправлены на страницу входа.',
-    });
-    router.push('/login');
+        description: 'Теперь вы можете войти в систему.',
+      });
+      router.push('/login');
+    } catch (error: any) {
+      let errorMessage = 'Произошла ошибка при регистрации.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Этот email уже используется.';
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка регистрации',
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -8,12 +8,14 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
 
 const loginSchema = z.object({
   email: z.string().email('Неверный формат email.'),
@@ -35,22 +37,25 @@ export default function LoginPage() {
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-
-    if (values.email === "test@example.com" && values.password === "password") {
-        toast({
-            title: 'Успешный вход!',
-            description: 'Добро пожаловать обратно!',
-        });
-        router.push('/');
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Ошибка входа',
-            description: 'Неверный email или пароль. Попробуйте еще раз.',
-        });
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: 'Успешный вход!',
+        description: 'Добро пожаловать обратно!',
+      });
+      router.push('/');
+    } catch (error: any) {
+      let errorMessage = 'Произошла ошибка при входе.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Неверный email или пароль. Попробуйте еще раз.';
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка входа',
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
