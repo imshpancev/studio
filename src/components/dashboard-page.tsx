@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2, Flame } from 'lucide-react';
+import { Activity, TrendingUp, Calendar, Filter, Dumbbell, Clock, Footprints, Target, Zap, TrendingDown, TrendingUp as TrendingUpIcon, Bike, Waves, BarChart2, Flame, Trophy } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, Line, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, PieChart, Area, AreaChart } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -66,22 +66,10 @@ const lineChartConfig = {
     endurance: { label: 'Выносливость (км)', color: 'hsl(var(--chart-2))' },
 }
 
-const records = {
-    general: {
-        longestWorkout: { workoutId: 5, label: 'Самая длинная тренировка', value: '2:15:00' },
-        mostCalories: { workoutId: 5, label: 'Больше всего калорий', value: '950 ккал' }
-    },
-    sport: {
-        running5k: { workoutId: 4, label: 'Бег 5км', value: '27:30' }, // Assuming 5.5 min/km * 5km
-        running10k: { workoutId: 1, label: 'Бег 10км', value: '60:10' }, // Placeholder, no 10k data
-        cycling20k: { workoutId: 5, label: 'Вело 20км', value: '45:00' } // Placeholder
-    }
-}
-
-
-export function DashboardPage() {
+export function DashboardPage({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     const router = useRouter();
     const [activeSport, setActiveSport] = useState('all');
+    const [timePeriod, setTimePeriod] = useState('week');
 
     const filteredPieData = activeSport === 'all' 
         ? allPieChartData
@@ -102,11 +90,21 @@ export function DashboardPage() {
         <div className="space-y-8">
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <h2 className="text-3xl font-bold tracking-tight">Дашборд</h2>
+                 <Select value={timePeriod} onValueChange={setTimePeriod}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Период" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="week">Эта неделя</SelectItem>
+                        <SelectItem value="month">Этот месяц</SelectItem>
+                        <SelectItem value="year">Этот год</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
              <Card>
                 <CardHeader>
-                    <CardTitle>Итоги за неделю</CardTitle>
-                    <CardDescription>Обзор вашей активности за последние 7 дней.</CardDescription>
+                    <CardTitle>Итоги за {timePeriod === 'week' ? 'неделю' : timePeriod === 'month' ? 'месяц' : 'год'}</CardTitle>
+                    <CardDescription>Обзор вашей активности.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
@@ -117,7 +115,7 @@ export function DashboardPage() {
                         <CardContent>
                             <div className="text-2xl font-bold">{(totalTime / 60).toFixed(1)} ч</div>
                             <p className="text-xs text-muted-foreground">
-                                <span className="text-green-500">+15%</span> по сравнению с прошлой неделей
+                                <span className="text-green-500">+15%</span> по сравнению с прошлым периодом
                             </p>
                         </CardContent>
                     </Card>
@@ -145,26 +143,16 @@ export function DashboardPage() {
                             </p>
                         </CardContent>
                     </Card>
-                      <Card className="lg:col-span-1">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-medium flex items-center gap-2"><Target/> Личные рекорды</CardTitle>
+                     <Card className="cursor-pointer hover:border-primary" onClick={() => setActiveTab('records')}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Личные рекорды</CardTitle>
+                            <Trophy className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
-                        <CardContent className='pt-0'>
-                             <Tabs defaultValue="sport">
-                                <TabsList className="grid w-full grid-cols-2 h-8">
-                                    <TabsTrigger value="sport" className='text-xs'>По спорту</TabsTrigger>
-                                    <TabsTrigger value="general" className='text-xs'>Общие</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="sport" className='mt-2 text-xs space-y-1'>
-                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.running5k.workoutId)}><Badge variant='secondary'>{records.sport.running5k.label}:</Badge> {records.sport.running5k.value}</p>
-                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.running10k.workoutId)}><Badge variant='secondary'>{records.sport.running10k.label}:</Badge> {records.sport.running10k.value}</p>
-                                     <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.sport.cycling20k.workoutId)}><Badge variant='secondary'>{records.sport.cycling20k.label}:</Badge> {records.sport.cycling20k.value}</p>
-                                </TabsContent>
-                                <TabsContent value="general" className='mt-2 text-xs space-y-1'>
-                                    <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.general.longestWorkout.workoutId)}><Flame className='inline h-3 w-3 mr-1'/>{records.general.longestWorkout.label}: {records.general.longestWorkout.value}</p>
-                                    <p className="cursor-pointer hover:underline" onClick={() => handleRecordClick(records.general.mostCalories.workoutId)}><Clock className='inline h-3 w-3 mr-1'/>{records.general.mostCalories.label}: {records.general.mostCalories.value}</p>
-                                </TabsContent>
-                            </Tabs>
+                        <CardContent>
+                             <div className="text-2xl font-bold">5 новых</div>
+                            <p className="text-xs text-muted-foreground">
+                               Нажмите, чтобы посмотреть все рекорды
+                            </p>
                         </CardContent>
                     </Card>
                 </CardContent>
@@ -179,7 +167,7 @@ export function DashboardPage() {
                 <TabsContent value="running">
                     <Card className='mt-2'>
                          <CardHeader>
-                            <CardTitle>Аналитика по бегу (Неделя)</CardTitle>
+                            <CardTitle>Аналитика по бегу ({timePeriod === 'week' ? 'Неделя' : timePeriod === 'month' ? 'Месяц' : 'Год'})</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 md:grid-cols-3">
                             <div><span className='font-bold'>Дистанция:</span> 25.5 км <span className='text-sm text-green-500'>(+3 км)</span></div>
@@ -191,7 +179,7 @@ export function DashboardPage() {
                  <TabsContent value="cycling">
                     <Card className='mt-2'>
                         <CardHeader>
-                            <CardTitle>Аналитика по велоспорту (Неделя)</CardTitle>
+                            <CardTitle>Аналитика по велоспорту ({timePeriod === 'week' ? 'Неделя' : timePeriod === 'month' ? 'Месяц' : 'Год'})</CardTitle>
                         </CardHeader>
                          <CardContent className="grid gap-4 md:grid-cols-3">
                             <div><span className='font-bold'>Дистанция:</span> 80.2 км <span className='text-sm text-green-500'>(+10 км)</span></div>
@@ -203,7 +191,7 @@ export function DashboardPage() {
                  <TabsContent value="swimming">
                     <Card className='mt-2'>
                          <CardHeader>
-                            <CardTitle>Аналитика по плаванию (Неделя)</CardTitle>
+                            <CardTitle>Аналитика по плаванию ({timePeriod === 'week' ? 'Неделя' : timePeriod === 'month' ? 'Месяц' : 'Год'})</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 md:grid-cols-3">
                             <div><span className='font-bold'>Дистанция:</span> 3.5 км <span className='text-sm text-red-500'>(-0.5 км)</span></div>

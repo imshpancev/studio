@@ -5,40 +5,50 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Map, Pin, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { historyItems } from "@/app/history/page";
 
-// Mock data, in a real app this would come from an API or a global state manager like context/redux
-const historyItems = [
-    {
-        id: 1, type: "Бег", title: "Вечерняя пробежка", date: "2024-07-28", duration: "45:12",
-        coords: { lat: 51.505, lng: -0.09 },
-        bbox: "bbox=-0.1,51.5,-0.09,51.51"
-    },
-    {
-        id: 4, type: "Бег", title: "Интервальная тренировка", date: "2024-07-25", duration: "00:35:45",
-        coords: { lat: 40.7128, lng: -74.0060 }, // New York
-        bbox: "bbox=-74.01,40.71,-74.00,40.72"
-    },
-    {
-        id: 5, type: "Велоспорт", title: "Длинная поездка", date: "2024-07-24", duration: "02:15:00",
-        coords: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-        bbox: "bbox=-118.25,34.05,-118.23,34.06"
-    },
-];
+const workoutsWithRoutes = historyItems.filter(item => item.coords);
 
 export function RoutesPage() {
     const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState(0);
 
-    const selectedWorkout = historyItems[selectedWorkoutIndex];
+    if (workoutsWithRoutes.length === 0) {
+        return (
+             <Card className="h-full w-full flex flex-col items-center justify-center">
+                <CardHeader className="text-center">
+                    <CardTitle className="flex items-center gap-2">
+                        <Map className="h-6 w-6" />
+                        Мои Маршруты
+                    </CardTitle>
+                    <CardDescription>
+                        У вас еще нет тренировок с записанными маршрутами.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p>Завершите тренировку на открытом воздухе, и она появится здесь.</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    const selectedWorkout = workoutsWithRoutes[selectedWorkoutIndex];
 
     const handlePrev = () => {
-        setSelectedWorkoutIndex(prev => (prev === 0 ? historyItems.length - 1 : prev - 1));
+        setSelectedWorkoutIndex(prev => (prev === 0 ? workoutsWithRoutes.length - 1 : prev - 1));
     };
 
     const handleNext = () => {
-        setSelectedWorkoutIndex(prev => (prev === historyItems.length - 1 ? 0 : prev + 1));
+        setSelectedWorkoutIndex(prev => (prev === workoutsWithRoutes.length - 1 ? 0 : prev + 1));
     };
     
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?${selectedWorkout.bbox}&layer=mapnik&marker=${selectedWorkout.coords.lat},${selectedWorkout.coords.lng}`;
+    // Constructing a simple polyline for the track
+    const trackString = selectedWorkout.track?.map(p => `${p.lng},${p.lat}`).join(';') || '';
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${selectedWorkout.bbox}&layer=mapnik`;
+    // Note: OpenStreetMap's embeddable iframe has limited support for complex features like drawing tracks directly.
+    // For a real application, a library like Leaflet or Mapbox GL JS would be used to draw the GeoJSON track on the map.
+    // This is a simplified representation. A single marker is placed as a fallback.
+    const finalMapUrl = `${mapUrl}&marker=${selectedWorkout.coords.lat},${selectedWorkout.coords.lng}`;
+
 
     return (
         <Card className="h-full w-full flex flex-col">
@@ -58,7 +68,7 @@ export function RoutesPage() {
                         width="100%"
                         height="100%"
                         scrolling="no"
-                        src={mapUrl}
+                        src={finalMapUrl}
                         style={{ border: 0 }}
                         title="Карта маршрута"
                         loading="lazy"

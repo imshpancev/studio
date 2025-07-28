@@ -21,6 +21,9 @@ export const historyItems = [
         elevationGain: "22 м",
         avgCadence: "165 SPM",
         avgPower: "210 Вт",
+        coords: { lat: 55.7558, lng: 37.6176 },
+        bbox: "37.60,55.75,37.63,55.76",
+        track: [ { lat: 55.7558, lng: 37.6176 }, { lat: 55.7568, lng: 37.6186 }, { lat: 55.7550, lng: 37.6200 } ],
         splits: [
             { pace: "6'10\"/км", heartRate: "150 BPM" },
             { pace: "6'05\"/км", heartRate: "155 BPM" },
@@ -63,6 +66,9 @@ export const historyItems = [
         elevationGain: "15 м",
         avgCadence: "175 SPM",
         avgPower: "250 Вт",
+        coords: { lat: 40.7128, lng: -74.0060 }, // New York
+        bbox: "-74.01,40.71,-74.00,40.72",
+        track: [ { lat: 40.7128, lng: -74.0060 }, { lat: 40.7138, lng: -74.0050 }, { lat: 40.7120, lng: -74.0030 } ],
         splits: [
             { pace: "5'40\"/км", heartRate: "160 BPM" },
             { pace: "5'30\"/км", heartRate: "165 BPM" },
@@ -83,6 +89,9 @@ export const historyItems = [
         avgHeartRate: 145,
         elevationGain: "350 м",
         avgPower: "180 Вт",
+        coords: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        bbox: "-118.25,34.05,-118.23,34.06",
+        track: [ { lat: 34.0522, lng: -118.2437 }, { lat: 34.0532, lng: -118.2427 }, { lat: 34.0512, lng: -118.2400 } ],
         splits: [
             { pace: "27.0 км/ч", heartRate: "140 BPM" },
             { pace: "26.5 км/ч", heartRate: "142 BPM" },
@@ -165,5 +174,3 @@ export default function WorkoutHistoryPage() {
         </div>
     );
 }
-
-    

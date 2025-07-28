@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users, Map } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users, Map, Trophy, Rss } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,8 @@ import { NotificationBell } from "@/components/notification-bell";
 import { UsersPage } from "@/components/users-page";
 import { RoutesPage } from "@/components/routes-page";
 import WorkoutHistoryPage from "./history/page";
+import { RecordsPage } from "@/components/records-page";
+import { FeedPage } from "@/components/feed-page";
 
 
 export default function Home() {
@@ -142,9 +144,12 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 md:grid-cols-8 max-w-6xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-5 md:grid-cols-10 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
+            </TabsTrigger>
+             <TabsTrigger value="feed" className="gap-2">
+              <Rss className="h-5 w-5" /> Лента
             </TabsTrigger>
             <TabsTrigger value="my-plan" className="gap-2">
               <CalendarCheck className="h-5 w-5" /> Мой план
@@ -154,6 +159,9 @@ export default function Home() {
             </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
               <History className="h-5 w-5" /> История
+            </TabsTrigger>
+             <TabsTrigger value="records" className="gap-2">
+              <Trophy className="h-5 w-5" /> Рекорды
             </TabsTrigger>
              <TabsTrigger value="routes" className="gap-2">
               <Map className="h-5 w-5" /> Маршруты
@@ -170,7 +178,11 @@ export default function Home() {
           </TabsList>
           
           <TabsContent value="dashboard">
-            <DashboardPage />
+            <DashboardPage setActiveTab={setActiveTab}/>
+          </TabsContent>
+
+           <TabsContent value="feed">
+            <FeedPage />
           </TabsContent>
 
           <TabsContent value="my-plan">
@@ -205,6 +217,10 @@ export default function Home() {
 
           <TabsContent value="history">
             <WorkoutHistoryPage />
+          </TabsContent>
+
+          <TabsContent value="records">
+            <RecordsPage />
           </TabsContent>
           
           <TabsContent value="routes">
