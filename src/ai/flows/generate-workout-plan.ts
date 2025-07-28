@@ -12,7 +12,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { workoutDatabase, Sport, Workout } from '@/lib/workout-data';
+import { workoutDatabase, Sport, type Workout } from '@/lib/workout-data';
 
 // Tool to get the workout database
 const getWorkoutDatabase = ai.defineTool(
@@ -22,7 +22,7 @@ const getWorkoutDatabase = ai.defineTool(
     inputSchema: z.object({
       sport: z.nativeEnum(Sport).optional().describe('Optional: filter by a specific sport to get its available workouts.'),
     }),
-    outputSchema: z.array(Workout),
+    outputSchema: z.array(z.any()), // Using z.any() because Workout type is complex for schema
   },
   async ({ sport }) => {
     if (sport) {
