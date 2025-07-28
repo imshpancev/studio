@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Search, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const mockUsers = [
   { id: '1', name: 'Иван Петров', handle: '@ivan_p', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', bio: 'Любитель марафонов и трейлраннинга.', isFollowing: false },
@@ -51,15 +52,17 @@ export function UsersPage() {
                 <div className="space-y-4">
                     {users.map(user => (
                         <div key={user.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <p className="font-semibold">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.handle}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{user.bio}</p>
-                            </div>
+                             <Link href={`/users/${user.id}`} className="flex items-center gap-4 flex-1">
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <p className="font-semibold hover:underline">{user.name}</p>
+                                    <p className="text-sm text-muted-foreground">{user.handle}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{user.bio}</p>
+                                </div>
+                            </Link>
                             <Button 
                                 variant={user.isFollowing ? 'secondary' : 'default'}
                                 onClick={() => handleFollowToggle(user.id)}
@@ -75,3 +78,4 @@ export function UsersPage() {
     );
 }
 
+    

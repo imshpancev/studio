@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, TrendingUp, Calendar, Filter, Dumbbell } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
@@ -9,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { allSports, Sport } from "@/lib/workout-data";
 
 const weeklyActivityData = [
-  { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0 },
-  { day: 'Вт', running: 0, gym: 60, yoga: 0, cycling: 75 },
-  { day: 'Ср', running: 45, gym: 0, yoga: 30, cycling: 0 },
-  { day: 'Чт', running: 0, gym: 55, yoga: 0, cycling: 0 },
-  { day: 'Пт', running: 60, gym: 0, yoga: 0, cycling: 90 },
-  { day: 'Сб', running: 90, gym: 0, yoga: 60, cycling: 120 },
-  { day: 'Вс', running: 0, gym: 0, yoga: 0, cycling: 0 },
+  { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0, swimming: 0, home: 20 },
+  { day: 'Вт', running: 0, gym: 60, yoga: 0, cycling: 75, swimming: 30, home: 0 },
+  { day: 'Ср', running: 45, gym: 0, yoga: 30, cycling: 0, swimming: 0, home: 0 },
+  { day: 'Чт', running: 0, gym: 55, yoga: 0, cycling: 0, swimming: 45, home: 25 },
+  { day: 'Пт', running: 60, gym: 0, yoga: 0, cycling: 90, swimming: 0, home: 0 },
+  { day: 'Сб', running: 90, gym: 0, yoga: 60, cycling: 120, swimming: 60, home: 0 },
+  { day: 'Вс', running: 0, gym: 0, yoga: 0, cycling: 0, swimming: 0, home: 0 },
 ];
 
 const progressData = [
@@ -27,7 +28,7 @@ const progressData = [
   { month: 'Июн', weight: 80, endurance: 7.5 },
 ];
 
-const pieChartData = [
+const allPieChartData = [
     { name: Sport.Running, value: 450, fill: 'var(--color-running)' },
     { name: Sport.Gym, value: 300, fill: 'var(--color-gym)' },
     { name: Sport.Yoga, value: 150, fill: 'var(--color-yoga)' },
@@ -51,6 +52,8 @@ const barChartConfig = {
   gym: { label: 'Зал', color: 'hsl(var(--chart-2))' },
   yoga: { label: 'Йога', color: 'hsl(var(--chart-3))' },
   cycling: { label: 'Велоспорт', color: 'hsl(var(--chart-5))' },
+  swimming: { label: 'Плавание', color: 'hsl(var(--chart-4))' },
+  home: { label: 'Дома', color: 'hsl(var(--chart-1))' },
 };
 
 const lineChartConfig = {
@@ -59,6 +62,12 @@ const lineChartConfig = {
 }
 
 export function DashboardPage() {
+    const [activeSport, setActiveSport] = useState('all');
+
+    const filteredPieData = activeSport === 'all' 
+        ? allPieChartData
+        : allPieChartData.filter(item => item.name === activeSport);
+
     return (
         <div className="space-y-8">
             <div className="flex flex-wrap justify-between items-center gap-4">
@@ -76,7 +85,7 @@ export function DashboardPage() {
                             <SelectItem value="all_time">За все время</SelectItem>
                         </SelectContent>
                     </Select>
-                     <Select defaultValue="all">
+                     <Select value={activeSport} onValueChange={setActiveSport}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Фильтр по спорту" />
                         </SelectTrigger>
@@ -112,6 +121,8 @@ export function DashboardPage() {
                                     <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="swimming" stackId="a" fill="var(--color-swimming)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="home" stackId="a" fill="var(--color-home)" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </ChartContainer>
@@ -157,12 +168,12 @@ export function DashboardPage() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Tooltip content={<ChartTooltipContent nameKey="name" />} />
-                                    <Pie data={pieChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
-                                        {pieChartData.map((entry) => (
+                                    <Pie data={filteredPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={60} labelLine={false} paddingAngle={2}>
+                                        {filteredPieData.map((entry) => (
                                             <Cell key={`cell-${entry.name}`} fill={pieChartConfig[entry.name as Sport]?.color || '#8884d8'} />
                                         ))}
                                     </Pie>
-                                    <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />} />
+                                    <ChartLegend content={<ChartLegendContent nameKey="name" />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </ChartContainer>
@@ -172,3 +183,5 @@ export function DashboardPage() {
         </div>
     );
 }
+
+    

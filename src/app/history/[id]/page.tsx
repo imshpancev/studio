@@ -4,7 +4,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, ChevronsRight } from 'lucide-react';
+import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, ChevronsRight, Bike, Waves } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function HistoryDetailPage() {
@@ -22,6 +22,15 @@ export default function HistoryDetailPage() {
     
     const item = JSON.parse(dataString);
     const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=-0.1,51.5,-0.09,51.51&layer=mapnik&marker=51.505,-0.095`;
+
+    const getIcon = (type: string) => {
+        if (type === 'Бег') return <Map className="h-8 w-8 text-primary" />;
+        if (type === 'Тренажерный зал') return <Dumbbell className="h-8 w-8 text-destructive" />;
+        if (type === 'Йога') return <Zap className="h-8 w-8 text-accent" />;
+        if (type === 'Велоспорт') return <Bike className="h-8 w-8 text-green-500" />;
+        if (type === 'Плавание') return <Waves className="h-8 w-8 text-blue-500" />;
+        return <Dumbbell className="h-8 w-8 text-primary" />;
+    }
 
     return (
         <div className="min-h-screen bg-muted/40 p-4 md:p-8">
@@ -41,10 +50,7 @@ export default function HistoryDetailPage() {
                                 </CardDescription>
                              </div>
                              <div className="p-3 rounded-full bg-muted hidden sm:block">
-                                 {/* This is a hack because we can't pass JSX elements as query params */}
-                                 {item.type === 'Бег' && <Map className="h-8 w-8 text-primary" />}
-                                 {item.type === 'Тренажерный зал' && <Dumbbell className="h-8 w-8 text-destructive" />}
-                                 {item.type === 'Йога' && <Zap className="h-8 w-8 text-accent" />}
+                                 {getIcon(item.type)}
                             </div>
                         </div>
                     </CardHeader>
@@ -101,7 +107,7 @@ export default function HistoryDetailPage() {
                             )}
                         </dl>
                         
-                        {item.type === 'Бег' && (
+                        {(item.type === 'Бег' || item.type === 'Велоспорт') && (
                             <div className="space-y-4">
                                 <div>
                                     <h3 className="font-semibold mb-2">Карта маршрута</h3>
@@ -150,3 +156,5 @@ export default function HistoryDetailPage() {
         </div>
     );
 }
+
+    

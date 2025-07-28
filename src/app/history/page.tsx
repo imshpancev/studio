@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, TrendingUp, Bike, Waves, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +17,6 @@ const historyItems = [
         distance: "7.5 км",
         avgPace: "6'01\"/км",
         calories: 450,
-        icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue",
         avgHeartRate: 156,
         elevationGain: "22 м",
         avgCadence: "165 SPM",
@@ -41,8 +39,7 @@ const historyItems = [
         duration: "01:10:30",
         volume: "3500 кг",
         calories: 300,
-        icon: <Dumbbell className="h-6 w-6 text-red-500" />,
-        color: "red"
+        avgHeartRate: 135,
     },
     {
         id: 3,
@@ -51,8 +48,7 @@ const historyItems = [
         date: "2024-07-26",
         duration: "00:55:00",
         calories: 150,
-        icon: <Zap className="h-6 w-6 text-purple-500" />,
-        color: "purple"
+        avgHeartRate: 110,
     },
     {
         id: 4,
@@ -63,8 +59,6 @@ const historyItems = [
         distance: "5.0 км",
         avgPace: "5'30\"/км",
         calories: 380,
-        icon: <Map className="h-6 w-6 text-blue-500" />,
-        color: "blue",
         avgHeartRate: 168,
         elevationGain: "15 м",
         avgCadence: "175 SPM",
@@ -77,7 +71,48 @@ const historyItems = [
             { pace: "5'35\"/км", heartRate: "170 BPM" },
         ]
     },
+     {
+        id: 5,
+        type: "Велоспорт",
+        title: "Длинная поездка",
+        date: "2024-07-24",
+        duration: "02:15:00",
+        distance: "60.0 км",
+        avgSpeed: "26.7 км/ч",
+        calories: 950,
+        avgHeartRate: 145,
+        elevationGain: "350 м",
+        avgPower: "180 Вт",
+        splits: [
+            { pace: "27.0 км/ч", heartRate: "140 BPM" },
+            { pace: "26.5 км/ч", heartRate: "142 BPM" },
+            { pace: "26.8 км/ч", heartRate: "148 BPM" },
+            { pace: "27.2 км/ч", heartRate: "150 BPM" },
+        ]
+    },
+     {
+        id: 6,
+        type: "Плавание",
+        title: "Тренировка в бассейне",
+        date: "2024-07-23",
+        duration: "01:05:00",
+        distance: "2.5 км",
+        avgPace: "2'30\"/100м",
+        calories: 500,
+        avgHeartRate: 140,
+    },
 ];
+
+const getIcon = (type: string) => {
+    switch (type) {
+        case 'Бег': return <Map className="h-6 w-6 text-primary" />;
+        case 'Тренажерный зал': return <Dumbbell className="h-6 w-6 text-destructive" />;
+        case 'Йога': return <Zap className="h-6 w-6 text-accent" />;
+        case 'Велоспорт': return <Bike className="h-6 w-6 text-green-500" />;
+        case 'Плавание': return <Waves className="h-6 w-6 text-blue-500" />;
+        default: return <History className="h-6 w-6" />;
+    }
+}
 
 export default function WorkoutHistoryPage() {
     const router = useRouter();
@@ -98,7 +133,7 @@ export default function WorkoutHistoryPage() {
                     {historyItems.map((item) => (
                         <Card key={item.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleCardClick(item)}>
                             <div className={`p-3 rounded-full bg-muted`}>
-                               {item.icon}
+                               {getIcon(item.type)}
                             </div>
                             <div className="flex-1 space-y-1">
                                 <div className="flex justify-between items-center">
@@ -130,3 +165,5 @@ export default function WorkoutHistoryPage() {
         </div>
     );
 }
+
+    
