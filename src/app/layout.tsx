@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'The LighSport',
+  title: 'OptimumPulse',
   description: 'Твой умный спортивный помощник',
 };
 

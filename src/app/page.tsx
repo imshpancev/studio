@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GeneratePlanForm } from "@/components/generate-plan-form";
 import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
-import { LighSportLogo } from "@/components/logo";
+import { OptimumPulseLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { DashboardPage } from "@/components/dashboard-page";
@@ -119,7 +118,7 @@ export default function Home() {
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
              <Link href="/" className="flex items-center gap-4">
-                <LighSportLogo className="h-12 w-auto" />
+                <OptimumPulseLogo className="h-12 w-auto" />
              </Link>
           </div>
           {user ? (
@@ -236,7 +235,7 @@ export default function Home() {
              <div className="text-center py-16">
                 <Card className="max-w-lg mx-auto">
                     <CardHeader>
-                        <CardTitle>Добро пожаловать в LighSport!</CardTitle>
+                        <CardTitle>Добро пожаловать в OptimumPulse!</CardTitle>
                         <CardDescription>Ваш персональный помощник для тренировок. Пожалуйста, войдите или зарегистрируйтесь, чтобы начать.</CardDescription>
                     </CardHeader>
                      <CardContent className="flex justify-center gap-4">
