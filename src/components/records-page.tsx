@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, Dumbbell, Footprints } from 'lucide-react';
-import { historyItems } from '@/lib/mock-data';
+// import { historyItems } from '@/lib/mock-data'; // Removed mock data import
 
-// Mock records data, in a real app this would be calculated
+// Mock records data, in a real app this would be calculated from user's workout history in Firestore
 const recordsData = {
     general: [
         { name: 'Самая долгая тренировка', value: '02:15:00', workoutId: 5, date: '2024-07-24', icon: <Clock /> },
@@ -17,7 +17,7 @@ const recordsData = {
         { name: '1 км', value: '04:55', workoutId: 4, date: '2024-07-25', icon: <Trophy /> },
         { name: '5 км', value: '27:30', workoutId: 4, date: '2024-07-25', icon: <Trophy /> },
         { name: '10 км', value: '58:10', workoutId: 1, date: '2024-07-28', icon: <Trophy /> },
-        { name: 'Полумарафон', value: '02:15:30', workoutId: 1, date: '2024-07-28', icon: <Trophy /> },
+        { name: 'Полумарафон', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
         { name: 'Марафон', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
         { name: 'Самая длинная пробежка', value: '7.5 км', workoutId: 1, date: '2024-07-28', icon: <MapIcon /> },
     ],
@@ -57,11 +57,13 @@ export function RecordsPage() {
 
     const handleRecordClick = (workoutId: number | null) => {
         if (!workoutId) return;
-        const workout = historyItems.find(item => item.id === workoutId);
-        if (workout) {
-            const itemQuery = encodeURIComponent(JSON.stringify(workout));
-            router.push(`/history/${workout.id}?data=${itemQuery}`);
-        }
+        // This needs to be adapted to fetch the specific workout from Firestore
+        alert(`Workout details for ID ${workoutId} would be shown here.`);
+        // const workout = historyItems.find(item => item.id === workoutId);
+        // if (workout) {
+        //     const itemQuery = encodeURIComponent(JSON.stringify(workout));
+        //     router.push(`/history/${workout.id}?data=${itemQuery}`);
+        // }
     };
 
     const renderRecordList = (records: any[]) => (
@@ -93,7 +95,7 @@ export function RecordsPage() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Trophy />Личные рекорды</CardTitle>
                 <CardDescription>
-                    Ваши лучшие достижения. Нажмите на рекорд, чтобы посмотреть детали тренировки.
+                    Ваши лучшие достижения. Нажмите на рекорд, чтобы посмотреть детали тренировки. (Данные пока демонстрационные)
                 </CardDescription>
             </CardHeader>
             <CardContent>

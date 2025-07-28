@@ -5,17 +5,22 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Map, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
-import { historyItems } from "@/lib/mock-data";
 import { getMapEmbedUrl } from "@/lib/map-utils";
+import { Workout } from "@/services/workoutService";
 
-const workoutsWithRoutes = historyItems.filter(item => item.track && item.track.length > 0);
 
-export function RoutesPage() {
+interface RoutesPageProps {
+    workouts: Workout[];
+}
+
+export function RoutesPage({ workouts }: RoutesPageProps) {
     const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState(0);
+
+    const workoutsWithRoutes = workouts.filter(item => item.track && item.track.length > 0);
 
     if (workoutsWithRoutes.length === 0) {
         return (
-             <Card className="h-full w-full flex flex-col items-center justify-center">
+             <Card className="h-full w-full flex flex-col items-center justify-center min-h-[400px]">
                 <CardHeader className="text-center">
                     <CardTitle className="flex items-center gap-2">
                         <Map className="h-6 w-6" />
@@ -42,7 +47,7 @@ export function RoutesPage() {
         setSelectedWorkoutIndex(prev => (prev === workoutsWithRoutes.length - 1 ? 0 : prev + 1));
     };
     
-    const mapUrl = getMapEmbedUrl(selectedWorkout.track);
+    const mapUrl = selectedWorkout.track ? getMapEmbedUrl(selectedWorkout.track) : '';
 
 
     return (

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -9,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from './ui/button';
 import { Clock, Dumbbell, Flame, Map, Zap, Calendar, Heart, MessageCircle, Rss, UserPlus, Footprints, Trophy } from "lucide-react";
 import { Badge } from './ui/badge';
-import { historyItems } from "@/lib/mock-data";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { UsersPage } from './users-page';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
@@ -17,46 +15,34 @@ import { useState, useEffect } from 'react';
 import { getLeaderboardData, UserProfile } from '@/services/userService';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from './ui/skeleton';
-
-// Mock data for a user's feed
-const feedItems = [
-    {
-        user: { id: '2', name: 'Елена Сидорова', handle: '@elena_fit', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' },
-        workout: historyItems.find(h => h.id === 3), // Yoga
-        timestamp: '2 часа назад'
-    },
-    {
-        user: { id: '1', name: 'Иван Петров', handle: '@ivan_p', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-        workout: historyItems.find(h => h.id === 1), // Run
-        timestamp: 'Вчера'
-    },
-    {
-        user: { id: '4', name: 'Мария Кузнецова', handle: '@mariya_cycle', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704g' },
-        workout: historyItems.find(h => h.id === 5), // Cycling
-        timestamp: '3 дня назад'
-    }
-];
+import { getFeedWorkouts, WorkoutWithUser } from '@/services/workoutService';
 
 
 export function FeedPage() {
     const router = useRouter();
     const [leaderboardData, setLeaderboardData] = useState<UserProfile[]>([]);
+    const [feedItems, setFeedItems] = useState<WorkoutWithUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const currentUser = auth.currentUser;
 
     useEffect(() => {
-        async function fetchLeaderboard() {
+        async function fetchData() {
+            setIsLoading(true);
             try {
-                const data = await getLeaderboardData();
-                setLeaderboardData(data);
+                const [leaderboard, feed] = await Promise.all([
+                    getLeaderboardData(),
+                    getFeedWorkouts(currentUser?.uid || '')
+                ]);
+                setLeaderboardData(leaderboard);
+                setFeedItems(feed);
             } catch (error) {
-                console.error("Failed to fetch leaderboard", error);
+                console.error("Failed to fetch feed or leaderboard", error);
             } finally {
                 setIsLoading(false);
             }
         }
-        fetchLeaderboard();
-    }, []);
+        fetchData();
+    }, [currentUser]);
 
     const handleWorkoutClick = (item: any) => {
         const itemQuery = encodeURIComponent(JSON.stringify(item));
@@ -140,34 +126,41 @@ export function FeedPage() {
             </Card>
 
 
-            {feedItems.map((item, index) => {
-                if (!item.workout) return null;
+            {isLoading && (
+                 <div className="space-y-4">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                 </div>
+            )}
+            
+            {!isLoading && feedItems.map((item, index) => {
+                if (!item.user) return null;
                 return (
                     <Card key={index}>
                         <CardHeader className="flex flex-row gap-3 space-y-0">
-                           <Link href={`/users/${item.user.id}`}>
+                           <Link href={`/users/${item.user.uid}`}>
                                 <Avatar>
                                     <AvatarImage src={item.user.avatar} alt={item.user.name} />
                                     <AvatarFallback>{item.user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                             </Link>
                             <div className="flex-1">
-                                <Link href={`/users/${item.user.id}`} className="hover:underline">
+                                <Link href={`/users/${item.user.uid}`} className="hover:underline">
                                     <p className="font-semibold">{item.user.name}</p>
                                 </Link>
-                                <p className="text-xs text-muted-foreground">{item.timestamp}</p>
+                                <p className="text-xs text-muted-foreground">{new Date(item.date).toLocaleDateString()}</p>
                             </div>
                         </CardHeader>
                         <CardContent 
                             className="p-4 border-y cursor-pointer hover:bg-muted/50"
-                             onClick={() => handleWorkoutClick(item.workout)}
+                             onClick={() => handleWorkoutClick(item)}
                         >
-                             <h4 className="font-semibold text-lg mb-2">{item.workout.title}</h4>
+                             <h4 className="font-semibold text-lg mb-2">{item.title}</h4>
                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                                <Badge variant="outline">{item.workout.type}</Badge>
-                                <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {item.workout.duration}</div>
-                                <div className="flex items-center gap-1"><Flame className="h-4 w-4" /> {item.workout.calories} ккал</div>
-                                {item.workout.distance && <div className="flex items-center gap-1"><Map className="h-4 w-4" /> {item.workout.distance}</div>}
+                                <Badge variant="outline">{item.type}</Badge>
+                                <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {item.duration}</div>
+                                <div className="flex items-center gap-1"><Flame className="h-4 w-4" /> {item.calories} ккал</div>
+                                {item.distance && <div className="flex items-center gap-1"><Map className="h-4 w-4" /> {item.distance}</div>}
                             </div>
                         </CardContent>
                          <CardContent className="p-2 flex justify-start gap-1">
@@ -178,7 +171,7 @@ export function FeedPage() {
                 )
             })}
 
-             {feedItems.length === 0 && (
+             {!isLoading && feedItems.length === 0 && (
                 <Card>
                     <CardContent className="p-8 text-center text-muted-foreground">
                         <p className="font-semibold">Ваша лента пока пуста</p>

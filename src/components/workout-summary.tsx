@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Sport } from '@/lib/workout-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
+import { addWorkout, Workout } from '@/services/workoutService';
+import { auth } from '@/lib/firebase';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 type WorkoutSummaryProps = {
   summary: {
@@ -42,14 +46,43 @@ const userGear = {
 export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const user = auth.currentUser;
 
-  const handleDone = () => {
-    // In a real app, you would save the workout to your database here.
-    toast({
-        title: "Тренировка сохранена!",
-        description: "Отличная работа! Ваши результаты добавлены в историю.",
-    });
-    router.push('/?tab=history'); // Redirect to history tab
+  const handleDone = async () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ошибка",
+            description: "Вы должны быть авторизованы, чтобы сохранить тренировку.",
+        });
+        return;
+    }
+    setIsLoading(true);
+
+    try {
+        const workoutData: Workout = {
+            ...summary,
+            userId: user.uid,
+            // In a real app, you'd add selected gear here
+        }
+        await addWorkout(workoutData);
+
+        toast({
+            title: "Тренировка сохранена!",
+            description: "Отличная работа! Ваши результаты добавлены в историю.",
+        });
+        router.push('/?tab=history'); // Redirect to history tab
+    } catch (error) {
+        console.error("Failed to save workout:", error);
+        toast({
+            variant: "destructive",
+            title: "Ошибка сохранения",
+            description: "Не удалось сохранить тренировку. Пожалуйста, попробуйте еще раз.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const handleShare = () => {
@@ -159,7 +192,8 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
           <Button variant="outline" onClick={handleShare} className='w-full'>
             <Share2 className="mr-2" /> Поделиться
           </Button>
-          <Button onClick={handleDone} className='w-full'>
+          <Button onClick={handleDone} className='w-full' disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Готово
           </Button>
         </CardFooter>

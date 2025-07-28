@@ -2,29 +2,106 @@
 
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, Bike, Waves } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getMapEmbedUrl } from '@/lib/map-utils';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { Workout, deleteWorkout, getWorkoutById } from '@/services/workoutService';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 export default function HistoryDetailPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const dataString = searchParams.get('data');
+    const params = useParams();
+    const workoutId = params.id as string;
+    const { toast } = useToast();
+
+    const [item, setItem] = useState<Workout | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     
-    if (!dataString) {
+    useEffect(() => {
+        if (!workoutId) return;
+        
+        async function fetchWorkout() {
+            try {
+                const workoutData = await getWorkoutById(workoutId);
+                if (workoutData) {
+                    setItem(workoutData);
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Ошибка',
+                        description: 'Тренировка не найдена.',
+                    });
+                     router.push('/history');
+                }
+            } catch (error) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Ошибка',
+                    description: 'Не удалось загрузить данные о тренировке.',
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        
+        fetchWorkout();
+    }, [workoutId, router, toast]);
+
+    const handleDelete = async () => {
+        if (!item?.id) return;
+        try {
+            await deleteWorkout(item.id);
+            toast({
+                title: 'Тренировка удалена',
+                description: 'Запись о тренировке была успешно удалена.',
+            });
+            router.push('/history');
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Ошибка удаления',
+                description: 'Не удалось удалить тренировку.',
+            });
+        }
+    }
+    
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-muted/40 p-4 md:p-8">
+                <div className="max-w-4xl mx-auto">
+                     <Skeleton className="h-10 w-32 mb-4" />
+                     <Card>
+                         <CardHeader><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-1/4 mt-2" /></CardHeader>
+                         <CardContent className="space-y-6">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                            <Skeleton className="h-64 w-full" />
+                         </CardContent>
+                     </Card>
+                </div>
+            </div>
+        )
+    }
+
+    if (!item) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                <p>Не удалось загрузить данные о тренировке.</p>
+                <p>Тренировка не найдена.</p>
             </div>
         );
     }
     
-    const item = JSON.parse(dataString);
-    const mapUrl = item.track ? getMapEmbedUrl(item.track) : null;
+    const mapUrl = item.track && item.track.length > 0 ? getMapEmbedUrl(item.track) : null;
 
     const getIcon = (type: string) => {
         if (type === 'Бег') return <Footprints className="h-8 w-8 text-primary" />;
@@ -156,7 +233,23 @@ export default function HistoryDetailPage() {
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2 border-t pt-6">
                         <Button variant="outline"><Share2 className="mr-2 h-4 w-4"/> Поделиться</Button>
-                        <Button variant="destructive"><Trash2 className="mr-2 h-4 w-4"/> Удалить</Button>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive"><Trash2 className="mr-2 h-4 w-4"/> Удалить</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Это действие навсегда удалит вашу тренировку из истории. Это действие нельзя будет отменить.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className='bg-destructive hover:bg-destructive/90'>Удалить</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </CardFooter>
                 </Card>
             </div>
