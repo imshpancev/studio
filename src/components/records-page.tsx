@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, Dumbbell, Footprints } from 'lucide-react';
-import { historyItems } from '@/app/history/page'; // We'll use this mock data
+import { historyItems } from '@/lib/mock-data';
 
 // Mock records data, in a real app this would be calculated
 const recordsData = {

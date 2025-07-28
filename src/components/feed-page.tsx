@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from './ui/button';
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, Heart, MessageCircle, Rss, UserPlus } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, Heart, MessageCircle, Rss, UserPlus, Footprints, Trophy } from "lucide-react";
 import { Badge } from './ui/badge';
-import { historyItems } from '@/app/history/page';
+import { historyItems } from "@/lib/mock-data";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { UsersPage } from './users-page';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 // Mock data for a user's feed
 const feedItems = [
@@ -30,6 +31,14 @@ const feedItems = [
         timestamp: '3 дня назад'
     }
 ];
+
+const leaderboardData = [
+  { rank: 1, name: 'Иван Петров', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', distance: 35.2, steps: 85430, calories: 3200 },
+  { rank: 2, name: 'Вы', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a', distance: 31.8, steps: 78950, calories: 2950 },
+  { rank: 3, name: 'Мария Кузнецова', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704g', distance: 28.5, steps: 65120, calories: 2800 },
+  { rank: 4, name: 'Елена Сидорова', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', distance: 15.6, steps: 55600, calories: 2100 },
+];
+
 
 export function FeedPage() {
     const router = useRouter();
@@ -67,6 +76,46 @@ export function FeedPage() {
                     </CardDescription>
                 </CardHeader>
             </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Trophy />Таблица лидеров сообщества (Неделя)</CardTitle>
+                    <CardDescription>Сравните свой прогресс с друзьями.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Место</TableHead>
+                                <TableHead>Пользователь</TableHead>
+                                <TableHead className="text-right">Дистанция (км)</TableHead>
+                                <TableHead className="text-right">Шаги</TableHead>
+                                <TableHead className="text-right">Калории</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {leaderboardData.map((user) => (
+                                <TableRow key={user.rank} className={user.name === 'Вы' ? 'bg-muted/50' : ''}>
+                                    <TableCell className="font-medium">{user.rank}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={user.avatar} alt={user.name} />
+                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{user.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">{user.distance.toFixed(1)}</TableCell>
+                                    <TableCell className="text-right">{user.steps.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">{user.calories.toLocaleString()}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+
 
             {feedItems.map((item, index) => {
                 if (!item.workout) return null;

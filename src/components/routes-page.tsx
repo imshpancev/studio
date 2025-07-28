@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Map, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
-import { historyItems } from "@/app/history/page";
+import { historyItems } from "@/lib/mock-data";
 import { getMapEmbedUrl } from "@/lib/map-utils";
 
 const workoutsWithRoutes = historyItems.filter(item => item.track && item.track.length > 0);

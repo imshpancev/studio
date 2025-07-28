@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Map, Trophy, Rss } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Map, Trophy, Rss, Droplets, BookOpen } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,6 @@ import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/f
 import { OptimumPulseLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
 import { MyPlanPage } from "@/components/my-plan-page";
-import { DashboardPage } from "@/components/dashboard-page";
 import { Button } from "@/components/ui/button";
 import { AnalyticsPage } from "@/components/analytics-page";
 import { auth } from "@/lib/firebase";
@@ -22,13 +21,13 @@ import { NotificationBell } from "@/components/notification-bell";
 import WorkoutHistoryPage from "./history/page";
 import { RecordsPage } from "@/components/records-page";
 import { FeedPage } from "@/components/feed-page";
-import { RoutesPage } from "@/components/routes-page";
+import { NutritionDiaryPage } from "@/components/nutrition-diary-page";
 
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -44,7 +43,7 @@ export default function Home() {
         localStorage.removeItem('workoutPlanInput');
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
-        setActiveTab("dashboard");
+        setActiveTab("analytics");
       }
     });
     return () => unsubscribe(); // Unsubscribe on cleanup
@@ -143,9 +142,9 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-5 md:grid-cols-9 max-w-6xl mx-auto mb-8">
-            <TabsTrigger value="dashboard" className="gap-2">
-              <LayoutDashboard className="h-5 w-5" /> <span className="hidden md:inline">Дашборд</span>
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-5 md:grid-cols-8 max-w-6xl mx-auto mb-8">
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-5 w-5" /> <span className="hidden md:inline">Аналитика</span>
             </TabsTrigger>
              <TabsTrigger value="feed" className="gap-2">
               <Rss className="h-5 w-5" /> <span className="hidden md:inline">Лента</span>
@@ -156,25 +155,22 @@ export default function Home() {
              <TabsTrigger value="quick-start" className="gap-2">
               <Rocket className="h-5 w-5" /> <span className="hidden md:inline">Быстрый старт</span>
             </TabsTrigger>
+            <TabsTrigger value="nutrition" className="gap-2">
+              <BookOpen className="h-5 w-5" /> <span className="hidden md:inline">Дневник</span>
+            </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
               <History className="h-5 w-5" /> <span className="hidden md:inline">История</span>
             </TabsTrigger>
              <TabsTrigger value="records" className="gap-2">
               <Trophy className="h-5 w-5" /> <span className="hidden md:inline">Рекорды</span>
             </TabsTrigger>
-             <TabsTrigger value="routes" className="gap-2">
-              <Map className="h-5 w-5" /> <span className="hidden md:inline">Маршруты</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="h-5 w-5" /> <span className="hidden md:inline">Аналитика</span>
-            </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> <span className="hidden md:inline">Профиль</span>
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="dashboard">
-            <DashboardPage setActiveTab={setActiveTab}/>
+          <TabsContent value="analytics">
+            <AnalyticsPage setActiveTab={setActiveTab}/>
           </TabsContent>
 
            <TabsContent value="feed">
@@ -210,6 +206,10 @@ export default function Home() {
            <TabsContent value="quick-start">
             <QuickStartPage />
           </TabsContent>
+          
+          <TabsContent value="nutrition">
+            <NutritionDiaryPage />
+          </TabsContent>
 
           <TabsContent value="history">
             <WorkoutHistoryPage />
@@ -217,14 +217,6 @@ export default function Home() {
 
           <TabsContent value="records">
             <RecordsPage />
-          </TabsContent>
-          
-          <TabsContent value="routes">
-            <RoutesPage />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AnalyticsPage />
           </TabsContent>
 
           <TabsContent value="profile">
