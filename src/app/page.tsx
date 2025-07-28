@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +12,6 @@ import { GeneratePlanForm } from "@/components/generate-plan-form";
 import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { LighSportLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
-import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { DashboardPage } from "@/components/dashboard-page";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ import { WorkoutHistoryPage } from "@/components/workout-history-page";
 import { AnalyticsPage } from "@/components/analytics-page";
 import { auth } from "@/lib/firebase";
 import { QuickStartPage } from "@/components/quick-start-page";
+import { NotificationBell } from "@/components/notification-bell";
+import { UsersPage } from "@/components/users-page";
 
 
 export default function Home() {
@@ -115,13 +116,16 @@ export default function Home() {
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
              <Link href="/" className="flex items-center gap-4">
-                <LighSportLogo className="h-16 w-auto" />
+                <LighSportLogo className="h-12 w-auto" />
              </Link>
           </div>
           {user ? (
-             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl text-center">
-                Ваш помощник на базе ИИ для персональных тренировок.
-             </p>
+            <div className="flex items-center gap-4">
+                 <p className="text-lg md:text-xl text-muted-foreground max-w-3xl text-center hidden md:block">
+                    Ваш помощник на базе ИИ для персональных тренировок.
+                 </p>
+                 <NotificationBell />
+            </div>
           ) : (
             <div className="flex gap-2">
                 <Button asChild variant="ghost">
@@ -137,7 +141,7 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 md:grid-cols-6 max-w-4xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-7 max-w-5xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
             </TabsTrigger>
@@ -152,6 +156,9 @@ export default function Home() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Аналитика
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-5 w-5" /> Пользователи
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> Профиль
@@ -198,6 +205,10 @@ export default function Home() {
 
           <TabsContent value="analytics">
             <AnalyticsPage />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UsersPage />
           </TabsContent>
 
           <TabsContent value="profile">
