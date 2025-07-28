@@ -27,17 +27,17 @@ export default function Home() {
             </h1>
           </div>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Your AI-powered companion for personalized training, intelligent tracking, and peak performance.
+            Ваш помощник на базе ИИ для персональных тренировок, интеллектуального отслеживания и достижения пиковой производительности.
           </p>
         </header>
 
         <Tabs defaultValue="generate-plan" className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto mb-8">
             <TabsTrigger value="generate-plan" className="gap-2">
-              <Dumbbell className="h-5 w-5" /> Generate Plan
+              <Dumbbell className="h-5 w-5" /> Создать план
             </TabsTrigger>
             <TabsTrigger value="analyze-feedback" className="gap-2">
-              <BarChart3 className="h-5 w-5" /> Analyze Feedback
+              <BarChart3 className="h-5 w-5" /> Анализ обратной связи
             </TabsTrigger>
           </TabsList>
           
@@ -45,9 +45,9 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <Card>
                 <CardHeader>
-                  <CardTitle>Create Your Workout Plan</CardTitle>
+                  <CardTitle>Создайте свой план тренировок</CardTitle>
                   <CardDescription>
-                    Tell us about your goals and preferences, and our AI will craft the perfect plan for you.
+                    Расскажите нам о своих целях и предпочтениях, и наш ИИ разработает для вас идеальный план.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -62,12 +62,12 @@ export default function Home() {
                      <CardHeader>
                       <CardTitle className="flex items-center justify-center gap-2">
                         <Bot className="h-8 w-8 text-primary" />
-                        Your AI-Generated Plan
+                        Ваш план, сгенерированный ИИ
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground">
-                        Your personalized workout plan will appear here once it's generated. Fill out the form to get started!
+                        Ваш персональный план тренировок появится здесь после его создания. Заполните форму, чтобы начать!
                       </p>
                     </CardContent>
                   </Card>
@@ -80,9 +80,9 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <Card>
                 <CardHeader>
-                  <CardTitle>Analyze Your Workout</CardTitle>
+                  <CardTitle>Проанализируйте свою тренировку</CardTitle>
                   <CardDescription>
-                    Provide feedback on your last workout to help our AI adapt and optimize your plan.
+                    Оставьте отзыв о вашей последней тренировке, чтобы помочь нашему ИИ адаптировать и оптимизировать ваш план.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -97,12 +97,12 @@ export default function Home() {
                     <CardHeader>
                       <CardTitle className="flex items-center justify-center gap-2">
                         <Bot className="h-8 w-8 text-primary" />
-                         AI-Powered Analysis
+                         Анализ на базе ИИ
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground">
-                        Your workout analysis and recommendations will appear here.
+                        Ваш анализ тренировки и рекомендации появятся здесь.
                       </p>
                     </CardContent>
                   </Card>

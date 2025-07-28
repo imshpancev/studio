@@ -17,11 +17,11 @@ import type { GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 const formSchema = z.object({
-  sportPreferences: z.string().min(1, 'Sport preferences are required.'),
+  sportPreferences: z.string().min(1, 'Предпочтения в спорте обязательны.'),
   fitnessLevel: z.enum(['beginner', 'intermediate', 'advanced']),
-  availableEquipment: z.string().min(1, 'Please list available equipment, or type "none".'),
-  workoutHistory: z.string().min(1, 'Workout history is required.'),
-  goals: z.string().min(1, 'Please describe your fitness goals.'),
+  availableEquipment: z.string().min(1, 'Пожалуйста, укажите доступное оборудование или напишите "нет".'),
+  workoutHistory: z.string().min(1, 'История тренировок обязательна.'),
+  goals: z.string().min(1, 'Пожалуйста, опишите свои фитнес-цели.'),
   workoutDifficultyFeedback: z.string().optional(),
   upcomingCompetitionReference: z.string().optional(),
   healthDataFromWearables: z.string().optional(),
@@ -39,11 +39,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      sportPreferences: 'Running, gym workouts',
+      sportPreferences: 'Бег, тренажерный зал',
       fitnessLevel: 'intermediate',
-      availableEquipment: 'Dumbbells, resistance bands',
-      workoutHistory: 'Workout 3-4 times a week for the last year.',
-      goals: 'Build muscle and improve cardiovascular endurance.',
+      availableEquipment: 'Гантели, эспандеры',
+      workoutHistory: 'Тренируюсь 3-4 раза в неделю в течение последнего года.',
+      goals: 'Нарастить мышечную массу и улучшить сердечно-сосудистую выносливость.',
       workoutDifficultyFeedback: '',
       upcomingCompetitionReference: '',
       healthDataFromWearables: '',
@@ -57,14 +57,14 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
       const result = await generatePlanAction(values);
       onPlanGenerated(result);
       toast({
-        title: 'Success!',
-        description: 'Your new workout plan has been generated.',
+        title: 'Успех!',
+        description: 'Ваш новый план тренировок был сгенерирован.',
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'An error occurred.',
-        description: 'Failed to generate workout plan. Please try again.',
+        title: 'Произошла ошибка.',
+        description: 'Не удалось сгенерировать план тренировок. Пожалуйста, попробуйте еще раз.',
       });
     } finally {
       setIsLoading(false);
@@ -80,11 +80,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
             name="sportPreferences"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sport Preferences</FormLabel>
+                <FormLabel>Предпочтения в спорте</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Running, gym workouts" {...field} />
+                  <Input placeholder="например, Бег, тренажерный зал" {...field} />
                 </FormControl>
-                <FormDescription>Separate with commas.</FormDescription>
+                <FormDescription>Разделяйте запятыми.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -94,17 +94,17 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
             name="fitnessLevel"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fitness Level</FormLabel>
+                <FormLabel>Уровень подготовки</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select your fitness level" />
+                      <SelectValue placeholder="Выберите ваш уровень подготовки" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="beginner">Начинающий</SelectItem>
+                    <SelectItem value="intermediate">Средний</SelectItem>
+                    <SelectItem value="advanced">Продвинутый</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -118,9 +118,9 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           name="availableEquipment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Available Equipment</FormLabel>
+              <FormLabel>Доступное оборудование</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Dumbbells, treadmill, or 'none'" {...field} />
+                <Input placeholder="например, Гантели, беговая дорожка, или 'нет'" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,9 +132,9 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           name="goals"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Primary Goals</FormLabel>
+              <FormLabel>Основные цели</FormLabel>
               <FormControl>
-                <Textarea placeholder="e.g., Lose weight, build muscle, run a 5k" {...field} />
+                <Textarea placeholder="например, Похудеть, нарастить мышцы, пробежать 5 км" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -146,9 +146,9 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
           name="workoutHistory"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Workout History</FormLabel>
+              <FormLabel>История тренировок</FormLabel>
               <FormControl>
-                <Textarea placeholder="Describe your recent workout habits." {...field} />
+                <Textarea placeholder="Опишите свои недавние тренировочные привычки." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -158,7 +158,7 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="advanced-options" className='border-b-0'>
             <AccordionTrigger className="hover:no-underline">
-              Advanced & Optional Details
+              Расширенные и необязательные детали
             </AccordionTrigger>
             <AccordionContent>
               <div className='space-y-6 pt-4'>
@@ -167,11 +167,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                   name="upcomingCompetitionReference"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Upcoming Competition</FormLabel>
+                      <FormLabel>Предстоящие соревнования</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Marathon on Oct 10, 2025" {...field} />
+                        <Input placeholder="например, Марафон 10 октября 2025 г." {...field} />
                       </FormControl>
-                      <FormDescription>Tell us about any upcoming events you're training for.</FormDescription>
+                      <FormDescription>Расскажите нам о любых предстоящих событиях, к которым вы готовитесь.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -182,11 +182,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                   name="healthDataFromWearables"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Health Data Summary</FormLabel>
+                      <FormLabel>Сводка данных о здоровье</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="e.g., Avg. resting heart rate: 60bpm, Avg. sleep: 7 hours" {...field} />
+                        <Textarea placeholder="например, Средний пульс в покое: 60 ударов в минуту, Средний сон: 7 часов" {...field} />
                       </FormControl>
-                      <FormDescription>Provide a summary of relevant health data from your wearables.</FormDescription>
+                      <FormDescription>Предоставьте сводку соответствующих данных о состоянии здоровья с ваших носимых устройств.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -197,11 +197,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                   name="workoutDifficultyFeedback"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Previous Workout Feedback</FormLabel>
+                      <FormLabel>Отзывы о сложности предыдущих тренировок</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="e.g., Previous routines felt too easy/hard in some areas." {...field} />
+                        <Textarea placeholder="например, Предыдущие программы казались слишком легкими/сложными в некоторых областях." {...field} />
                       </FormControl>
-                      <FormDescription>Feedback on past workout difficulties.</FormDescription>
+                      <FormDescription>Отзывы о сложности прошлых тренировок.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -212,11 +212,11 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
                   name="exerciseContraindications"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Exercise Contraindications</FormLabel>
+                      <FormLabel>Противопоказания к упражнениям</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 'squats' due to knee pain" {...field} />
+                        <Input placeholder="например, 'приседания' из-за боли в колене" {...field} />
                       </FormControl>
-                      <FormDescription>List any exercises you need to avoid.</FormDescription>
+                      <FormDescription>Перечислите все упражнения, которых вам следует избегать.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -228,7 +228,7 @@ export function GeneratePlanForm({ onPlanGenerated }: GeneratePlanFormProps) {
         
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isLoading ? 'Generating Plan...' : 'Generate Workout Plan'}
+          {isLoading ? 'Создание плана...' : 'Создать план тренировок'}
         </Button>
       </form>
     </Form>

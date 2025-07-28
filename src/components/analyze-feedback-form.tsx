@@ -16,10 +16,10 @@ import { analyzeFeedbackAction } from '@/app/actions';
 import type { AnalyzeWorkoutFeedbackOutput } from '@/ai/flows/analyze-workout-feedback';
 
 const formSchema = z.object({
-  workoutName: z.string().min(1, 'Workout name is required.'),
+  workoutName: z.string().min(1, 'Название тренировки обязательно.'),
   workoutDifficulty: z.number().min(1).max(10),
-  workoutFeedback: z.string().min(1, 'Please provide some feedback.'),
-  workoutPlan: z.string().min(1, 'The current workout plan is required.'),
+  workoutFeedback: z.string().min(1, 'Пожалуйста, оставьте отзыв.'),
+  workoutPlan: z.string().min(1, 'Текущий план тренировок обязателен.'),
   wearableSensorData: z.string().optional(),
 });
 
@@ -34,10 +34,10 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      workoutName: 'Day 1: Full Body Strength',
+      workoutName: 'День 1: Силовая тренировка на все тело',
       workoutDifficulty: 7,
-      workoutFeedback: 'The last set of squats was very challenging. I think I can do more push-ups next time.',
-      workoutPlan: '{"day": "Day 1", "exercises": [{"name": "Squats", "sets": 3, "reps": 12}, {"name": "Push-ups", "sets": 3, "reps": "failure"}]}',
+      workoutFeedback: 'Последний подход приседаний был очень сложным. Думаю, в следующий раз я смогу сделать больше отжиманий.',
+      workoutPlan: '{"day": "День 1", "exercises": [{"name": "Приседания", "sets": 3, "reps": 12}, {"name": "Отжимания", "sets": 3, "reps": "до отказа"}]}',
       wearableSensorData: '',
     },
   });
@@ -53,14 +53,14 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
       });
       onAnalysisComplete(result);
       toast({
-        title: 'Analysis Complete!',
-        description: 'Your workout plan has been adapted based on your feedback.',
+        title: 'Анализ завершен!',
+        description: 'Ваш план тренировок был адаптирован на основе ваших отзывов.',
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'An error occurred.',
-        description: 'Failed to analyze feedback. Please try again.',
+        title: 'Произошла ошибка.',
+        description: 'Не удалось проанализировать отзыв. Пожалуйста, попробуйте еще раз.',
       });
     } finally {
       setIsLoading(false);
@@ -75,9 +75,9 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
           name="workoutName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Workout Name</FormLabel>
+              <FormLabel>Название тренировки</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Morning Run, Leg Day" {...field} />
+                <Input placeholder="например, Утренняя пробежка, День ног" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,7 +89,7 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
           name="workoutDifficulty"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Perceived Difficulty</FormLabel>
+              <FormLabel>Воспринимаемая сложность</FormLabel>
               <FormControl>
                 <div className='flex items-center gap-4 pt-2'>
                    <Slider
@@ -102,7 +102,7 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
                     <span className='font-bold text-lg text-primary w-8 text-center'>{difficultyValue}</span>
                 </div>
               </FormControl>
-              <FormDescription>On a scale of 1 (very easy) to 10 (maximal effort).</FormDescription>
+              <FormDescription>По шкале от 1 (очень легко) до 10 (максимальное усилие).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -113,9 +113,9 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
           name="workoutFeedback"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Workout Feedback</FormLabel>
+              <FormLabel>Отзыв о тренировке</FormLabel>
               <FormControl>
-                <Textarea placeholder="How did the workout feel? Any specific challenges or successes?" {...field} />
+                <Textarea placeholder="Как прошла тренировка? Были ли какие-то особые трудности или успехи?" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -127,11 +127,11 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
           name="workoutPlan"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Workout Plan</FormLabel>
+              <FormLabel>Текущий план тренировок</FormLabel>
               <FormControl>
-                <Textarea placeholder="Paste your current workout plan JSON here." {...field} className="h-32 font-mono text-xs" />
+                <Textarea placeholder="Вставьте сюда свой текущий план тренировок в формате JSON." {...field} className="h-32 font-mono text-xs" />
               </FormControl>
-              <FormDescription>Provide the plan you are currently following for context.</FormDescription>
+              <FormDescription>Предоставьте план, которому вы сейчас следуете, для контекста.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -142,12 +142,12 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
           name="wearableSensorData"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Wearable Sensor Data (Optional)</FormLabel>
+              <FormLabel>Данные с носимых датчиков (необязательно)</FormLabel>
               <FormControl>
-                <Textarea placeholder="Paste sensor data here (e.g., as a data URI)" {...field} className="h-24 font-mono text-xs" />
+                <Textarea placeholder="Вставьте сюда данные датчиков (например, в виде URI данных)" {...field} className="h-24 font-mono text-xs" />
               </FormControl>
               <FormDescription>
-                Provide sensor data like heart rate, pace, etc. for a more accurate analysis.
+                Предоставьте данные датчиков, такие как частота сердечных сокращений, темп и т. д., для более точного анализа.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -156,7 +156,7 @@ export function AnalyzeFeedbackForm({ onAnalysisComplete }: AnalyzeFeedbackFormP
         
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isLoading ? 'Analyzing...' : 'Analyze & Adapt Plan'}
+          {isLoading ? 'Анализируем...' : 'Проанализировать и адаптировать план'}
         </Button>
       </form>
     </Form>

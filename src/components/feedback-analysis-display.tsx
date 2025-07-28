@@ -27,10 +27,10 @@ export function FeedbackAnalysisDisplay({ data }: FeedbackAnalysisDisplayProps) 
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-primary" />
-              Adapted Workout Plan
+              Адаптированный план тренировок
             </CardTitle>
             <CardDescription>
-              Your plan has been adjusted based on your feedback.
+              Ваш план был скорректирован на основе ваших отзывов.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -44,10 +44,10 @@ export function FeedbackAnalysisDisplay({ data }: FeedbackAnalysisDisplayProps) 
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-accent" />
-              AI Recommendations
+              Рекомендации ИИ
             </CardTitle>
             <CardDescription>
-              Suggestions to improve your future workouts.
+              Предложения по улучшению ваших будущих тренировок.
             </CardDescription>
           </CardHeader>
           <CardContent>

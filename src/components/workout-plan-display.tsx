@@ -23,7 +23,7 @@ interface DayPlan {
 }
 
 const parseWorkoutPlan = (plan: string): DayPlan[] => {
-  const daySections = plan.split(/\*\*(Day \d+:.*?)\*\*/).filter(Boolean);
+  const daySections = plan.split(/\*\*(День \d+:.*?)\*\*/).filter(Boolean);
   const structuredPlan: DayPlan[] = [];
 
   for (let i = 0; i < daySections.length; i += 2) {
@@ -31,14 +31,14 @@ const parseWorkoutPlan = (plan: string): DayPlan[] => {
     const content = daySections[i + 1];
 
     if (header && content) {
-      const dayMatch = header.match(/Day \d+/);
-      const day = dayMatch ? dayMatch[0] : `Day ${structuredPlan.length + 1}`;
-      const title = header.replace(/Day \d+:/, '').trim();
+      const dayMatch = header.match(/День \d+/);
+      const day = dayMatch ? dayMatch[0] : `День ${structuredPlan.length + 1}`;
+      const title = header.replace(/День \d+:/, '').trim();
 
       const exerciseItems = content.split('* ').filter(item => item.trim() !== '');
       const exercises: Exercise[] = exerciseItems.map(item => {
         const parts = item.split(':');
-        const name = parts[0]?.trim() || 'Exercise';
+        const name = parts[0]?.trim() || 'Упражнение';
         const details = parts.slice(1).join(':').trim();
         return { name, details };
       });
@@ -48,7 +48,7 @@ const parseWorkoutPlan = (plan: string): DayPlan[] => {
   }
 
   if (structuredPlan.length === 0 && plan.length > 0) {
-    return [{ day: 'Full Plan', title: 'Your Workout Plan', exercises: [{ name: 'Details', details: plan }] }];
+    return [{ day: 'Полный план', title: 'Ваш план тренировок', exercises: [{ name: 'Детали', details: plan }] }];
   }
 
   return structuredPlan;
@@ -60,7 +60,7 @@ export function WorkoutPlanDisplay({ data }: WorkoutPlanDisplayProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Your Personalized Plan</CardTitle>
+        <CardTitle>Ваш персональный план</CardTitle>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[70vh] pr-4">
