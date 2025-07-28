@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart3, User, Rocket, History, LogIn, UserPlus, Loader2, Rss, BookOpen, Trophy, CalendarCheck, PersonStanding } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -25,9 +26,14 @@ import { NutritionDiaryPage } from "@/components/nutrition-diary-page";
 import { getUserProfile, updateUserProfile } from "@/services/userService";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
-  const [activeTab, setActiveTab] = useState("analytics");
+  
+  const defaultTab = searchParams.get('tab') || "analytics";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -46,6 +52,11 @@ export default function Home() {
          // Fetch profile and workout plan from Firestore
         try {
             const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
+            if (!userProfile.onboardingCompleted) {
+                router.push('/onboarding');
+                // No need to continue loading data if we are redirecting
+                return; 
+            }
             if (userProfile.workoutPlan) {
                 setWorkoutPlan(userProfile.workoutPlan);
             }
@@ -60,7 +71,16 @@ export default function Home() {
       }
     });
     return () => unsubscribe(); // Unsubscribe on cleanup
-  }, []);
+  }, [router]);
+
+  useEffect(() => {
+    // Sync URL with active tab
+    if (activeTab) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('tab', activeTab);
+        window.history.replaceState({ ...window.history.state, as: newUrl.href, url: newUrl.href }, '', newUrl.href);
+    }
+  }, [activeTab]);
 
 
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {

@@ -46,9 +46,9 @@ export default function SignupPage() {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: 'Аккаунт создан!',
-        description: 'Теперь вы можете войти в систему.',
+        description: 'Теперь, пожалуйста, заполните свой профиль.',
       });
-      router.push('/login');
+      router.push('/onboarding');
     } catch (error: any) {
       let errorMessage = 'Произошла ошибка при регистрации.';
       if (error.code === 'auth/email-already-in-use') {

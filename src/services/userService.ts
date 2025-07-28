@@ -8,6 +8,7 @@ import { doc, setDoc, getDoc, getDocs, collection, query, limit } from 'firebase
 export interface UserProfile {
     uid: string;
     email: string;
+    onboardingCompleted?: boolean;
     name?: string;
     username?: string;
     bio?: string;
@@ -55,6 +56,7 @@ export interface UserProfile {
 
 
 const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
+    onboardingCompleted: false,
     name: 'Новый пользователь',
     username: '',
     bio: '',

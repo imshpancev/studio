@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
@@ -79,6 +78,7 @@ const profileSchema = z.object({
   // to avoid being stripped out on save.
   workoutPlan: z.any().optional(),
   workoutPlanInput: z.any().optional(),
+  onboardingCompleted: z.boolean().optional(),
 
   // Other analytics fields that are not directly editable in the form
   // but should be preserved.
@@ -599,4 +599,3 @@ export function ProfilePage() {
     </div>
   );
 }
-
