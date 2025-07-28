@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Dumbbell, BarChart3, Bot } from "lucide-react";
+import { Dumbbell, BarChart3, User } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import type { GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan
 import { FeedbackAnalysisDisplay } from "@/components/feedback-analysis-display";
 import type { AnalyzeWorkoutFeedbackOutput } from "@/ai/flows/analyze-workout-feedback";
 import { LighSportLogo } from "@/components/logo";
+import { ProfilePage } from "@/components/profile-page";
 
 export default function Home() {
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
@@ -30,12 +31,15 @@ export default function Home() {
         </header>
 
         <Tabs defaultValue="generate-plan" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-8">
             <TabsTrigger value="generate-plan" className="gap-2">
               <Dumbbell className="h-5 w-5" /> Создать план
             </TabsTrigger>
             <TabsTrigger value="analyze-feedback" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Анализ обратной связи
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="h-5 w-5" /> Профиль
             </TabsTrigger>
           </TabsList>
           
@@ -78,7 +82,7 @@ export default function Home() {
                   <Card className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-center gap-2">
-                        <Bot className="h-8 w-8 text-primary" />
+                        <User className="h-8 w-8 text-primary" />
                          Анализ на базе ИИ
                       </CardTitle>
                     </CardHeader>
@@ -91,6 +95,9 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </TabsContent>
+          <TabsContent value="profile">
+            <ProfilePage />
           </TabsContent>
         </Tabs>
       </main>
