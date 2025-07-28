@@ -11,6 +11,8 @@ export enum Sport {
   Home = 'Домашние тренировки',
   Swimming = 'Плавание',
   Yoga = 'Йога',
+  Cycling = 'Велоспорт',
+  Triathlon = 'Триатлон',
 }
 
 export const allSports = Object.values(Sport);
@@ -48,6 +50,7 @@ export const allEquipment = [
     { id: 'leg press machine', label: 'Тренажер для жима ногами' },
     { id: 'leg curl machine', label: 'Тренажер для сгибания ног' },
     { id: 'treadmill', label: 'Беговая дорожка' },
+    { id: 'stationary bike', label: 'Велотренажер' },
     { id: 'yoga mat', label: 'Коврик для йоги' },
     { id: 'kickboard', label: 'Доска для плавания' },
     { id: 'pull buoy', label: 'Колобашка для плавания' },
@@ -133,6 +136,27 @@ export const workoutDatabase: Record<Sport, SportWorkouts> = {
       },
     ],
   },
+   [Sport.Cycling]: {
+    sport: Sport.Cycling,
+    workouts: [
+      {
+        name: 'Восстановительная велотренировка',
+        description: 'Легкая поездка с низким сопротивлением и высоким каденсом.',
+        exercises: [
+          { name: 'Легкая езда', description: 'Езда в разговорном темпе (пульсовая зона 2).', technique: 'Поддерживайте высокий каденс (90-100 об/мин) с минимальным сопротивлением.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['stationary bike'] },
+        ],
+      },
+      {
+        name: 'Интервальная велотренировка',
+        description: 'Чередование периодов высокой интенсивности с периодами восстановления.',
+        exercises: [
+          { name: 'Разминка', description: '10-15 минут легкой езды.', technique: 'Начните с легкого сопротивления, постепенно увеличивая каденс.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['stationary bike'] },
+          { name: 'Интервалы', description: 'Например, 8 раз по 2 минуты высокой мощности через 2 минуты легкого восстановления.', technique: 'Во время интенсивных отрезков увеличьте сопротивление и/или каденс до усилия 8-9 из 10.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['stationary bike'] },
+          { name: 'Заминка', description: '10-15 минут легкой езды.', technique: 'Постепенно снижайте сопротивление и каденс.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['stationary bike'] },
+        ],
+      },
+    ],
+  },
   [Sport.Home]: {
     sport: Sport.Home,
     workouts: [
@@ -202,4 +226,25 @@ export const workoutDatabase: Record<Sport, SportWorkouts> = {
         },
       ],
     },
+    [Sport.Triathlon]: {
+        sport: Sport.Triathlon,
+        workouts: [
+            {
+                name: 'Брик-тренировка (Вело + Бег)',
+                description: 'Комбинированная тренировка для адаптации мышц к переходу с велосипеда на бег.',
+                exercises: [
+                    { name: 'Велосипедный сегмент', description: 'Езда на велосипеде в умеренном темпе.', technique: 'Поддерживайте ровный темп на протяжении всего велосипедного этапа, следите за каденсом.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: ['stationary bike'] },
+                    { name: 'Беговой сегмент', description: 'Бег сразу после велосипедного этапа.', technique: 'Сразу после велосипеда начните бежать. Первые минуты могут быть сложными, сосредоточьтесь на технике и расслаблении.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: [] },
+                ]
+            },
+             {
+                name: 'Тренировка в открытой воде + Бег',
+                description: 'Комбинированная тренировка для имитации условий соревнований.',
+                exercises: [
+                    { name: 'Плавание в открытой воде', description: 'Плавание на дистанцию в озере или море.', technique: 'Отрабатывайте навигацию, ориентируясь по буйкам или объектам на берегу.', muscleGroups: ['full body', 'cardio'], equipmentNeeded: [] },
+                    { name: 'Бег после плавания', description: 'Пробежка сразу после выхода из воды.', technique: 'Сделайте плавный переход из горизонтального положения в вертикальное. Начните бег в комфортном темпе.', muscleGroups: ['cardio', 'legs'], equipmentNeeded: [] },
+                ]
+            }
+        ]
+    }
 };

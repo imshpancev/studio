@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Map, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2 } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { WorkoutHistoryPage } from "@/components/workout-history-page";
 import { AnalyticsPage } from "@/components/analytics-page";
 import { auth } from "@/lib/firebase";
+import { QuickStartPage } from "@/components/quick-start-page";
 
 
 export default function Home() {
@@ -143,14 +144,14 @@ export default function Home() {
             <TabsTrigger value="my-plan" className="gap-2">
               <CalendarCheck className="h-5 w-5" /> Мой план
             </TabsTrigger>
+             <TabsTrigger value="quick-start" className="gap-2">
+              <Rocket className="h-5 w-5" /> Быстрый старт
+            </TabsTrigger>
              <TabsTrigger value="history" className="gap-2">
               <History className="h-5 w-5" /> История
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Аналитика
-            </TabsTrigger>
-            <TabsTrigger value="maps" className="gap-2">
-              <Map className="h-5 w-5" /> Карты
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> Профиль
@@ -187,6 +188,10 @@ export default function Home() {
              )}
           </TabsContent>
 
+           <TabsContent value="quick-start">
+            <QuickStartPage />
+          </TabsContent>
+
           <TabsContent value="history">
             <WorkoutHistoryPage />
           </TabsContent>
@@ -195,9 +200,6 @@ export default function Home() {
             <AnalyticsPage />
           </TabsContent>
 
-           <TabsContent value="maps">
-            <WorkoutTrackingPage />
-          </TabsContent>
           <TabsContent value="profile">
             <ProfilePage />
           </TabsContent>

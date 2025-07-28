@@ -8,7 +8,11 @@ import { LocateFixed, MapPinned, Compass } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
-export function WorkoutTrackingPage() {
+type WorkoutTrackingPageProps = {
+    isMinimal?: boolean;
+}
+
+export function WorkoutTrackingPage({ isMinimal = false }: WorkoutTrackingPageProps) {
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
@@ -16,15 +20,15 @@ export function WorkoutTrackingPage() {
     const handleGetLocation = () => {
         if (!navigator.geolocation) {
             setError('Геолокация не поддерживается вашим браузером.');
-            toast({
+            if (!isMinimal) toast({
                 variant: 'destructive',
                 title: 'Ошибка геолокации',
                 description: 'Ваш браузер не поддерживает эту функцию.',
             });
             return;
         }
-
-        toast({
+        
+        if (!isMinimal) toast({
             title: 'Запрос местоположения...',
             description: 'Пожалуйста, разрешите доступ к вашему местоположению.',
         });
@@ -36,7 +40,7 @@ export function WorkoutTrackingPage() {
                     lng: position.coords.longitude,
                 });
                 setError(null);
-                 toast({
+                 if (!isMinimal) toast({
                     title: 'Местоположение определено!',
                     description: 'Карта теперь отцентрирована по вашему местоположению.',
                 });
@@ -47,7 +51,7 @@ export function WorkoutTrackingPage() {
                     errorMessage = 'Доступ к геолокации запрещен. Пожалуйста, проверьте разрешения в настройках браузера.';
                 }
                 setError(errorMessage);
-                 toast({
+                 if (!isMinimal) toast({
                     variant: 'destructive',
                     title: 'Ошибка геолокации',
                     description: 'Не удалось получить доступ к вашему местоположению.',
@@ -73,6 +77,21 @@ export function WorkoutTrackingPage() {
         ? `https://www.openstreetmap.org/export/embed.html?bbox=${location.lng-0.01},${location.lat-0.01},${location.lng+0.01},${location.lat+0.01}&layer=mapnik&marker=${location.lat},${location.lng}`
         : `https://www.openstreetmap.org/export/embed.html?bbox=-0.1,51.5,-0.09,51.51&layer=mapnik`; // Default to London
 
+    if (isMinimal) {
+        return (
+             <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                <iframe
+                    width="100%"
+                    height="100%"
+                    scrolling="no"
+                    src={mapUrl}
+                    style={{ border: 0 }}
+                    title="Карта активности"
+                    loading="lazy"
+                ></iframe>
+            </div>
+        )
+    }
 
     return (
         <Card>

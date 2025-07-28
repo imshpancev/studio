@@ -4,18 +4,20 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2, TrendingUp, BarChart, Zap } from 'lucide-react';
+import { CheckCircle, Clock, Flame, HeartPulse, MapPin, Share2, TrendingUp, BarChart, Zap, Bike } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Sport } from '@/lib/workout-data';
 
 type WorkoutSummaryProps = {
   summary: {
     title: string;
-    type: string;
+    type: Sport;
     date: string;
     duration: string;
     calories: number;
     distance?: string;
     avgPace?: string;
+    avgSpeed?: string;
     avgHeartRate?: number;
     peakHeartRate?: number;
     volume?: string;
@@ -83,6 +85,12 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
                     <div className="rounded-lg bg-muted p-4">
                         <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><TrendingUp/>Сред. темп</dt>
                         <dd className="mt-1 text-2xl font-semibold">{summary.avgPace}</dd>
+                    </div>
+                )}
+                 {summary.avgSpeed && (
+                    <div className="rounded-lg bg-muted p-4">
+                        <dt className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-2"><Bike/>Сред. скорость</dt>
+                        <dd className="mt-1 text-2xl font-semibold">{summary.avgSpeed}</dd>
                     </div>
                 )}
                 {summary.volume && (

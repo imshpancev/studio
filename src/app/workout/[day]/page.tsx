@@ -2,17 +2,19 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square, PlayCircle } from "lucide-react";
+import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square, PlayCircle, MapPin, TrendingUp, Bike } from "lucide-react";
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from 'next/navigation';
-import type { Exercise } from "@/lib/workout-data";
+import type { Exercise, Sport } from "@/lib/workout-data";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { WorkoutSummary } from "@/components/workout-summary";
 import { useSearchParams } from 'next/navigation';
 import { showWarmupNotification } from "@/lib/notifications";
+import { WorkoutTrackingPage } from "@/components/workout-tracking-page";
+
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -21,8 +23,10 @@ export default function WorkoutPage() {
   
   const day = useMemo(() => decodeURIComponent(Array.isArray(params.day) ? params.day[0] : params.day), [params.day]);
   const exercises: Exercise[] = useMemo(() => JSON.parse(searchParams.get('exercises') || '[]'), [searchParams]);
-  const sport = useMemo(() => searchParams.get('sport') || 'Тренировка', [searchParams]);
+  const sport = useMemo(() => (searchParams.get('sport') as Sport) || 'Тренировка', [searchParams]);
   
+  const isCardio = useMemo(() => [Sport.Running, Sport.Swimming, Sport.Cycling].includes(sport), [sport]);
+
   // Overall workout state
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false); // Start paused
@@ -38,8 +42,8 @@ export default function WorkoutPage() {
   const [totalVolume, setTotalVolume] = useState(0);
   const [setsCompleted, setSetsCompleted] = useState(0);
 
-  // For running workouts
-  const [pace, setPace] = useState({ current: 360, average: 360 }); // seconds per km
+  // For running/cycling workouts
+  const [pace, setPace] = useState({ current: sport === Sport.Running ? 360 : 120, average: sport === Sport.Running ? 360 : 120 }); // sec/km for run, km/h for bike
   const [laps, setLaps] = useState<number[]>([]);
   const [distance, setDistance] = useState(0); // in meters
 
@@ -59,29 +63,45 @@ export default function WorkoutPage() {
         
         // Simulate calorie burn and heart rate changes
         const intensityFactor = isResting ? 0.5 : 1;
-        setCalories(c => c + (sport === 'Бег' ? 0.15 : 0.08) * intensityFactor);
+        let calorieRate = 0.08;
+        if (sport === Sport.Running) calorieRate = 0.15;
+        if (sport === Sport.Cycling) calorieRate = 0.12;
+
+        setCalories(c => c + calorieRate * intensityFactor);
 
         setHeartRate(hr => {
             const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
-            const baseHr = sport === 'Бег' ? 145 : 120;
+            let baseHr = 120;
+            if (sport === Sport.Running) baseHr = 145;
+            if (sport === Sport.Cycling) baseHr = 135;
+
             const targetHr = isResting ? Math.max(100, hr - 2) : baseHr + Math.sin(time / 60) * 15;
             const newHr = Math.max(60, Math.min(190, targetHr + variation)); // Keep HR in a reasonable range
             setPeakHeartRate(p_hr => Math.max(p_hr, newHr));
             return Math.round(newHr);
         });
         
-        // Simulate pace and distance changes for running
-        if (sport === 'Бег' && time > 0) {
-            const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
-            const newCurrentPace = Math.max(240, pace.current + paceVariation); // Max pace of 4:00/km for simulation
-            const metersPerSecond = 1000 / newCurrentPace;
-            
-            setDistance(d => d + metersPerSecond);
-            
-            setPace(p => {
-                const newAverage = (p.average * (time - 1) + newCurrentPace) / time;
-                return { current: Math.round(newCurrentPace), average: Math.round(newAverage) };
-            });
+        // Simulate pace and distance changes for cardio sports
+        if (isCardio && time > 0) {
+            if(sport === Sport.Running) {
+                const paceVariation = Math.floor(Math.random() * 11) - 5; // -5 to +5 seconds
+                const newCurrentPace = Math.max(240, pace.current + paceVariation); // Max pace of 4:00/km for simulation
+                const metersPerSecond = 1000 / newCurrentPace;
+                setDistance(d => d + metersPerSecond);
+                setPace(p => {
+                    const newAverage = (p.average * (time - 1) + newCurrentPace) / time;
+                    return { current: Math.round(newCurrentPace), average: Math.round(newAverage) };
+                });
+            } else if (sport === Sport.Cycling) {
+                 const speedVariation = (Math.random() * 2) - 1; // -1 to +1 km/h
+                 const newCurrentSpeed = Math.max(15, pace.current + speedVariation);
+                 const metersPerSecond = newCurrentSpeed * 1000 / 3600;
+                 setDistance(d => d + metersPerSecond);
+                 setPace(p => {
+                    const newAverage = (p.average * (time - 1) + newCurrentSpeed) / time;
+                    return { current: newCurrentSpeed, average: newAverage };
+                 })
+            }
         }
 
       }, 1000);
@@ -89,7 +109,7 @@ export default function WorkoutPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time, sport, isResting, isFinished]);
+  }, [isActive, time, sport, isResting, isFinished, isCardio, pace.current]);
 
 
   // Rest timer effect
@@ -131,6 +151,8 @@ export default function WorkoutPage() {
       const secs = `0${Math.round(seconds % 60)}`.slice(-2);
       return `${mins}'${secs}"`;
   }
+  
+  const formatSpeed = (kph: number) => `${kph.toFixed(1)} км/ч`;
 
   const handleNextExercise = () => {
       setIsResting(false);
@@ -178,15 +200,24 @@ export default function WorkoutPage() {
           type: sport,
           duration: formatTime(time),
           calories: Math.round(calories),
-          avgPace: sport === 'Бег' ? formatPace(pace.average) : undefined,
-          distance: sport === 'Бег' ? (distance / 1000).toFixed(2) + ' км' : undefined,
+          avgPace: sport === Sport.Running ? formatPace(pace.average) : undefined,
+          avgSpeed: sport === Sport.Cycling ? formatSpeed(pace.average) : undefined,
+          distance: isCardio ? (distance / 1000).toFixed(2) + ' км' : undefined,
           avgHeartRate: Math.round(time > 0 ? (heartRate / time) * time: heartRate), // simplified avg
           peakHeartRate: peakHeartRate,
-          volume: sport === 'Тренажерный зал' ? `${totalVolume} кг` : undefined,
+          volume: sport === Sport.Gym ? `${totalVolume} кг` : undefined,
       };
       return <WorkoutSummary summary={summary} />;
   }
 
+ const getIconForSport = () => {
+      switch (sport) {
+          case Sport.Running: return <MapPin className="h-8 w-8 text-primary" />;
+          case Sport.Cycling: return <Bike className="h-8 w-8 text-primary" />;
+          case Sport.Gym: return <Dumbbell className="h-8 w-8 text-primary" />;
+          default: return <Dumbbell className="h-8 w-8 text-primary" />;
+      }
+ }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -194,7 +225,7 @@ export default function WorkoutPage() {
             <Card className="max-w-2xl mx-auto shadow-2xl">
                 <CardHeader className="text-center">
                     <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-                       <Dumbbell className="h-8 w-8 text-primary" />
+                       {getIconForSport()}
                         Тренировка: {day}
                     </CardTitle>
                     <CardDescription>
@@ -216,32 +247,46 @@ export default function WorkoutPage() {
                             <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><HeartPulse /> Пульс</p>
                             <p className="text-2xl font-bold">{heartRate}</p>
                         </div>
-                        {sport === 'Бег' ? (
+                        {sport === Sport.Running && (
                             <>
                                 <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground">Текущий темп</p>
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Текущий темп</p>
                                     <p className="text-2xl font-bold">{formatPace(pace.current)}</p>
                                 </div>
                                 <div className="p-4 bg-muted rounded-lg">
-                                    <p className="text-sm text-muted-foreground">Дистанция</p>
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
                                     <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
                                 </div>
                             </>
-                        ) : (
+                        )}
+                        {sport === Sport.Cycling && (
                              <>
-                                <div className="p-4 bg-muted rounded-lg col-span-2">
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
-                                    <p className="text-xl font-bold">{heartRateZone.name}</p>
-                                    <div className="w-full mt-1">
-                                        <Progress value={heartRateZone.percentage} indicatorClassName={cn(heartRateZone.color)} />
-                                    </div>
+                                <div className="p-4 bg-muted rounded-lg">
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><TrendingUp/>Скорость</p>
+                                    <p className="text-2xl font-bold">{formatSpeed(pace.current)}</p>
+                                </div>
+                                <div className="p-4 bg-muted rounded-lg">
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MapPin/>Дистанция</p>
+                                    <p className="text-2xl font-bold">{(distance / 1000).toFixed(2)} км</p>
                                 </div>
                             </>
                         )}
+                         {!isCardio && (
+                             <div className="p-4 bg-muted rounded-lg col-span-2">
+                                <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Zap /> Пульсовая зона</p>
+                                <p className="text-xl font-bold">{heartRateZone.name}</p>
+                                <div className="w-full mt-1">
+                                    <Progress value={heartRateZone.percentage} indicatorClassName={cn(heartRateZone.color)} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                     
-                    {/* Dynamic section based on sport */}
-                    {sport !== 'Бег' && currentExercise && !isResting && (
+                    {isCardio && (
+                       <WorkoutTrackingPage isMinimal={true} />
+                    )}
+                    
+                    {!isCardio && currentExercise && !isResting && (
                          <Card className="bg-muted overflow-hidden">
                              <CardHeader className="pb-2">
                                  <CardTitle className="text-xl">{currentExerciseIndex + 1} / {exercises.length}: {currentExercise.name}</CardTitle>
@@ -286,7 +331,7 @@ export default function WorkoutPage() {
                             {isActive ? <><Pause className="mr-2"/>Пауза</> : <><Play className="mr-2"/>{time > 0 ? 'Продолжить' : 'Старт'}</>}
                         </Button>
 
-                        {sport === 'Бег' ? (
+                        {isCardio ? (
                             <Button onClick={handleAddLap} variant="outline" size="lg" disabled={!isActive}>
                                 <Flag className="mr-2 h-4 w-4" /> Круг
                             </Button>
