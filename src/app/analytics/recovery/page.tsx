@@ -4,14 +4,52 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShieldCheck, Clock, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useEffect, useState } from 'react';
+import { getUserProfile, UserProfile } from '@/services/userService';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function RecoveryPage() {
   const router = useRouter();
-  const recoveryTimeHours = 28;
-  const totalRecommendedTime = 48; // Example total
-  const recoveryProgress = (1 - (recoveryTimeHours / totalRecommendedTime)) * 100;
+  const { toast } = useToast();
+  const user = auth.currentUser;
+  
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    async function fetchData() {
+      try {
+        const userProfile = await getUserProfile(user!.uid, user!.email || '');
+        setProfile(userProfile);
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Ошибка',
+          description: 'Не удалось загрузить данные о восстановлении.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [user, toast]);
+
+  const recoveryTimeHours = profile?.recoveryTimeHours || 0;
+  const totalRecommendedTime = 48; // Example total, could be dynamic
+  const recoveryProgress = recoveryTimeHours > 0 
+      ? Math.max(0, (1 - (recoveryTimeHours / totalRecommendedTime)) * 100) 
+      : 100;
+  
+  if (isLoading) {
+      return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -27,7 +65,9 @@ export default function RecoveryPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Время восстановления</CardTitle>
-                 <CardDescription className="text-lg text-blue-500 font-bold">Осталось {recoveryTimeHours} часов</CardDescription>
+                 <CardDescription className="text-lg text-blue-500 font-bold">
+                    {recoveryTimeHours > 0 ? `Осталось ${recoveryTimeHours} часов` : 'Полностью восстановлен'}
+                 </CardDescription>
             </div>
           </div>
         </CardHeader>

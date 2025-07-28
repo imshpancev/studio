@@ -69,15 +69,14 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         fetchData();
     }, [user, toast]);
     
-    // MOCK DATA - will be replaced with real data later
-    const readinessScore = 88;
-    const trainingLoadRatio = 1.1; 
-    const stressLevel = 25; 
-    const bodyBattery = 78; 
-    
     // REAL DATA
+    const readinessScore = userProfile?.readinessScore || 0;
+    const trainingLoadRatio = userProfile?.trainingLoadRatio || 0;
+    const stressLevel = userProfile?.stressLevel || 0;
+    const bodyBattery = userProfile?.bodyBattery || 0;
     const sleepQuality = userProfile?.avgSleepDuration ? Math.round((userProfile.avgSleepDuration / 8) * 100) : 0;
     const sleepDuration = userProfile?.avgSleepDuration || 0;
+    const recoveryTime = userProfile?.recoveryTimeHours || 0;
     
     // --- CALCULATIONS ---
     const calculateTotalTime = (workouts: Workout[]) => {
@@ -386,7 +385,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">28 часов</div>
+                            <div className="text-2xl font-bold">{recoveryTime} часов</div>
                             <p className="text-xs text-muted-foreground">Рекомендуемое время до следующей тяжелой тренировки</p>
                         </CardContent>
                     </Card>
@@ -408,5 +407,3 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         </Tabs>
     );
 }
-
-    

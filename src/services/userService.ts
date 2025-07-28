@@ -33,6 +33,11 @@ export interface UserProfile {
     skeletalMuscle?: number;
     sleepData?: { date: string, duration: number, quality: number }[];
     sleepPhases?: { deep: number, light: number, rem: number };
+    readinessScore?: number;
+    trainingLoadRatio?: number;
+    stressLevel?: number;
+    bodyBattery?: number;
+    recoveryTimeHours?: number;
     
     // Gear
     runningShoes?: any[];
@@ -63,7 +68,7 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
     mainGoal: 'Поддерживать форму',
     restingHeartRate: 65,
     hrv: 40,
-    dailySteps: 5000,
+    dailySteps: 8241,
     avgSleepDuration: 7.5,
     bodyFat: 27.8,
     muscleMass: 68.4,
@@ -85,6 +90,11 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
         light: 60,
         rem: 20,
     },
+    readinessScore: 88,
+    trainingLoadRatio: 1.1,
+    stressLevel: 25,
+    bodyBattery: 78,
+    recoveryTimeHours: 28,
     runningShoes: [],
     bikes: [],
     workoutPlan: null,
@@ -106,7 +116,10 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
     const userDocSnap = await getDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-        return { uid: userId, ...userDocSnap.data() } as UserProfile;
+        const data = userDocSnap.data();
+        // Merge with defaults to ensure new fields are present
+        const mergedProfile = { ...defaultProfile, ...data, uid: userId, email: email };
+        return mergedProfile as UserProfile;
     } else {
         // Document does not exist, create a default profile
         const newProfile: UserProfile = {
@@ -140,7 +153,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
     const usersSnap = await getDocs(usersCollection);
     const users: UserProfile[] = [];
     usersSnap.forEach(doc => {
-        users.push(doc.data() as UserProfile);
+        users.push({ uid: doc.id, ...doc.data() } as UserProfile);
     });
     return users;
 }
@@ -158,14 +171,14 @@ export async function getLeaderboardData(): Promise<UserProfile[]> {
     const querySnapshot = await getDocs(q);
     const leaderboard: UserProfile[] = [];
     querySnapshot.forEach((doc) => {
-        leaderboard.push({ id: doc.id, ...doc.data() } as UserProfile);
+        leaderboard.push({ uid: doc.id, ...doc.data() } as UserProfile);
     });
     
     // Mocking some values for demonstration as they are not tracked yet
     const processedLeaderboard = leaderboard.map(user => ({
         ...user,
         totalDistance: Math.floor(Math.random() * 50),
-        totalSteps: Math.floor(Math.random() * 100000),
+        totalSteps: user.dailySteps || Math.floor(Math.random() * 100000),
         totalCalories: Math.floor(Math.random() * 4000),
     })).sort((a,b) => (b.totalDistance || 0) - (a.totalDistance || 0));
 
