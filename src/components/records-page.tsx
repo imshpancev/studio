@@ -5,42 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Clock, Flame, Zap, Bike, Waves, Map as MapIcon, Dumbbell, Footprints } from 'lucide-react';
-// import { historyItems } from '@/lib/mock-data'; // Removed mock data import
-
-// Mock records data, in a real app this would be calculated from user's workout history in Firestore
-const recordsData = {
-    general: [
-        { name: 'Самая долгая тренировка', value: '02:15:00', workoutId: 5, date: '2024-07-24', icon: <Clock /> },
-        { name: 'Больше всего калорий', value: '950 ккал', workoutId: 5, date: '2024-07-24', icon: <Flame /> },
-    ],
-    running: [
-        { name: '1 км', value: '04:55', workoutId: 4, date: '2024-07-25', icon: <Trophy /> },
-        { name: '5 км', value: '27:30', workoutId: 4, date: '2024-07-25', icon: <Trophy /> },
-        { name: '10 км', value: '58:10', workoutId: 1, date: '2024-07-28', icon: <Trophy /> },
-        { name: 'Полумарафон', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-        { name: 'Марафон', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-        { name: 'Самая длинная пробежка', value: '7.5 км', workoutId: 1, date: '2024-07-28', icon: <MapIcon /> },
-    ],
-    cycling: [
-        { name: '10 км', value: '18:30', workoutId: 5, date: '2024-07-24', icon: <Trophy /> },
-        { name: '20 км', value: '40:15', workoutId: 5, date: '2024-07-24', icon: <Trophy /> },
-        { name: '50 км', value: '01:50:45', workoutId: 5, date: '2024-07-24', icon: <Trophy /> },
-        { name: 'Самая длинная поездка', value: '60.0 км', workoutId: 5, date: '2024-07-24', icon: <MapIcon /> },
-        { name: 'Макс. мощность', value: '450 Вт', workoutId: 5, date: '2024-07-24', icon: <Zap /> },
-    ],
-    swimming: [
-        { name: '100 м', value: '01:45', workoutId: 6, date: '2024-07-23', icon: <Trophy /> },
-        { name: '400 м', value: '08:30', workoutId: 6, date: '2024-07-23', icon: <Trophy /> },
-        { name: '1500 м', value: '35:10', workoutId: 6, date: '2024-07-23', icon: <Trophy /> },
-        { name: 'Самый длинный заплыв', value: '2.5 км', workoutId: 6, date: '2024-07-23', icon: <MapIcon /> },
-    ],
-    triathlon: [
-        { name: 'Спринт', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-        { name: 'Олимпийка', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-        { name: 'Полу-Ironman (70.3)', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-        { name: 'Ironman', value: 'N/A', workoutId: null, date: '-', icon: <Trophy /> },
-    ]
-};
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import { getUserRecords, UserRecords } from '@/services/recordsService';
+import { Skeleton } from './ui/skeleton';
+import { Sport } from '@/lib/workout-data';
 
 
 const TriathlonIcon = () => (
@@ -54,48 +24,94 @@ const TriathlonIcon = () => (
 
 export function RecordsPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const user = auth.currentUser;
 
-    const handleRecordClick = (workoutId: number | null) => {
+    const [records, setRecords] = useState<UserRecords | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
+
+        async function fetchRecords() {
+            try {
+                const userRecords = await getUserRecords(user.uid);
+                setRecords(userRecords);
+            } catch (error) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Ошибка',
+                    description: 'Не удалось загрузить личные рекорды.',
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        
+        fetchRecords();
+
+    }, [user, toast]);
+
+
+    const handleRecordClick = (workoutId?: string) => {
         if (!workoutId) return;
-        // This needs to be adapted to fetch the specific workout from Firestore
-        alert(`Workout details for ID ${workoutId} would be shown here.`);
-        // const workout = historyItems.find(item => item.id === workoutId);
-        // if (workout) {
-        //     const itemQuery = encodeURIComponent(JSON.stringify(workout));
-        //     router.push(`/history/${workout.id}?data=${itemQuery}`);
-        // }
+        router.push(`/history/${workoutId}`);
     };
 
-    const renderRecordList = (records: any[]) => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {records.map(record => (
-                 <Card 
-                    key={record.name}
-                    className={record.workoutId ? "cursor-pointer hover:border-primary transition-colors" : "opacity-60"}
-                    onClick={() => handleRecordClick(record.workoutId)}
-                >
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                           {record.icon} {record.name}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{record.value}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {record.date}
-                        </p>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-    );
+    const renderRecordList = (records: any[], sport: Sport | 'general') => {
+        const sportRecords = records?.find(r => r.sport === sport)?.records || [];
+        
+        if (isLoading) {
+             return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+                </div>
+            )
+        }
+        
+        if (sportRecords.length === 0) {
+            return (
+                <div className="text-center py-12 text-muted-foreground">
+                    <p>Нет рекордов в этой категории.</p>
+                    <p>Завершите тренировку, чтобы установить свой первый рекорд!</p>
+                </div>
+            )
+        }
+        
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sportRecords.map((record: any) => (
+                     <Card 
+                        key={record.name}
+                        className={record.workoutId ? "cursor-pointer hover:border-primary transition-colors" : "opacity-60"}
+                        onClick={() => handleRecordClick(record.workoutId)}
+                    >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium flex items-center gap-2">
+                               <Trophy/> {record.name}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{record.value}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {record.date ? new Date(record.date).toLocaleDateString('ru-RU') : '-'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Trophy />Личные рекорды</CardTitle>
                 <CardDescription>
-                    Ваши лучшие достижения. Нажмите на рекорд, чтобы посмотреть детали тренировки. (Данные пока демонстрационные)
+                    Ваши лучшие достижения, рассчитанные на основе истории тренировок.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -108,19 +124,19 @@ export function RecordsPage() {
                         <TabsTrigger value="triathlon" className='gap-2'><TriathlonIcon />Триатлон</TabsTrigger>
                     </TabsList>
                     <TabsContent value="general" className="mt-4">
-                        {renderRecordList(recordsData.general)}
+                        {renderRecordList(records?.sports || [], 'general')}
                     </TabsContent>
                     <TabsContent value="running" className="mt-4">
-                        {renderRecordList(recordsData.running)}
+                        {renderRecordList(records?.sports || [], Sport.Running)}
                     </TabsContent>
                     <TabsContent value="cycling" className="mt-4">
-                         {renderRecordList(recordsData.cycling)}
+                         {renderRecordList(records?.sports || [], Sport.Cycling)}
                     </TabsContent>
                     <TabsContent value="swimming" className="mt-4">
-                         {renderRecordList(recordsData.swimming)}
+                         {renderRecordList(records?.sports || [], Sport.Swimming)}
                     </TabsContent>
                     <TabsContent value="triathlon" className="mt-4">
-                         {renderRecordList(recordsData.triathlon)}
+                         {renderRecordList(records?.sports || [], Sport.Triathlon)}
                     </TabsContent>
                 </Tabs>
             </CardContent>
