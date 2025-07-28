@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BatteryFull, Activity, ShieldCheck, HeartCrack, Smile, Moon, Calendar, Clock, Zap, Footprints, Trophy, PersonStanding, Flame, Droplets, TrendingDown, TrendingUp } from "lucide-react";
+import { BatteryFull, Activity, ShieldCheck, HeartCrack, Smile, Moon, Calendar, Clock, Zap, Footprints, Trophy, PersonStanding, Flame, Droplets, TrendingDown, TrendingUp, Loader2 } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { useRouter } from "next/navigation";
@@ -10,19 +10,15 @@ import { cn } from "@/lib/utils";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { BodyCompositionPage } from "./body-composition-page";
+import { getUserWorkouts, Workout } from "@/services/workoutService";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { getUserProfile, UserProfile } from "@/services/userService";
+import { Skeleton } from "./ui/skeleton";
 
-const weeklyActivityData = [
-  { day: 'Пн', running: 30, gym: 45, yoga: 0, cycling: 0, swimming: 0, home: 20 },
-  { day: 'Вт', running: 0, gym: 60, yoga: 0, cycling: 75, swimming: 30, home: 0 },
-  { day: 'Ср', running: 45, gym: 0, yoga: 30, cycling: 0, swimming: 0, home: 0 },
-  { day: 'Чт', running: 0, gym: 55, yoga: 0, cycling: 0, swimming: 45, home: 25 },
-  { day: 'Пт', running: 60, gym: 0, yoga: 0, cycling: 90, swimming: 0, home: 0 },
-  { day: 'Сб', running: 90, gym: 0, yoga: 60, cycling: 120, swimming: 60, home: 0 },
-  { day: 'Вс', running: 0, gym: 0, yoga: 0, cycling: 0, swimming: 0, home: 0 },
-];
 
 const barChartConfig = {
   running: { label: 'Бег', color: 'hsl(var(--chart-1))' },
@@ -31,20 +27,101 @@ const barChartConfig = {
   cycling: { label: 'Велоспорт', color: 'hsl(var(--chart-5))' },
   swimming: { label: 'Плавание', color: 'hsl(var(--chart-4))' },
   home: { label: 'Дома', color: 'hsl(var(--chart-1))' },
+  triathlon: { label: 'Триатлон', color: 'hsl(var(--chart-2))' },
 };
 
 
 export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     const router = useRouter();
+    const { toast } = useToast();
     const [timePeriod, setTimePeriod] = useState('week');
+    const [isLoading, setIsLoading] = useState(true);
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
+    const user = auth.currentUser;
+
+    useEffect(() => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
+
+        async function fetchData() {
+            setIsLoading(true);
+            try {
+                const [userWorkouts, profile] = await Promise.all([
+                    getUserWorkouts(user!.uid),
+                    getUserProfile(user!.uid, user!.email || '')
+                ]);
+                setWorkouts(userWorkouts);
+                setUserProfile(profile);
+            } catch (error) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Ошибка',
+                    description: 'Не удалось загрузить данные для аналитики.',
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, [user, toast]);
+    
+    // MOCK DATA - will be replaced with real data later
     const readinessScore = 88;
     const trainingLoadRatio = 1.1; 
     const stressLevel = 25; 
     const bodyBattery = 78; 
-    const sleepQuality = 85;
-    const sleepDuration = 7.5;
-    const totalTime = weeklyActivityData.reduce((acc, day) => acc + day.running + day.gym + day.yoga + day.cycling + day.swimming + day.home, 0);
+    
+    // REAL DATA
+    const sleepQuality = userProfile?.avgSleepDuration ? Math.round((userProfile.avgSleepDuration / 8) * 100) : 0;
+    const sleepDuration = userProfile?.avgSleepDuration || 0;
+    
+    // --- CALCULATIONS ---
+    const calculateTotalTime = (workouts: Workout[]) => {
+        return workouts.reduce((acc, workout) => {
+            const parts = workout.duration.split(':').map(Number);
+            const seconds = (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+            return acc + (seconds / 60); // time in minutes
+        }, 0);
+    };
+
+    const totalTime = calculateTotalTime(workouts);
+    const totalCaloriesBurned = workouts.reduce((acc, w) => acc + (w.calories || 0), 0);
+    const totalCaloriesConsumed = 1850; // Mocked for now
+
+     const generateWeeklyActivityData = (workouts: Workout[]) => {
+        const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        const weeklyData = days.map(day => ({
+            day, running: 0, gym: 0, yoga: 0, cycling: 0, swimming: 0, home: 0, triathlon: 0
+        }));
+
+        workouts.forEach(workout => {
+            const workoutDate = new Date(workout.date);
+            const dayOfWeek = workoutDate.getDay(); // 0 for Sunday, 1 for Monday...
+            const dayName = days[dayOfWeek];
+            
+            const durationParts = workout.duration.split(':').map(Number);
+            const durationInMinutes = durationParts[0] * 60 + durationParts[1] + durationParts[2] / 60;
+
+            const key = workout.type.toLowerCase()
+                .replace('тренажерный зал', 'gym')
+                .replace('домашние тренировки', 'home')
+            
+            if (dayName && weeklyData[dayOfWeek] && key in weeklyData[dayOfWeek]) {
+                (weeklyData[dayOfWeek] as any)[key] += durationInMinutes;
+            }
+        });
+        
+        // Reorder to start from Monday
+        const orderedData = [...weeklyData.slice(1), weeklyData[0]];
+        return orderedData;
+    };
+    
+    const weeklyActivityData = generateWeeklyActivityData(workouts);
+
 
     const getReadinessColor = (score: number) => {
         if (score > 80) return "bg-green-500";
@@ -72,6 +149,31 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
     
     const handleRecordClick = () => {
         setActiveTab('records');
+    }
+
+    if (isLoading) {
+        return (
+             <div className="space-y-8">
+                <Skeleton className="h-10 w-1/3" />
+                 <Card>
+                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pt-6">
+                         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-[250px] w-full" />
+                    </CardContent>
+                </Card>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                     {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+                </div>
+             </div>
+        )
     }
 
     return (
@@ -118,7 +220,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <CardContent>
                                 <div className="text-2xl font-bold">{(totalTime / 60).toFixed(1)} ч</div>
                                 <p className="text-xs text-muted-foreground">
-                                    <span className="text-green-500">+15%</span> по сравнению с прошлым периодом
+                                    Всего {workouts.length} тренировок
                                 </p>
                             </CardContent>
                         </Card>
@@ -140,9 +242,9 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                                 <Footprints className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">56,432</div>
+                                <div className="text-2xl font-bold">{userProfile?.dailySteps?.toLocaleString() || 0}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    Среднее: 8,061/день
+                                    Среднее за день
                                 </p>
                             </CardContent>
                         </Card>
@@ -152,7 +254,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                                 <Trophy className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">5 новых</div>
+                                <div className="text-2xl font-bold">Перейти</div>
                                 <p className="text-xs text-muted-foreground">
                                 Нажмите, чтобы посмотреть все рекорды
                                 </p>
@@ -174,15 +276,16 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <BarChart data={weeklyActivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                                 <CartesianGrid vertical={false} />
                                 <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                                <YAxis tickLine={false} axisLine={false} />
+                                <YAxis tickLine={false} axisLine={false} unit="м" />
                                 <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                                 <ChartLegend content={<ChartLegendContent />} />
                                 <Bar dataKey="running" stackId="a" fill="var(--color-running)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="swimming" stackId="a" fill="var(--color-swimming)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="home" stackId="a" fill="var(--color-home)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="gym" stackId="a" fill="var(--color-gym)" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="yoga" stackId="a" fill="var(--color-yoga)" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="cycling" stackId="a" fill="var(--color-cycling)" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="swimming" stackId="a" fill="var(--color-swimming)" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="home" stackId="a" fill="var(--color-home)" radius={[0, 0, 0, 0]} />
+                                 <Bar dataKey="triathlon" stackId="a" fill="var(--color-triathlon)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
@@ -196,8 +299,8 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <Flame className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                             <div className="text-2xl font-bold text-green-500">+ 350 ккал</div>
-                             <p className="text-xs text-muted-foreground">Потрачено: 2200, Потреблено: 1850</p>
+                             <div className="text-2xl font-bold text-green-500">{(totalCaloriesConsumed - totalCaloriesBurned).toLocaleString()} ккал</div>
+                             <p className="text-xs text-muted-foreground">Потрачено: {totalCaloriesBurned.toLocaleString()}, Потреблено: {totalCaloriesConsumed.toLocaleString()}</p>
                         </CardContent>
                     </Card>
                      <Card>
@@ -206,7 +309,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                              <TrendingDown className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                             <div className="text-2xl font-bold">1850 / 2500 ккал</div>
+                             <div className="text-2xl font-bold">{totalCaloriesConsumed.toLocaleString()} / 2500 ккал</div>
                              <p className="text-xs text-muted-foreground">Факт / План</p>
                         </CardContent>
                     </Card>
@@ -216,8 +319,8 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                             <div className="text-2xl font-bold">2200 ккал</div>
-                             <p className="text-xs text-muted-foreground">Активные: 550, В покое: 1650</p>
+                             <div className="text-2xl font-bold">{totalCaloriesBurned.toLocaleString()} ккал</div>
+                             <p className="text-xs text-muted-foreground">Активные: {totalCaloriesBurned.toLocaleString()}, В покое: 1650</p>
                         </CardContent>
                     </Card>
 
@@ -260,7 +363,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                                 <div className="h-2 w-2 rounded-full bg-green-500"></div><span>Оптимально (0.8-1.3)</span>
                                 <div className="h-2 w-2 rounded-full bg-yellow-500"></div><span>Перегрузка (1.3-1.5)</span>
-                                <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (&gt;1.5)</span>
+                                <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (>1.5)</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -305,3 +408,5 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         </Tabs>
     );
 }
+
+    
