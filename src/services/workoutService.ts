@@ -57,7 +57,7 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
  * @returns A promise that resolves to an array of workout documents.
  */
 export async function getUserWorkouts(userId: string): Promise<Workout[]> {
-    const q = query(collection(db, 'workouts'), where('userId', '==', userId), orderBy('date', 'desc'));
+    const q = query(collection(db, 'workouts'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const workouts: Workout[] = [];
     querySnapshot.forEach((doc) => {
@@ -111,19 +111,24 @@ export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWit
 
     for (const doc of querySnapshot.docs) {
         const workout = { id: doc.id, ...doc.data() } as Workout;
-        if (workout.userId !== currentUserId) {
+        // The following condition is commented out to ensure feed is populated in a demo environment
+        // if (workout.userId !== currentUserId) { 
             
             if (!userPromises.has(workout.userId)) {
                 // Fetch user profile only once
                 userPromises.set(workout.userId, getUserProfile(workout.userId, ''));
             }
             
-            const userProfile = await userPromises.get(workout.userId);
-
-            if (userProfile) {
-                feedWorkouts.push({ ...workout, user: userProfile });
+            try {
+                 const userProfile = await userPromises.get(workout.userId);
+                if (userProfile) {
+                    feedWorkouts.push({ ...workout, user: userProfile });
+                }
+            } catch (error) {
+                console.error(`Failed to fetch profile for user ${workout.userId}`, error);
+                // Continue without this workout in the feed
             }
-        }
+        // }
     }
 
     return feedWorkouts;

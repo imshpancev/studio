@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from './ui/button';
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, Heart, MessageCircle, Rss, UserPlus, Footprints, Trophy } from "lucide-react";
+import { Clock, Flame, Map, Heart, MessageCircle, Rss, UserPlus, Trophy } from "lucide-react";
 import { Badge } from './ui/badge';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { UsersPage } from './users-page';
@@ -45,8 +45,8 @@ export function FeedPage() {
     }, [currentUser]);
 
     const handleWorkoutClick = (item: any) => {
-        const itemQuery = encodeURIComponent(JSON.stringify(item));
-        router.push(`/history/${item.id}?data=${itemQuery}`);
+        // We don't need to pass the whole item in the query anymore
+        router.push(`/history/${item.id}`);
     };
 
     return (
@@ -111,7 +111,7 @@ export function FeedPage() {
                                                 <AvatarImage src={user.avatar} alt={user.name} />
                                                 <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{user.uid === currentUser?.uid ? 'Вы' : user.name}</span>
+                                            <Link href={`/users/${user.uid}`} className="font-medium hover:underline">{user.uid === currentUser?.uid ? 'Вы' : user.name}</Link>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">{user.totalDistance?.toFixed(1) || 0}</TableCell>

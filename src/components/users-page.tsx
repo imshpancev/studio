@@ -90,8 +90,8 @@ export function UsersPage() {
 
             <div className="space-y-4">
                 {filteredUsers.map(user => (
-                    <div key={user.uid} className="flex items-center gap-4">
-                         <Link href={`/users/${user.uid}`} className="flex items-center gap-4 flex-1 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div key={user.uid} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                         <Link href={`/users/${user.uid}`} className="flex items-center gap-4 flex-1">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={user.avatar} alt={user.name} />
                                 <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
@@ -99,7 +99,6 @@ export function UsersPage() {
                             <div className="flex-1">
                                 <p className="font-semibold">{user.name}</p>
                                 <p className="text-sm text-muted-foreground">{user.username}</p>
-                                <p className="text-xs text-muted-foreground mt-1 truncate">{user.bio}</p>
                             </div>
                         </Link>
                         <Button 

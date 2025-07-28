@@ -5,23 +5,16 @@
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, MessageSquare, History, Rss, Bike, Waves, Map as MapIcon, Dumbbell, Footprints } from 'lucide-react';
+import { ArrowLeft, UserPlus, MessageSquare, History, Rss, Bike, Waves, Map as MapIcon, Dumbbell, Footprints, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { WorkoutHistoryPage } from '@/components/workout-history-page';
+import WorkoutHistoryPage from "@/app/history/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { allSports } from '@/lib/workout-data';
+import { useState, useEffect } from 'react';
+import { getUserProfile, UserProfile } from '@/services/userService';
+import { useToast } from '@/hooks/use-toast';
 
-
-// Mock data for profiles - in a real app this would be fetched
-const mockUsers = {
-  '1': { id: '1', name: 'Иван Петров', handle: '@ivan_p', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', bio: 'Любитель марафонов и трейлраннинга. Ищу компанию для длительных пробежек по выходным.', isFollowing: false, followers: 125, following: 89, favoriteSports: ['Бег', 'Велоспорт'] },
-  '2': { id: '2', name: 'Елена Сидорова', handle: '@elena_fit', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', bio: 'Йога, пилатес и здоровое питание. Верю в гармонию тела и духа.', isFollowing: true, followers: 234, following: 120, favoriteSports: ['Йога'] },
-  '3': { id: '3', name: 'Алексей Смирнов', handle: '@alex_power', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', bio: 'Пауэрлифтинг и силовые тренировки. Цель: пожать 200 кг.', isFollowing: false, followers: 543, following: 50, favoriteSports: ['Тренажерный зал'] },
-  '4': { id: '4', name: 'Мария Кузнецова', handle: '@mariya_cycle', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704g', bio: 'Велоспорт и триатлон - моя страсть. Готовлюсь к полному Ironman.', isFollowing: false, followers: 876, following: 210, favoriteSports: ['Велоспорт', 'Плавание', 'Бег', 'Триатлон'] },
-};
-
-type UserKey = keyof typeof mockUsers;
 
 const getSportIcon = (sport: string) => {
     switch (sport) {
@@ -37,9 +30,47 @@ const getSportIcon = (sport: string) => {
 export default function UserProfilePage() {
     const router = useRouter();
     const params = useParams();
-    const userId = params.id as UserKey;
+    const userId = params.id as string;
+    const { toast } = useToast();
 
-    const user = mockUsers[userId];
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // In a real app, 'isFollowing' and stats would come from a service
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followers, setFollowers] = useState(Math.floor(Math.random() * 500));
+    const [following, setFollowing] = useState(Math.floor(Math.random() * 200));
+
+    useEffect(() => {
+        if (!userId) return;
+
+        async function fetchUser() {
+            try {
+                setIsLoading(true);
+                const userProfile = await getUserProfile(userId, '');
+                setUser(userProfile);
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    title: "Ошибка",
+                    description: "Не удалось загрузить профиль пользователя."
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchUser();
+    }, [userId, toast]);
+
+
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <Loader2 className="h-16 w-16 animate-spin" />
+            </div>
+        );
+    }
 
     if (!user) {
         return (
@@ -59,15 +90,15 @@ export default function UserProfilePage() {
                 <CardHeader className="text-center items-center">
                     <Avatar className="h-24 w-24 mb-4">
                         <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-3xl">{user.name}</CardTitle>
-                    <CardDescription className="text-primary">{user.handle}</CardDescription>
+                    <CardDescription className="text-primary">{user.username}</CardDescription>
                 </CardHeader>
                 <CardContent className='text-center space-y-4'>
                     <p className="pt-2 text-muted-foreground max-w-md mx-auto">{user.bio}</p>
                     <div className="flex flex-wrap justify-center gap-2">
-                        {user.favoriteSports.map(sport => (
+                        {user.favoriteSports?.map(sport => (
                             <Badge key={sport} variant="secondary" className="flex items-center gap-1">
                                 {getSportIcon(sport)}
                                 {sport}
@@ -76,19 +107,19 @@ export default function UserProfilePage() {
                     </div>
                      <div className="flex gap-6 pt-4 justify-center">
                         <div className="text-center">
-                            <p className="font-bold text-lg">{user.followers}</p>
+                            <p className="font-bold text-lg">{followers}</p>
                             <p className="text-sm text-muted-foreground">Подписчики</p>
                         </div>
                          <div className="text-center">
-                            <p className="font-bold text-lg">{user.following}</p>
+                            <p className="font-bold text-lg">{following}</p>
                             <p className="text-sm text-muted-foreground">Подписки</p>
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter className='flex justify-center gap-2 border-t pt-6'>
-                    <Button>
+                    <Button onClick={() => setIsFollowing(!isFollowing)}>
                         <UserPlus className="mr-2" />
-                        {user.isFollowing ? 'Отписаться' : 'Подписаться'}
+                        {isFollowing ? 'Отписаться' : 'Подписаться'}
                     </Button>
                      <Button variant="outline">
                         <MessageSquare className="mr-2" />
@@ -103,7 +134,11 @@ export default function UserProfilePage() {
                     <TabsTrigger value="feed" className='gap-2'><Rss />Публикации</TabsTrigger>
                 </TabsList>
                 <TabsContent value="history" className='mt-4'>
-                    {/* Re-using the component, but in a real app it would fetch this user's data */}
+                    {/* The history page now fetches data based on the logged-in user.
+                        For a public profile, this would need to be modified to accept a userId prop.
+                        For now, this will show the LOGGED IN user's history, not the viewed user's.
+                        This is a limitation to be addressed in a future step.
+                     */}
                     <WorkoutHistoryPage /> 
                 </TabsContent>
                 <TabsContent value="feed" className='mt-4'>
@@ -118,5 +153,3 @@ export default function UserProfilePage() {
         </div>
     )
 }
-
-    
