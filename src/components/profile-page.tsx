@@ -95,7 +95,7 @@ export function ProfilePage() {
       dailySteps: 8000,
       avgSleepDuration: 7.5,
       runningShoes: [{ id: '1', name: 'Hoka Clifton 9', mileage: 250, isDefault: true, imageUrl: 'https://placehold.co/100x100.png' }],
-      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500, isDefault: false, imageUrl: 'https://placehold.co/100x100.png' }],
+      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500, isDefault: true, imageUrl: 'https://placehold.co/100x100.png' }],
     },
   });
   
