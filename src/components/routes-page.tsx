@@ -2,12 +2,14 @@
 'use client';
 
 import { useState } from "react";
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Map, Pin, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Map, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { historyItems } from "@/app/history/page";
+import { getStaticMapUrl } from "@/lib/map-utils";
 
-const workoutsWithRoutes = historyItems.filter(item => item.coords);
+const workoutsWithRoutes = historyItems.filter(item => item.track && item.track.length > 0);
 
 export function RoutesPage() {
     const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState(0);
@@ -41,13 +43,7 @@ export function RoutesPage() {
         setSelectedWorkoutIndex(prev => (prev === workoutsWithRoutes.length - 1 ? 0 : prev + 1));
     };
     
-    // Constructing a simple polyline for the track
-    const trackString = selectedWorkout.track?.map(p => `${p.lng},${p.lat}`).join(';') || '';
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${selectedWorkout.bbox}&layer=mapnik`;
-    // Note: OpenStreetMap's embeddable iframe has limited support for complex features like drawing tracks directly.
-    // For a real application, a library like Leaflet or Mapbox GL JS would be used to draw the GeoJSON track on the map.
-    // This is a simplified representation. A single marker is placed as a fallback.
-    const finalMapUrl = `${mapUrl}&marker=${selectedWorkout.coords.lat},${selectedWorkout.coords.lng}`;
+    const mapUrl = getStaticMapUrl(selectedWorkout.track);
 
 
     return (
@@ -62,17 +58,15 @@ export function RoutesPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col gap-4">
-                <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                     <iframe
-                        key={selectedWorkout.id} // Re-render iframe when workout changes
-                        width="100%"
-                        height="100%"
-                        scrolling="no"
-                        src={finalMapUrl}
-                        style={{ border: 0 }}
-                        title="Карта маршрута"
-                        loading="lazy"
-                    ></iframe>
+                 <div className="aspect-video w-full rounded-lg overflow-hidden border relative bg-muted">
+                    <Image
+                        key={selectedWorkout.id}
+                        src={mapUrl}
+                        alt={`Карта маршрута для ${selectedWorkout.title}`}
+                        layout="fill"
+                        objectFit="cover"
+                        unoptimized
+                    />
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                     <Button onClick={handlePrev} variant="outline" size="icon">

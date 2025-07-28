@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BatteryFull, Activity, Flame, ShieldCheck, HeartCrack, Smile, Moon, TrendingUp } from "lucide-react";
+import { BatteryFull, Activity, ShieldCheck, HeartCrack, Smile, Moon, TrendingUp } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { useRouter } from "next/navigation";
@@ -12,9 +12,9 @@ export function AnalyticsPage() {
     const router = useRouter();
 
     const readinessScore = 88;
-    const trainingLoadRatio = 1.1; // Example: 1.1 means slightly overreaching
-    const stressLevel = 25; // Example: out of 100
-    const bodyBattery = 78; // Example: out of 100
+    const trainingLoadRatio = 1.1; 
+    const stressLevel = 25; 
+    const bodyBattery = 78; 
     const sleepQuality = 85;
     const sleepDuration = 7.5;
 
@@ -92,7 +92,7 @@ export function AnalyticsPage() {
                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                             <div className="h-2 w-2 rounded-full bg-green-500"></div><span>Оптимально (0.8-1.3)</span>
                             <div className="h-2 w-2 rounded-full bg-yellow-500"></div><span>Перегрузка (1.3-1.5)</span>
-                            <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (>1.5)</span>
+                            <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (&gt;1.5)</span>
                         </div>
                     </CardContent>
                 </Card>

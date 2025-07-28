@@ -2,10 +2,12 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Dumbbell, Flame, Map, Zap, Calendar, Share2, Trash2, HeartPulse, TrendingUp, BarChart, Mountain, Footprints, Repeat, Bike, Waves } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getStaticMapUrl } from '@/lib/map-utils';
 
 export default function HistoryDetailPage() {
     const router = useRouter();
@@ -21,7 +23,7 @@ export default function HistoryDetailPage() {
     }
     
     const item = JSON.parse(dataString);
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=-0.1,51.5,-0.09,51.51&layer=mapnik&marker=51.505,-0.095`;
+    const mapUrl = item.track ? getStaticMapUrl(item.track) : null;
 
     const getIcon = (type: string) => {
         if (type === 'Бег') return <Map className="h-8 w-8 text-primary" />;
@@ -107,44 +109,47 @@ export default function HistoryDetailPage() {
                             )}
                         </dl>
                         
-                        {(item.type === 'Бег' || item.type === 'Велоспорт') && (
+                        {mapUrl && (
                             <div className="space-y-4">
                                 <div>
                                     <h3 className="font-semibold mb-2">Карта маршрута</h3>
-                                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                                        <iframe
-                                            width="100%"
-                                            height="100%"
-                                            scrolling="no"
+                                    <div className="aspect-video w-full rounded-lg overflow-hidden border relative bg-muted">
+                                        <Image
                                             src={mapUrl}
-                                            style={{ border: 0 }}
-                                            title="Карта маршрута"
-                                        ></iframe>
+                                            alt={`Карта маршрута для ${item.title}`}
+                                            layout="fill"
+                                            objectFit="cover"
+                                            unoptimized
+                                        />
                                     </div>
-                                </div>
-                                 <div>
-                                    <h3 className="font-semibold mb-2 flex items-center gap-2"><Repeat /> Сплиты</h3>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[100px]">Км</TableHead>
-                                                <TableHead>Темп</TableHead>
-                                                <TableHead>Пульс</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {item.splits?.map((split: any, index: number) => (
-                                                 <TableRow key={index}>
-                                                    <TableCell className="font-medium">{index + 1}</TableCell>
-                                                    <TableCell>{split.pace}</TableCell>
-                                                    <TableCell>{split.heartRate}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
                                 </div>
                             </div>
                         )}
+                        
+                        {(item.type === 'Бег' || item.type === 'Велоспорт') && item.splits && item.splits.length > 0 && (
+                             <div>
+                                <h3 className="font-semibold mb-2 flex items-center gap-2"><Repeat /> Сплиты</h3>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[100px]">{item.type === 'Бег' ? 'Км' : 'Отрезок'}</TableHead>
+                                            <TableHead>{item.type === 'Бег' ? 'Темп' : 'Скорость'}</TableHead>
+                                            <TableHead>Пульс</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {item.splits?.map((split: any, index: number) => (
+                                             <TableRow key={index}>
+                                                <TableCell className="font-medium">{index + 1}</TableCell>
+                                                <TableCell>{split.pace || split.speed}</TableCell>
+                                                <TableCell>{split.heartRate}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+
 
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2 border-t pt-6">
@@ -156,5 +161,3 @@ export default function HistoryDetailPage() {
         </div>
     );
 }
-
-    

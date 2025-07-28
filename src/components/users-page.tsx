@@ -38,42 +38,37 @@ export function UsersPage() {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Поиск пользователей</CardTitle>
-                <CardDescription>Находите друзей и единомышленников, чтобы следить за их прогрессом.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input placeholder="Поиск по имени или никнейму..." className="pl-10" />
-                </div>
+        <div className="space-y-6">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Поиск по имени или никнейму..." className="pl-10" />
+            </div>
 
-                <div className="space-y-4">
-                    {users.map(user => (
-                        <div key={user.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
-                             <Link href={`/users/${user.id}`} className="flex items-center gap-4 flex-1">
-                                <Avatar className="h-12 w-12">
-                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                    <p className="font-semibold hover:underline">{user.name}</p>
-                                    <p className="text-sm text-muted-foreground">{user.handle}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">{user.bio}</p>
-                                </div>
-                            </Link>
-                            <Button 
-                                variant={user.isFollowing ? 'secondary' : 'default'}
-                                onClick={() => handleFollowToggle(user.id)}
-                            >
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                {user.isFollowing ? 'Отписаться' : 'Подписаться'}
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+            <div className="space-y-4">
+                {users.map(user => (
+                    <div key={user.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
+                         <Link href={`/users/${user.id}`} className="flex items-center gap-4 flex-1">
+                            <Avatar className="h-12 w-12">
+                                <AvatarImage src={user.avatar} alt={user.name} />
+                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <p className="font-semibold hover:underline">{user.name}</p>
+                                <p className="text-sm text-muted-foreground">{user.handle}</p>
+                                <p className="text-xs text-muted-foreground mt-1 truncate">{user.bio}</p>
+                            </div>
+                        </Link>
+                        <Button 
+                            variant={user.isFollowing ? 'secondary' : 'default'}
+                            onClick={() => handleFollowToggle(user.id)}
+                            size="sm"
+                        >
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            {user.isFollowing ? 'Отписаться' : 'Подписаться'}
+                        </Button>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

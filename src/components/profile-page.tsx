@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check } from 'lucide-react';
+import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -21,6 +21,19 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { allSports } from '@/lib/workout-data';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
+
+const runningShoeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Название обязательно."),
+  mileage: z.coerce.number().min(0).default(0),
+});
+
+const bikeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Название обязательно."),
+  mileage: z.coerce.number().min(0).default(0),
+});
 
 const profileSchema = z.object({
   // Basic Info
@@ -45,6 +58,10 @@ const profileSchema = z.object({
   
   // Goals
   mainGoal: z.string().min(1, "Цель обязательна."),
+  
+  // Gear
+  runningShoes: z.array(runningShoeSchema).optional(),
+  bikes: z.array(bikeSchema).optional(),
 });
 
 
@@ -68,12 +85,24 @@ export function ProfilePage() {
       hrv: 45,
       dailySteps: 8000,
       avgSleepDuration: 7.5,
+      runningShoes: [{ id: '1', name: 'Hoka Clifton 9', mileage: 250 }],
+      bikes: [{ id: '1', name: 'Specialized Tarmac', mileage: 1500 }],
     },
   });
+  
+  const { fields: shoes, append: appendShoe, remove: removeShoe } = useFieldArray({
+      control: form.control,
+      name: "runningShoes"
+  });
+
+  const { fields: bikes, append: appendBike, remove: removeBike } = useFieldArray({
+      control: form.control,
+      name: "bikes"
+  });
+
 
   function onSubmit(values: z.infer<typeof profileSchema>) {
     console.log(values);
-    // Here you would typically save the data to your database (e.g., Firestore)
     toast({
       title: 'Профиль обновлен!',
       description: 'Ваши данные были успешно сохранены.',
@@ -86,8 +115,6 @@ export function ProfilePage() {
       toast({
         title: 'Вы вышли из системы',
       });
-      // This will trigger the auth listener on the main page to redirect
-      // and clear local state.
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -208,7 +235,6 @@ export function ProfilePage() {
                 />
               </div>
 
-              {/* Personal Info Section */}
               <div className="space-y-4">
                  <h3 className="text-lg font-medium text-primary">Основная информация</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -246,7 +272,6 @@ export function ProfilePage() {
                  </div>
               </div>
 
-              {/* Health Metrics Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-primary">Показатели здоровья</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -277,7 +302,6 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              {/* Goals Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-primary">Цели</h3>
                  <FormField control={form.control} name="mainGoal" render={({ field }) => (
@@ -296,6 +320,66 @@ export function ProfilePage() {
                   </FormItem>
                 )} />
               </div>
+              
+                <Separator />
+
+              <div className="space-y-6">
+                <div>
+                     <h3 className="text-lg font-medium text-primary mb-4">Мой инвентарь</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {/* Running Shoes Section */}
+                        <div className="space-y-4">
+                            <h4 className="font-semibold flex items-center gap-2"><Footprints/>Кроссовки</h4>
+                            {shoes.map((shoe, index) => (
+                                <div key={shoe.id} className="flex gap-2 items-end p-2 border rounded-lg">
+                                    <FormField
+                                        control={form.control}
+                                        name={`runningShoes.${index}.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormLabel className="text-xs">Название</FormLabel>
+                                                <FormControl><Input placeholder="Напр., Hoka Clifton 9" {...field} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeShoe(index)}>
+                                        <Trash2 className="h-4 w-4 text-destructive"/>
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button type="button" variant="outline" size="sm" onClick={() => appendShoe({ id: crypto.randomUUID(), name: '', mileage: 0 })}>
+                                Добавить кроссовки
+                            </Button>
+                        </div>
+                        
+                        {/* Bikes Section */}
+                        <div className="space-y-4">
+                            <h4 className="font-semibold flex items-center gap-2"><Bike/>Велосипеды</h4>
+                             {bikes.map((bike, index) => (
+                                <div key={bike.id} className="flex gap-2 items-end p-2 border rounded-lg">
+                                    <FormField
+                                        control={form.control}
+                                        name={`bikes.${index}.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormLabel className="text-xs">Название</FormLabel>
+                                                <FormControl><Input placeholder="Напр., Specialized Tarmac" {...field} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeBike(index)}>
+                                        <Trash2 className="h-4 w-4 text-destructive"/>
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button type="button" variant="outline" size="sm" onClick={() => appendBike({ id: crypto.randomUUID(), name: '', mileage: 0 })}>
+                                Добавить велосипед
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+              </div>
+
 
               <Button type="submit">Сохранить изменения</Button>
             </form>
@@ -313,5 +397,3 @@ export function ProfilePage() {
     </div>
   );
 }
-
-    

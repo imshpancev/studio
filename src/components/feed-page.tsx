@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from './ui/button';
-import { Clock, Dumbbell, Flame, Map, Zap, Calendar, History, Heart, MessageCircle, Rss } from "lucide-react";
+import { Clock, Dumbbell, Flame, Map, Zap, Calendar, Heart, MessageCircle, Rss, UserPlus } from "lucide-react";
 import { Badge } from './ui/badge';
 import { historyItems } from '@/app/history/page';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { UsersPage } from './users-page';
 
 // Mock data for a user's feed
 const feedItems = [
@@ -41,7 +43,25 @@ export function FeedPage() {
         <div className="max-w-2xl mx-auto space-y-6">
              <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Rss />Лента активности</CardTitle>
+                   <div className="flex justify-between items-center">
+                     <CardTitle className="flex items-center gap-2"><Rss />Лента активности</CardTitle>
+                     <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline"><UserPlus/>Найти друзей</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl w-full">
+                           <DialogHeader>
+                               <DialogTitle>Поиск пользователей</DialogTitle>
+                               <DialogDescription>
+                                    Находите друзей и единомышленников, чтобы следить за их прогрессом.
+                               </DialogDescription>
+                           </DialogHeader>
+                           <div className="max-h-[70vh] overflow-y-auto pr-2">
+                             <UsersPage />
+                           </div>
+                        </DialogContent>
+                     </Dialog>
+                   </div>
                     <CardDescription>
                         Последние тренировки людей, на которых вы подписаны.
                     </CardDescription>

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Users, Map, Trophy, Rss } from "lucide-react";
+import { BarChart3, User, Rocket, LayoutDashboard, CalendarCheck, History, LogIn, UserPlus, Loader2, Map, Trophy, Rss } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,11 +19,10 @@ import { AnalyticsPage } from "@/components/analytics-page";
 import { auth } from "@/lib/firebase";
 import { QuickStartPage } from "@/components/quick-start-page";
 import { NotificationBell } from "@/components/notification-bell";
-import { UsersPage } from "@/components/users-page";
-import { RoutesPage } from "@/components/routes-page";
 import WorkoutHistoryPage from "./history/page";
 import { RecordsPage } from "@/components/records-page";
 import { FeedPage } from "@/components/feed-page";
+import { RoutesPage } from "@/components/routes-page";
 
 
 export default function Home() {
@@ -144,7 +143,7 @@ export default function Home() {
 
        {user ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-5 md:grid-cols-10 max-w-6xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 md:grid-cols-9 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-5 w-5" /> Дашборд
             </TabsTrigger>
@@ -168,9 +167,6 @@ export default function Home() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-5 w-5" /> Аналитика
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-5 w-5" /> Пользователи
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-5 w-5" /> Профиль
@@ -229,10 +225,6 @@ export default function Home() {
 
           <TabsContent value="analytics">
             <AnalyticsPage />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <UsersPage />
           </TabsContent>
 
           <TabsContent value="profile">
