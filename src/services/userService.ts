@@ -108,10 +108,11 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
 
 
 /**
- * Retrieves a user's profile from Firestore, creating it if it doesn't exist.
+ * Retrieves a user's profile from Firestore. If it doesn't exist, it returns a default shell.
+ * It's the responsibility of the calling code (like signup) to create the profile if it doesn't exist.
  * @param userId The UID of the user.
- * @param email The email of the user, used for creating a default profile.
- * @returns The user's profile data.
+ * @param email The email of the user, used for creating a default profile shell.
+ * @returns The user's profile data or a default object if not found.
  */
 export async function getUserProfile(userId: string, email: string): Promise<UserProfile> {
     const userDocRef = doc(db, 'users', userId);
@@ -119,31 +120,31 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 
     if (userDocSnap.exists()) {
         const data = userDocSnap.data();
-        // Merge with defaults to ensure new fields are present
-        const mergedProfile = { ...defaultProfile, ...data, uid: userId, email: email };
-        return mergedProfile as UserProfile;
+        // Merge with defaults to ensure new fields from the template are present for older users
+        return { ...defaultProfile, ...data, uid: userId, email: data.email || email } as UserProfile;
     } else {
-        // Document does not exist, create it with default data.
-        const newProfile: UserProfile = {
+        // If the profile doesn't exist, return a default structure.
+        // The user will be prompted to complete onboarding.
+        return {
             ...defaultProfile,
             uid: userId,
             email: email,
-            username: `@user_${userId.substring(0, 8)}`
+            username: `@user_${userId.substring(0, 8)}`,
+            name: email.split('@')[0],
         };
-        // We don't save it here, we just return the object.
-        // The save operation happens in updateUserProfile upon onboarding completion.
-        return newProfile;
     }
 }
 
 /**
  * Creates or updates a user's profile in Firestore.
- * Ensures the 'uid' field is always present in the document.
+ * The `data` object MUST contain the `uid` field.
  * @param userId The UID of the user to create/update.
- * @param data The partial profile data to update.
+ * @param data The complete profile data to set.
  */
-export async function updateUserProfile(userId: string, data: Partial<Omit<UserProfile, 'email'>>): Promise<void> {
+export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
+    // Use setDoc with merge:true to create or update.
+    // This is safer and ensures the document is created if it doesn't exist.
     await setDoc(userDocRef, data, { merge: true });
 }
 

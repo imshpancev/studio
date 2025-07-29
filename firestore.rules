@@ -3,47 +3,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Deny all reads/writes by default
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // USERS collection
-    // Users can only be created if the data contains their own UID.
-    // Users can read, update, and delete their own profile.
-    // Logged-in users can read public profiles of others.
+    // USER PROFILES
+    // Read: Any authenticated user can read public profile data.
+    // Write: Only the user themselves can create or update their own profile.
     match /users/{userId} {
-      allow create: if request.auth.uid == request.resource.data.uid;
-      allow read, update, delete: if request.auth.uid == userId;
+      allow read: if request.auth.uid != null;
+      allow write: if request.auth.uid == userId;
     }
     
-    // WORKOUTS collection
-    // Users can list their own workouts.
-    // Users can create a workout if the workout data contains their UID.
-    // Users can read, update, and delete their own workouts.
-    // Logged-in users can list all workouts (for the feed).
-    match /workouts/{workoutId} {
-        allow list: if request.auth.uid != null;
-        allow read, update, delete: if request.auth.uid == resource.data.userId;
-        allow create: if request.auth.uid == request.resource.data.userId;
-    }
-
-    // NUTRITION sub-collection
-    // Users can create, read, update, delete their own nutrition data.
+    // NUTRITION & WATER (Personal data)
+    // Only the user can read or write their own nutrition/water logs.
     match /users/{userId}/nutrition/{date} {
-      allow read, write, create, delete: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
-
-    // MEALS sub-collection
-    // Users can create, read, update, delete their own meal data.
     match /users/{userId}/meals/{mealId} {
-      allow read, write, create, delete: if request.auth.uid == userId;
+       allow read, write: if request.auth.uid == userId;
+    }
+     match /users/{userId}/water/{date} {
+      allow read, write: if request.auth.uid == userId;
     }
 
-    // WATER sub-collection
-    // Users can create, read, update, delete their own water intake data.
-    match /users/{userId}/water/{date} {
-      allow read, write, create, delete: if request.auth.uid == userId;
+    // WORKOUTS
+    // Read: Any authenticated user can read workout data (for feeds, etc.).
+    // Write: A user can only create/update/delete their own workouts.
+    match /workouts/{workoutId} {
+      allow read: if request.auth.uid != null;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
   }
 }
