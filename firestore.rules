@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -9,23 +8,34 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Allow authenticated users to read profiles, but only owners to write.
+    // Allow users to read any profile, but only write to their own.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow create: if request.auth.uid == userId && request.resource.data.userId == request.auth.uid;
+      
+      // Correct way to allow a user to create their own document.
+      // We check that the data being sent contains a userId that matches the user's auth uid.
+      allow create: if request.auth.uid == request.resource.data.userId;
+      
+      // A user can only update their own document.
       allow update, delete: if request.auth.uid == userId;
-    }
 
-    // Allow authenticated users to read workouts, but only owners to write.
+      // Rules for user subcollections
+      match /nutrition/{date} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /meals/{mealId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /water/{date} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+    
+    // Allow users to read any workout, but only write their own.
     match /workouts/{workoutId} {
-      allow read, list: if request.auth != null;
+      allow read: if request.auth != null;
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update, delete: if request.auth.uid == resource.data.userId;
-    }
-
-    // Subcollections can only be accessed by the profile owner.
-    match /users/{userId}/{collection}/{docId} {
-        allow read, list, write: if request.auth.uid == userId;
     }
   }
 }
