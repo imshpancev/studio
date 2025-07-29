@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
+import { ToasterProvider } from '@/components/toaster-provider';
 
 export const metadata: Metadata = {
   title: 'OptimumPulse',
@@ -21,7 +21,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         {children}
-        <Toaster />
+        <ToasterProvider />
       </body>
     </html>
   );
