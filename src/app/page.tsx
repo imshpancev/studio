@@ -41,36 +41,36 @@ export default function Home() {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        // Clear user-specific data on logout
+      setLoadingAuth(true); // Start loading whenever auth state changes
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
+          if (!userProfile.onboardingCompleted) {
+            router.push('/onboarding');
+            // Don't setLoadingAuth(false) here, as we are navigating away
+            return;
+          }
+          if (userProfile.workoutPlan) {
+            setWorkoutPlan(userProfile.workoutPlan);
+          }
+          if (userProfile.workoutPlanInput) {
+            setWorkoutPlanInput(userProfile.workoutPlanInput);
+          }
+        } catch (e) {
+          console.error("Failed to fetch user profile or plan", e);
+        } finally {
+          setLoadingAuth(false);
+        }
+      } else {
+        setUser(null);
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
-        setActiveTab("analytics");
+        setActiveTab("analytics"); // Reset to a default public tab if needed
         setLoadingAuth(false);
-      } else {
-         // Fetch profile and workout plan from Firestore
-        try {
-            const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
-            if (!userProfile.onboardingCompleted) {
-                router.push('/onboarding');
-                // No need to continue loading data if we are redirecting
-                return; 
-            }
-            if (userProfile.workoutPlan) {
-                setWorkoutPlan(userProfile.workoutPlan);
-            }
-             if (userProfile.workoutPlanInput) {
-                setWorkoutPlanInput(userProfile.workoutPlanInput);
-            }
-        } catch (e) {
-            console.error("Failed to fetch user profile or plan", e);
-        } finally {
-            setLoadingAuth(false);
-        }
       }
     });
-    return () => unsubscribe(); // Unsubscribe on cleanup
+    return () => unsubscribe();
   }, [router]);
 
   useEffect(() => {

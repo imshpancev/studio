@@ -54,6 +54,7 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
+            uid: user.uid,
             onboardingCompleted: true,
         });
         toast({
