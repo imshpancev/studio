@@ -66,8 +66,8 @@ export default function SignupPage() {
       const user = userCredential.user;
 
       // 2. Immediately create user profile in Firestore
+      // Pass the UID from the created user and the rest of the form values
       await updateUserProfile(user.uid, {
-          uid: user.uid,
           email: user.email || '',
           name: values.name,
           gender: values.gender,
@@ -84,9 +84,12 @@ export default function SignupPage() {
       });
       router.push('/'); // Redirect to the main page
     } catch (error: any) {
+      console.error("Signup error:", error);
       let errorMessage = 'Произошла ошибка при регистрации.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Этот email уже используется.';
+      } else if (error.code === 7 || error.code === 'permission-denied' || error.message?.includes('PERMISSION_DENIED')) {
+          errorMessage = 'Ошибка прав доступа при создании профиля. Попробуйте еще раз.'
       }
       toast({
         variant: 'destructive',

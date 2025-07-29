@@ -139,9 +139,9 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
  * Creates or updates a user's profile in Firestore.
  * It ensures the `uid` field is always present in the document data.
  * @param userId The UID of the user to create/update.
- * @param data The profile data to set.
+ * @param data The profile data to set (should not contain uid).
  */
-export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
+export async function updateUserProfile(userId: string, data: Omit<Partial<UserProfile>, 'uid'>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
     
     // Ensure the UID is part of the data being written to satisfy security rules.
