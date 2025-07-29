@@ -1,45 +1,38 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Users Collection
-    // Read: Any authenticated user can read any profile (for user profile pages, feeds, etc.)
-    // Create: A user can only create a document where the document ID matches their own UID.
-    // Update/Delete: A user can only update or delete their own profile.
+
+    // Users can read anyone's profile, but only write to their own.
+    // This allows for features like user profile pages and leaderboards.
     match /users/{userId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth.uid != null;
+      // Allow creation only if the user is creating their own document.
       allow create: if request.auth.uid == userId;
+      // Allow updates only by the user themselves.
       allow update, delete: if request.auth.uid == userId;
     }
 
-    // Workouts Collection
-    // Read: Any authenticated user can read workouts (for feeds, public history).
-    // Create: User can only create a workout for themselves.
-    // Update/Delete: User can only modify their own workouts.
+    // A user can manage their own workouts.
+    // Reading other's workouts is allowed for the social feed.
     match /workouts/{workoutId} {
-      allow read: if request.auth != null;
-      allow create: if request.resource.data.userId == request.auth.uid;
-      allow update, delete: if resource.data.userId == request.auth.uid;
+      allow read: if request.auth.uid != null;
+      allow create, update, delete: if request.resource.data.userId == request.auth.uid;
     }
-
-    // Nutrition Data (Goals)
-    // Only the user can read/write their own nutrition goal data.
+    
+    // Nutrition data is private to the user.
     match /users/{userId}/nutrition/{date} {
-        allow read, write: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
     
-    // Meals
-    // Only the user can read/write their own meal data.
+    // Meal data is private to the user.
     match /users/{userId}/meals/{mealId} {
-        allow read, write: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
     
-    // Water
-    // Only the user can read/write their own water intake data.
+     // Water data is private to the user.
     match /users/{userId}/water/{date} {
-        allow read, write: if request.auth.uid == userId;
+       allow read, write: if request.auth.uid == userId;
     }
   }
 }

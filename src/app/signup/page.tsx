@@ -17,8 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
-import { updateUserProfile } from '@/services/userService';
 import { Separator } from '@/components/ui/separator';
+import { createUserProfileAction } from '@/app/actions'; // Импортируем новый Server Action
 
 const signupSchema = z.object({
   // Auth fields
@@ -61,35 +61,32 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Create user in Firebase Auth
+      // 1. Создаем пользователя в Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // 2. Immediately create user profile in Firestore
-      // Pass the UID from the created user and the rest of the form values
-      await updateUserProfile(user.uid, {
-          email: user.email || '',
+      // 2. Вызываем Server Action для создания профиля в Firestore
+      await createUserProfileAction(user.uid, {
           name: values.name,
           gender: values.gender,
           age: values.age,
           weight: values.weight,
           height: values.height,
           mainGoal: values.mainGoal,
-          onboardingCompleted: true, // Mark onboarding as complete
       });
       
       toast({
         title: 'Аккаунт создан!',
         description: 'Добро пожаловать в OptimumPulse!',
       });
-      router.push('/'); // Redirect to the main page
+      router.push('/'); // Перенаправляем на главную страницу
     } catch (error: any) {
       console.error("Signup error:", error);
       let errorMessage = 'Произошла ошибка при регистрации.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Этот email уже используется.';
-      } else if (error.code === 7 || error.code === 'permission-denied' || error.message?.includes('PERMISSION_DENIED')) {
-          errorMessage = 'Ошибка прав доступа при создании профиля. Попробуйте еще раз.'
+      } else {
+        errorMessage = error.message || errorMessage;
       }
       toast({
         variant: 'destructive',

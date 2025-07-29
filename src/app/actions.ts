@@ -1,63 +1,32 @@
-
 'use server';
-/*
-import {
-  generateWorkoutPlan,
-  type GenerateWorkoutPlanInput,
-  type GenerateWorkoutPlanOutput,
-} from '@/ai/flows/generate-workout-plan';
-import {
-  analyzeWorkoutFeedback,
-  type AnalyzeWorkoutFeedbackInput,
-  type AnalyzeWorkoutFeedbackOutput,
-} from '@/ai/flows/analyze-workout-feedback';
-import {
-  processWorkoutSummary,
-  type ProcessWorkoutSummaryInput,
-  type ProcessWorkoutSummaryOutput,
-} from '@/ai/flows/process-workout-summary';
-import { Sport, workoutDatabase } from '@/lib/workout-data';
-import { auth } from '@/lib/firebase';
-import { updateUserProfile } from '@/services/userService';
 
-export async function generatePlanAction(
-  input: GenerateWorkoutPlanInput
-): Promise<GenerateWorkoutPlanOutput> {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error('User not authenticated');
+import { db } from '@/lib/firebase-admin'; // Используем Admin SDK на сервере
+import type { UserProfile } from '@/services/userService';
+
+/**
+ * Создает документ профиля пользователя в Firestore.
+ * Вызывается с сервера после успешной регистрации в Firebase Auth.
+ * @param userId UID нового пользователя.
+ * @param data Данные профиля из формы регистрации.
+ */
+export async function createUserProfileAction(userId: string, data: Omit<UserProfile, 'uid' | 'email' | 'onboardingCompleted'>): Promise<void> {
+  if (!userId) {
+    throw new Error('User ID is required.');
   }
   
-  try {
-    const output = await generateWorkoutPlan(input);
-    
-    // Save the generated plan to the user's profile
-    await updateUserProfile(user.uid, { workoutPlan: output, workoutPlanInput: input });
+  const userDocRef = db.collection('users').doc(userId);
 
-    return output;
+  const profileData: Partial<UserProfile> = {
+    ...data,
+    uid: userId, // Явно добавляем UID
+    onboardingCompleted: true,
+  };
+
+  try {
+    await userDocRef.set(profileData, { merge: true });
   } catch (error) {
-    console.error('Error generating workout plan in action:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to generate workout plan: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while generating the workout plan.');
+    console.error('Error creating user profile in Server Action:', error);
+    // Выбрасываем ошибку, чтобы клиент мог ее обработать
+    throw new Error('Failed to create user profile in database.');
   }
 }
-
-export async function processWorkoutSummaryAction(
-  input: ProcessWorkoutSummaryInput
-): Promise<ProcessWorkoutSummaryOutput> {
-  try {
-    const output = await processWorkoutSummary(input);
-    // The flow now handles saving the workout and analyzing feedback.
-    // We can potentially do more here, like updating the user's profile with the new plan.
-    return output;
-  } catch (error) {
-    console.error('Error processing workout summary:', error);
-    if (error instanceof Error) {
-        throw new Error(`Failed to process workout summary: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while processing the workout summary.');
-  }
-}
-*/

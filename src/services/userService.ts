@@ -1,8 +1,10 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { db as adminDb } from '@/lib/firebase-admin'; // Используем Admin SDK на сервере
+import { db } from '@/lib/firebase'; // Клиентский SDK для клиентских операций
 import { doc, setDoc, getDoc, getDocs, collection, query, limit } from 'firebase/firestore';
+
 
 // Define the user profile type, mirroring the Zod schema in profile-page.tsx
 export interface UserProfile {
@@ -108,8 +110,7 @@ const defaultProfile: Omit<UserProfile, 'uid' | 'email'> = {
 
 
 /**
- * Retrieves a user's profile from Firestore. If it doesn't exist, it returns a default shell.
- * It's the responsibility of the calling code (like signup) to create the profile if it doesn't exist.
+ * Retrieves a user's profile from Firestore. (Клиентская функция)
  * @param userId The UID of the user.
  * @param email The email of the user, used for creating a default profile shell.
  * @returns The user's profile data or a default object if not found.
@@ -124,7 +125,6 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
         return { ...defaultProfile, ...data, uid: userId, email: data.email || email } as UserProfile;
     } else {
         // If the profile doesn't exist, return a default structure.
-        // The user will be prompted to complete onboarding.
         return {
             ...defaultProfile,
             uid: userId,
@@ -136,20 +136,19 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 }
 
 /**
- * Creates or updates a user's profile in Firestore.
+ * Creates or updates a user's profile in Firestore. (Клиентская функция)
  * @param userId The UID of the user to create/update.
  * @param data The profile data to set.
  */
 export async function updateUserProfile(userId: string, data: Omit<Partial<UserProfile>, 'uid'>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
     // Use setDoc with merge:true to create or update.
-    // This is safer and ensures the document is created if it doesn't exist.
     await setDoc(userDocRef, data, { merge: true });
 }
 
 
 /**
- * Fetches all users from the database.
+ * Fetches all users from the database. (Клиентская функция)
  * @returns An array of user profiles.
  */
 export async function getAllUsers(): Promise<UserProfile[]> {
