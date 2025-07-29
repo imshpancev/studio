@@ -46,9 +46,12 @@ export default function Home() {
         setUser(currentUser);
         try {
           const userProfile = await getUserProfile(currentUser.uid);
-          // NEW: Check if onboarding is complete. If not, redirect.
-          if (!userProfile?.onboardingCompleted) {
-            router.push('/onboarding');
+          
+          // If for some reason profile doesn't exist, log it.
+          // This can happen in dev if Firestore is cleared.
+          if (!userProfile) {
+            console.warn(`No profile found for user ${currentUser.uid}, logging them out.`);
+            auth.signOut();
             return;
           }
 
