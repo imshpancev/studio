@@ -25,7 +25,7 @@ export async function createUserProfileAction(userId: string, data: Omit<UserPro
 
   try {
     // Используем `set` для создания нового документа
-    await userDocRef.set(profileData);
+    await userDocRef.set(profileData, { merge: true });
   } catch (error) {
     console.error('Error creating user profile in Server Action:', error);
     // Выбрасываем ошибку, чтобы клиент мог ее обработать
