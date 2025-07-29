@@ -2,8 +2,6 @@
  * @fileoverview A Genkit flow for handling user registration.
  * This flow creates a user in Firebase Auth and then creates their profile in Firestore.
  */
-'use server';
-
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getAuth } from 'firebase-admin/auth';
@@ -38,7 +36,7 @@ export const RegisterUserOutputSchema = z.object({
 export type RegisterUserOutput = z.infer<typeof RegisterUserOutputSchema>;
 
 
-export const registerUser = ai.defineFlow(
+export const registerUserFlow = ai.defineFlow(
   {
     name: 'registerUserFlow',
     inputSchema: RegisterUserInputSchema,

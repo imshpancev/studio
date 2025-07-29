@@ -74,6 +74,8 @@ export default function SignupPage() {
        // Check for specific backend errors, e.g., from Firebase Admin SDK
       if (error.message.includes('auth/email-already-exists')) {
         errorMessage = 'Этот email уже используется.';
+      } else if (error.message.includes('auth/email-already-in-use')) {
+        errorMessage = 'Этот email уже используется.';
       } else {
         errorMessage = error.message || errorMessage;
       }
@@ -184,3 +186,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

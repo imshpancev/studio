@@ -3,7 +3,7 @@
 
 import { generateWorkoutPlan as generateWorkoutPlanFlow, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkoutSummaryInput, type ProcessWorkoutSummaryOutput } from "@/ai/flows/process-workout-summary";
-import { registerUser as registerUserFlow, type RegisterUserInput, type RegisterUserOutput } from "@/ai/flows/register-user";
+import { registerUserFlow, type RegisterUserInput, type RegisterUserOutput } from "@/ai/flows/register-user";
 
 
 /**
@@ -54,3 +54,4 @@ export async function processWorkoutSummaryAction(input: ProcessWorkoutSummaryIn
     throw new Error('Failed to process workout summary.');
   }
 }
+
