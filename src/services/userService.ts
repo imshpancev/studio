@@ -142,10 +142,13 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
  */
 export async function updateUserProfile(userId: string, data: Omit<Partial<UserProfile>, 'uid'>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
-    
+    const dataToSave = {
+        ...data,
+        uid: userId, // Ensure UID is always present in the document data
+    };
     // Use setDoc with merge:true to create or update.
     // This is safer and ensures the document is created if it doesn't exist.
-    await setDoc(userDocRef, data, { merge: true });
+    await setDoc(userDocRef, dataToSave, { merge: true });
 }
 
 
