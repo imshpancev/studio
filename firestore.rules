@@ -1,35 +1,36 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // USER PROFILES
-    // Read: Any authenticated user can read public profile data.
-    // Write: Only the user themselves can create or update their own profile.
+    
+    // Users Collection
+    // - Anyone can create their own user profile document.
+    // - Only the owner can update or delete their own profile.
+    // - Any authenticated user can read other user profiles (for public profile pages).
     match /users/{userId} {
       allow read: if request.auth.uid != null;
-      allow write: if request.auth.uid == userId;
+      allow create: if request.resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth.uid == userId;
+
+      // Subcollections for user-specific, private data
+      match /nutrition/{date} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /meals/{mealId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+       match /water/{date} {
+        allow read, write: if request.auth.uid == userId;
+      }
     }
     
-    // NUTRITION & WATER (Personal data)
-    // Only the user can read or write their own nutrition/water logs.
-    match /users/{userId}/nutrition/{date} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    match /users/{userId}/meals/{mealId} {
-       allow read, write: if request.auth.uid == userId;
-    }
-     match /users/{userId}/water/{date} {
-      allow read, write: if request.auth.uid == userId;
-    }
-
-    // WORKOUTS
-    // Read: Any authenticated user can read workout data (for feeds, etc.).
-    // Write: A user can only create/update/delete their own workouts.
+    // Workouts Collection
+    // - Users can only create workouts for themselves.
+    // - Users can only read, update, or delete their own workouts.
     match /workouts/{workoutId} {
-      allow read: if request.auth.uid != null;
+      allow read, update, delete: if request.auth.uid == resource.data.userId;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth.uid == resource.data.userId;
     }
   }
 }

@@ -137,15 +137,22 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 
 /**
  * Creates or updates a user's profile in Firestore.
- * The `data` object MUST contain the `uid` field.
+ * It ensures the `uid` field is always present in the document data.
  * @param userId The UID of the user to create/update.
- * @param data The complete profile data to set.
+ * @param data The profile data to set.
  */
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
+    
+    // Ensure the UID is part of the data being written to satisfy security rules.
+    const dataToSave = {
+        ...data,
+        uid: userId, 
+    };
+
     // Use setDoc with merge:true to create or update.
     // This is safer and ensures the document is created if it doesn't exist.
-    await setDoc(userDocRef, data, { merge: true });
+    await setDoc(userDocRef, dataToSave, { merge: true });
 }
 
 
