@@ -11,7 +11,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import {
   analyzeWorkoutFeedback,
   type AnalyzeWorkoutFeedbackInput,
@@ -19,7 +19,7 @@ import {
 } from './analyze-workout-feedback';
 import { addWorkout } from '@/services/workoutService';
 import { auth } from '@/lib/firebase';
-import { getUserProfile } from '@/services/userService';
+// import { getUserProfile } from '@/services/userService';
 
 // This schema must be defined here because it's used in this flow's outputSchema,
 // and it cannot be imported from 'analyze-workout-feedback.ts' because that file
@@ -91,7 +91,7 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     });
 
     // 2. Fetch user profile and current plan for context
-    const userProfile = await getUserProfile(user.uid, user.email || '');
+    // const userProfile = await getUserProfile(user.uid, user.email || '');
 
     // 3. Prepare input for feedback analysis
     const analysisInput: AnalyzeWorkoutFeedbackInput = {
@@ -100,7 +100,8 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       workoutFeedback: feedback.notes || 'No feedback provided.',
       // In a real app, you might pass sensor data URI here
       // wearableSensorData: ...
-      workoutPlan: JSON.stringify(userProfile.workoutPlan || {}),
+      // workoutPlan: JSON.stringify(userProfile.workoutPlan || {}),
+      workoutPlan: '{}', // Temporarily providing an empty plan
     };
 
     // 4. Analyze the feedback
