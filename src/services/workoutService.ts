@@ -36,9 +36,12 @@ export interface WorkoutWithUser extends Workout {
 
 /**
  * Adds a new workout document to the 'workouts' collection in Firestore.
- * @param workoutData The workout data to save.
+ * @param workoutData The workout data to save. The 'userId' field MUST be present.
  */
 export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>): Promise<string> {
+    if (!workoutData.userId) {
+        throw new Error("User ID is required to add a workout.");
+    }
     try {
         const dataToSave = {
             ...workoutData,
@@ -113,25 +116,22 @@ export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWit
     for (const doc of querySnapshot.docs) {
         const workout = { id: doc.id, ...doc.data() } as Workout;
         
-        // The following condition is commented out to ensure feed is populated in a demo environment
-        // if (workout.userId !== currentUserId) { 
         if (workout.userId === currentUserId) continue;
 
-            if (!userPromises.has(workout.userId)) {
-                // Fetch user profile only once
-                userPromises.set(workout.userId, getUserProfile(workout.userId, ''));
+        if (!userPromises.has(workout.userId)) {
+            // Fetch user profile only once
+            userPromises.set(workout.userId, getUserProfile(workout.userId, ''));
+        }
+        
+        try {
+             const userProfile = await userPromises.get(workout.userId);
+            if (userProfile) {
+                feedWorkouts.push({ ...workout, user: userProfile });
             }
-            
-            try {
-                 const userProfile = await userPromises.get(workout.userId);
-                if (userProfile) {
-                    feedWorkouts.push({ ...workout, user: userProfile });
-                }
-            } catch (error) {
-                console.error(`Failed to fetch profile for user ${workout.userId}`, error);
-                // Continue without this workout in the feed
-            }
-        // }
+        } catch (error) {
+            console.error(`Failed to fetch profile for user ${workout.userId}`, error);
+            // Continue without this workout in the feed
+        }
     }
 
     return feedWorkouts;
