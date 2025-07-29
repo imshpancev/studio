@@ -41,14 +41,16 @@ export default function Home() {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoadingAuth(true); // Start loading whenever auth state changes
+      setLoadingAuth(true);
       if (currentUser) {
         setUser(currentUser);
         try {
           const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
           if (!userProfile.onboardingCompleted) {
-            router.push('/onboarding');
-            // Don't setLoadingAuth(false) here, as we are navigating away
+             // This logic is now simplified as onboarding is part of signup.
+             // We can keep a check here as a fallback or for older users.
+             // For new users, they will land here with onboardingCompleted: true.
+            router.push('/signup'); // Redirect to signup if somehow onboarding is not complete.
             return;
           }
           if (userProfile.workoutPlan) {
@@ -66,7 +68,7 @@ export default function Home() {
         setUser(null);
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
-        setActiveTab("analytics"); // Reset to a default public tab if needed
+        setActiveTab("analytics"); 
         setLoadingAuth(false);
       }
     });
@@ -86,9 +88,8 @@ export default function Home() {
   const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
     setWorkoutPlanInput(input);
-    setIsEditingPlan(false); // Exit editing mode
+    setIsEditingPlan(false); 
     if (plan && input) {
-      // The plan is already saved in Firestore via the action, so we just switch tabs.
       setActiveTab("my-plan");
     }
   };
