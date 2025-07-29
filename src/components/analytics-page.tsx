@@ -362,7 +362,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                                 <div className="h-2 w-2 rounded-full bg-green-500"></div><span>Оптимально (0.8-1.3)</span>
                                 <div className="h-2 w-2 rounded-full bg-yellow-500"></div><span>Перегрузка (1.3-1.5)</span>
-                                <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (>1.5)</span>
+                                <div className="h-2 w-2 rounded-full bg-red-500"></div><span>Риск травмы (&gt;1.5)</span>
                             </div>
                         </CardContent>
                     </Card>
