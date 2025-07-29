@@ -45,12 +45,13 @@ export default function Home() {
       if (currentUser) {
         setUser(currentUser);
         try {
-          const userProfile = await getUserProfile(currentUser.uid, currentUser.email || '');
-          // This logic is simplified. A new user will always have onboardingCompleted: true.
-          if (!userProfile.onboardingCompleted) {
-            router.push('/signup'); // Fallback for any inconsistent state
+          const userProfile = await getUserProfile(currentUser.uid);
+          // NEW: Check if onboarding is complete. If not, redirect.
+          if (!userProfile?.onboardingCompleted) {
+            router.push('/onboarding');
             return;
           }
+
           if (userProfile.workoutPlan) {
             setWorkoutPlan(userProfile.workoutPlan);
           }

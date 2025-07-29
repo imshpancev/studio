@@ -12,12 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { useState, useEffect } from 'react';
-import { updateUserProfile } from '@/services/userService';
+import { updateUserProfile, getUserProfile } from '@/services/userService';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from './ui/skeleton';
 
 const onboardingSchema = z.object({
-  uid: z.string(), // CRITICAL FIX: Ensure UID is part of the schema
-  name: z.string().min(1, 'Имя обязательно.'),
   gender: z.enum(['male', 'female', 'other'], { required_error: 'Пожалуйста, выберите пол.' }),
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
   weight: z.coerce.number().min(1, 'Вес обязателен.'),
@@ -30,13 +29,12 @@ export function OnboardingForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const user = auth.currentUser;
 
   const form = useForm<z.infer<typeof onboardingSchema>>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-        uid: user?.uid || '',
-        name: '',
         gender: undefined,
         age: 18,
         weight: 70,
@@ -47,9 +45,19 @@ export function OnboardingForm() {
   
   useEffect(() => {
     if (user) {
-        form.setValue('uid', user.uid);
+        setIsLoading(false);
+    } else {
+        // If no user, wait for auth state to change or redirect
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            if (!user) {
+                router.push('/login');
+            } else {
+                 setIsLoading(false);
+            }
+        });
+        return () => unsubscribe();
     }
-  }, [user, form]);
+  }, [user, router]);
   
   async function onSubmit(values: z.infer<typeof onboardingSchema>) {
     if (!user) {
@@ -61,7 +69,6 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            uid: user.uid, // Explicitly ensure UID is in the object being saved
             onboardingCompleted: true,
         });
         toast({
@@ -80,19 +87,26 @@ export function OnboardingForm() {
         setIsSaving(false);
     }
   }
+  
+  if (isLoading) {
+      return (
+          <div className='space-y-6'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+             <Skeleton className="h-10 w-full" />
+             <Skeleton className="h-10 w-full" />
+          </div>
+      )
+  }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Полное имя</FormLabel>
-              <FormControl><Input placeholder="Сергей Рахманинов" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               <FormField control={form.control} name="gender" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Пол</FormLabel>

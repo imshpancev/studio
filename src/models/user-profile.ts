@@ -7,7 +7,8 @@
 export interface UserProfile {
     uid: string;
     email: string;
-    onboardingCompleted?: boolean;
+    onboardingCompleted: boolean;
+    createdAt: any;
     name?: string;
     username?: string;
     bio?: string;

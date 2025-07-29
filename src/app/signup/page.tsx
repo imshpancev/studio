@@ -14,25 +14,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
-// The Server Action is no longer needed here. The profile is created by a Firebase Function.
+import { createInitialUserProfile } from '@/services/userService';
 
 const signupSchema = z.object({
-  // Auth fields
   email: z.string().email('Неверный формат email.'),
   password: z.string().min(6, 'Пароль должен содержать не менее 6 символов.'),
   confirmPassword: z.string(),
-  
-  // Profile fields
   name: z.string().min(1, 'Имя обязательно.'),
-  gender: z.enum(['male', 'female', 'other'], { required_error: 'Пожалуйста, выберите пол.' }),
-  age: z.coerce.number().min(1, 'Возраст обязателен.'),
-  weight: z.coerce.number().min(1, 'Вес обязателен.'),
-  height: z.coerce.number().min(1, 'Рост обязателен.'),
-  mainGoal: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
     message: "Пароли не совпадают",
     path: ["confirmPassword"],
@@ -50,11 +41,6 @@ export default function SignupPage() {
       password: '',
       confirmPassword: '',
       name: '',
-      gender: undefined,
-      age: 18,
-      weight: 70,
-      height: 175,
-      mainGoal: 'Поддерживать форму',
     },
   });
 
@@ -70,16 +56,16 @@ export default function SignupPage() {
         displayName: values.name,
       });
 
-      // 3. The `onUserCreate` Firebase Function will automatically create the Firestore profile.
-      // We don't need to call a server action anymore. We just need to wait for the function to trigger.
+      // 3. Create the initial, minimal profile in Firestore with onboardingCompleted: false
+      await createInitialUserProfile(user.uid, values.email, values.name);
 
       toast({
         title: 'Аккаунт создан!',
-        description: 'Добро пожаловать в OptimumPulse! Ваш профиль создается...',
+        description: 'Теперь давайте заполним ваш профиль.',
       });
       
-      // Redirect to the main page. The main page logic will handle fetching the newly created profile.
-      router.push('/');
+      // 4. Redirect to the onboarding page to collect the rest of the data.
+      router.push('/onboarding');
 
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -110,16 +96,24 @@ export default function SignupPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               
-              <div className="space-y-2">
-                <h3 className="font-medium">Данные для входа</h3>
+              <div className="space-y-4">
+                <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Полное имя</FormLabel>
+                    <FormControl><Input placeholder="Сергей Рахманинов" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                )} />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="email" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                  )} />
                   <FormField control={form.control} name="password" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Пароль</FormLabel>
@@ -135,74 +129,6 @@ export default function SignupPage() {
                       </FormItem>
                   )} />
                 </div>
-              </div>
-              
-              <Separator />
-
-              <div className="space-y-2">
-                 <h3 className="font-medium">Информация о профиле</h3>
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Полное имя</FormLabel>
-                      <FormControl><Input placeholder="Сергей Рахманинов" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <FormField control={form.control} name="gender" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Пол</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Пол" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="male">Мужской</SelectItem>
-                              <SelectItem value="female">Женский</SelectItem>
-                              <SelectItem value="other">Другой</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="age" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Возраст</FormLabel>
-                          <FormControl><Input type="number" placeholder="30" {...field} /></FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="weight" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Вес (кг)</FormLabel>
-                          <FormControl><Input type="number" placeholder="80" {...field} /></FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="height" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Рост (см)</FormLabel>
-                          <FormControl><Input type="number" placeholder="180" {...field} /></FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )} />
-                   </div>
-
-                    <FormField control={form.control} name="mainGoal" render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Ваша основная фитнес-цель?</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl><SelectTrigger><SelectValue placeholder="Выберите вашу основную цель" /></SelectTrigger></FormControl>
-                              <SelectContent>
-                              <SelectItem value="Похудеть">Похудеть</SelectItem>
-                              <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
-                              <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
-                              <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
-                              <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
-                              </SelectContent>
-                          </Select>
-                           <FormMessage />
-                      </FormItem>
-                    )} />
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
