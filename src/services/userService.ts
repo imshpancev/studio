@@ -142,10 +142,10 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
  */
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
-    // Ensure the userId is always part of the document data for rule validation
+    // Ensure the uid is always part of the document data for rule validation
     const dataToSave = {
         ...data,
-        userId: userId,
+        uid: userId,
     };
     await setDoc(userDocRef, dataToSave, { merge: true });
 }

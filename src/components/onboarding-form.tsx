@@ -54,7 +54,6 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            userId: user.uid, // CRITICAL FIX: Add the userId to the document data
             onboardingCompleted: true,
         });
         toast({
