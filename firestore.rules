@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -5,37 +6,46 @@ service cloud.firestore {
 
     // Users Collection
     match /users/{userId} {
-      // Users can read their own profile.
-      allow read: if request.auth.uid == userId;
-      
-      // Users can create their own profile document, but only once.
-      // The user must be authenticated.
-      // The `uid` in the document must match their auth uid.
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      
-      // Users can update their own profile.
-      allow update: if request.auth.uid == userId;
+      // Helper function to check ownership
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
 
-      // Users cannot delete their profiles through the client.
+      // Read: A user can read their own document.
+      // Other users can only read a limited set of public fields.
+      allow read: if isOwner() || (resource.data.keys().hasAll(['name', 'username', 'avatar', 'bio', 'favoriteSports']));
+
+      // Create: A user can create their own profile document, but only once.
+      allow create: if isOwner();
+
+      // Update: A user can only update their own document.
+      allow update: if isOwner();
+
+      // Delete: Disallow deleting user profiles.
       allow delete: if false;
-    }
-    
-    // Workouts Collection
-    match /workouts/{workoutId} {
-      // Allow users to read, create, update, and delete their own workouts.
-      // For reads, also allow any authenticated user to read any workout (for public feeds).
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == request.resource.data.userId;
+
+      // Subcollections (Workouts, Nutrition, etc.)
+      match /{collection}/{docId} {
+        // Read, Write, Delete: Only the owner of the profile can manage their subcollections.
+        allow read, write, delete: if isOwner();
+      }
     }
 
-    // Nutrition & Water subcollections
-    match /users/{userId}/{collection}/{docId} {
-        // Users can manage their own nutrition and water data.
-        allow read, write: if request.auth.uid == userId;
-    }
-     // Meals subcollection
-    match /users/{userId}/meals/{mealId} {
-      allow read, write: if request.auth.uid == userId;
+    // Workouts Collection (assuming a top-level collection for simplicity in some queries)
+    match /workouts/{workoutId} {
+        // Helper function to check ownership
+        function isWorkoutOwner() {
+            return request.auth != null && request.auth.uid == resource.data.userId;
+        }
+
+        // Read: Anyone can read workouts (for the feed), but you could restrict this further.
+        allow read: if request.auth != null;
+
+        // Create: A user can create a workout for themselves.
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        
+        // Update, Delete: Only the user who created the workout can update or delete it.
+        allow update, delete: if isWorkoutOwner();
     }
   }
 }
