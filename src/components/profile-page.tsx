@@ -46,7 +46,7 @@ const bikeSchema = z.object({
 
 const profileSchema = z.object({
   // This field is crucial for security rules
-  uid: z.string(),
+  uid: z.string().min(1, 'UID is required.'),
 
   // Basic Info
   name: z.string().min(1, 'Имя обязательно.'),

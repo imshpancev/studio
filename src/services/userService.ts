@@ -144,12 +144,7 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
  */
 export async function updateUserProfile(userId: string, data: Partial<Omit<UserProfile, 'email'>>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
-    // Ensure the UID is always part of the document data, as required by security rules.
-    const dataToSave = {
-        ...data,
-        uid: userId,
-    };
-    await setDoc(userDocRef, dataToSave, { merge: true });
+    await setDoc(userDocRef, data, { merge: true });
 }
 
 

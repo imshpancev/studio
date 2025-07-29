@@ -16,6 +16,7 @@ import { updateUserProfile } from '@/services/userService';
 import { Loader2 } from 'lucide-react';
 
 const onboardingSchema = z.object({
+  uid: z.string(), // CRITICAL FIX: Ensure UID is part of the schema
   name: z.string().min(1, 'Имя обязательно.'),
   gender: z.enum(['male', 'female', 'other'], { required_error: 'Пожалуйста, выберите пол.' }),
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
@@ -34,6 +35,7 @@ export function OnboardingForm() {
   const form = useForm<z.infer<typeof onboardingSchema>>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
+        uid: user?.uid || '',
         name: '',
         gender: undefined,
         age: 18,
@@ -42,6 +44,12 @@ export function OnboardingForm() {
         mainGoal: 'Поддерживать форму',
     },
   });
+  
+  useEffect(() => {
+    if (user) {
+        form.setValue('uid', user.uid);
+    }
+  }, [user, form]);
   
   async function onSubmit(values: z.infer<typeof onboardingSchema>) {
     if (!user) {
@@ -53,7 +61,7 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            uid: user.uid, // Explicitly include uid to ensure it's in the object being saved
+            uid: user.uid, // Explicitly ensure UID is in the object being saved
             onboardingCompleted: true,
         });
         toast({
@@ -139,7 +147,7 @@ export function OnboardingForm() {
               </FormItem>
             )} />
 
-        <Button type="submit" disabled={isSaving} className="w-full">
+        <Button type="submit" disabled={isSaving || !user} className="w-full">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Завершить и начать
         </Button>
