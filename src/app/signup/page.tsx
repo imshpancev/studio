@@ -85,6 +85,8 @@ export default function SignupPage() {
       let errorMessage = 'Произошла ошибка при регистрации.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Этот email уже используется.';
+      } else if (error.message.includes('Failed to create user profile')) {
+        errorMessage = 'Не удалось сохранить данные профиля. Пожалуйста, попробуйте войти.';
       } else {
         errorMessage = error.message || errorMessage;
       }

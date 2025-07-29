@@ -20,13 +20,12 @@ export async function createUserProfileAction(userId: string, data: Omit<UserPro
   // Мы создаем полный профиль здесь, на сервере
   const profileData: Partial<UserProfile> = {
     ...data,
-    uid: userId, // Явно добавляем UID
-    onboardingCompleted: true,
+    onboardingCompleted: true, // Завершаем онбординг
   };
 
   try {
     // Используем `set` для создания нового документа
-    await userDocRef.set(profileData, { merge: true });
+    await userDocRef.set(profileData);
   } catch (error) {
     console.error('Error creating user profile in Server Action:', error);
     // Выбрасываем ошибку, чтобы клиент мог ее обработать
