@@ -1,8 +1,7 @@
-
 // THIS FILE IS FOR CLIENT-SIDE FIREBASE SDK
 // DO NOT USE IN SERVER-SIDE CODE (e.g. Server Actions, Genkit flows)
 
-import { initializeApp, getApp, getApps } from "firebase/app";
+import { initializeApp, getApp, getApps, deleteApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -13,10 +12,17 @@ const firebaseConfig = {
   apiKey: "AIzaSyB1N-yohIDmxxFwqUJX4QT-F3qo40UAFB0",
   authDomain: "optimumpulse.firebaseapp.com",
   messagingSenderId: "257655082700",
+  databaseURL: "https://optimumpulse.firebaseio.com",
 };
 
 // Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 

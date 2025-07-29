@@ -143,7 +143,8 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 export async function updateUserProfile(userId: string, data: Omit<Partial<UserProfile>, 'uid'>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
     // Use setDoc with merge:true to create or update.
-    await setDoc(userDocRef, data, { merge: true });
+    const dataToSave = { ...data, uid: userId };
+    await setDoc(userDocRef, dataToSave, { merge: true });
 }
 
 

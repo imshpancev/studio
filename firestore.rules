@@ -1,38 +1,18 @@
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // Users can read anyone's profile, but only write to their own.
-    // This allows for features like user profile pages and leaderboards.
-    match /users/{userId} {
-      allow read: if request.auth.uid != null;
-      // Allow creation only if the user is creating their own document.
-      allow create: if request.auth.uid == userId;
-      // Allow updates only by the user themselves.
-      allow update, delete: if request.auth.uid == userId;
-    }
-
-    // A user can manage their own workouts.
-    // Reading other's workouts is allowed for the social feed.
-    match /workouts/{workoutId} {
-      allow read: if request.auth.uid != null;
-      allow create, update, delete: if request.resource.data.userId == request.auth.uid;
-    }
-    
-    // Nutrition data is private to the user.
-    match /users/{userId}/nutrition/{date} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    // Meal data is private to the user.
-    match /users/{userId}/meals/{mealId} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-     // Water data is private to the user.
-    match /users/{userId}/water/{date} {
-       allow read, write: if request.auth.uid == userId;
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        // Only the authenticated user can read or write their own profile
+        "allow read, write": "if request.auth.uid == $userId"
+      }
+    },
+    "workouts": {
+      "$workoutId": {
+        // Any authenticated user can create a workout
+        "allow create": "if request.auth != null",
+        // Only the owner of the workout can read or write it
+        "allow read, write": "if request.auth.uid == resource.data.userId"
+      }
     }
   }
 }
