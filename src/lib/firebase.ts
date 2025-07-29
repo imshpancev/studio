@@ -10,6 +10,7 @@ const firebaseConfig = {
   storageBucket: "optimumpulse.firebasestorage.app",
   apiKey: "AIzaSyB1N-yohIDmxxFwqUJX4QT-F3qo40UAFB0",
   authDomain: "optimumpulse.firebaseapp.com",
+  databaseURL: "https://optimumpulse.firebaseio.com",
   measurementId: "",
   messagingSenderId: "257655082700"
 };
