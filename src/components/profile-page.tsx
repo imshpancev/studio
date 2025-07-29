@@ -45,6 +45,9 @@ const bikeSchema = z.object({
 });
 
 const profileSchema = z.object({
+  // This field is crucial for security rules
+  uid: z.string(),
+
   // Basic Info
   name: z.string().min(1, 'Имя обязательно.'),
   username: z.string().min(1, 'Имя пользователя обязательно.').optional(),
@@ -76,9 +79,10 @@ const profileSchema = z.object({
 
   // Workout Plan - these are not edited here but need to be in the schema
   // to avoid being stripped out on save.
+  onboardingCompleted: z.boolean().optional(),
+  email: z.string().optional(),
   workoutPlan: z.any().optional(),
   workoutPlanInput: z.any().optional(),
-  onboardingCompleted: z.boolean().optional(),
 
   // Other analytics fields that are not directly editable in the form
   // but should be preserved.
@@ -113,6 +117,7 @@ export function ProfilePage() {
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
+        uid: '',
         name: '',
         username: '',
         bio: '',

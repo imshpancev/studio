@@ -140,7 +140,7 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
  * @param userId The UID of the user.
  * @param data The partial profile data to update.
  */
-export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
+export async function updateUserProfile(userId: string, data: Partial<Omit<UserProfile, 'uid'>>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
     // Ensure the uid is always part of the document data for rule validation
     const dataToSave = {
