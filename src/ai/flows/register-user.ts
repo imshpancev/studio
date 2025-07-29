@@ -2,6 +2,7 @@
  * @fileoverview A Genkit flow for handling user registration.
  * This flow creates a user in Firebase Auth and then creates their profile in Firestore.
  */
+import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getAuth } from 'firebase-admin/auth';
