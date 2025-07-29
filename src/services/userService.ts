@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db as adminDb } from '@/lib/firebase-admin'; // Используем Admin SDK на сервере
+// import { db as adminDb } from '@/lib/firebase-admin'; // Используем Admin SDK на сервере
 import { db } from '@/lib/firebase'; // Клиентский SDK для клиентских операций
 import { doc, setDoc, getDoc, getDocs, collection, query, limit } from 'firebase/firestore';
 
