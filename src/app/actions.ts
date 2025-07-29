@@ -1,6 +1,6 @@
 
 'use server';
-
+/*
 import {
   generateWorkoutPlan,
   type GenerateWorkoutPlanInput,
@@ -60,3 +60,4 @@ export async function processWorkoutSummaryAction(
     throw new Error('An unknown error occurred while processing the workout summary.');
   }
 }
+*/
