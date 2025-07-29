@@ -80,7 +80,7 @@ const profileSchema = z.object({
   // Workout Plan - these are not edited here but need to be in the schema
   // to avoid being stripped out on save.
   onboardingCompleted: z.boolean().optional(),
-  email: z.string().optional(),
+  email: z.string().email().optional(),
   workoutPlan: z.any().optional(),
   workoutPlanInput: z.any().optional(),
 

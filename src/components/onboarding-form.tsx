@@ -17,6 +17,7 @@ import { updateUserProfile } from '@/services/userService';
 import { Loader2 } from 'lucide-react';
 
 const onboardingSchema = z.object({
+  uid: z.string(),
   name: z.string().min(1, 'Имя обязательно.'),
   gender: z.enum(['male', 'female', 'other'], { required_error: 'Пожалуйста, выберите пол.' }),
   age: z.coerce.number().min(1, 'Возраст обязателен.'),
@@ -35,6 +36,7 @@ export function OnboardingForm() {
   const form = useForm<z.infer<typeof onboardingSchema>>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
+        uid: user?.uid || '',
         name: '',
         gender: undefined,
         age: 18,
@@ -43,6 +45,12 @@ export function OnboardingForm() {
         mainGoal: 'Поддерживать форму',
     },
   });
+  
+  useEffect(() => {
+    if (user) {
+        form.setValue('uid', user.uid);
+    }
+  }, [user, form]);
   
   async function onSubmit(values: z.infer<typeof onboardingSchema>) {
     if (!user) {
@@ -54,7 +62,6 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            uid: user.uid,
             onboardingCompleted: true,
         });
         toast({
