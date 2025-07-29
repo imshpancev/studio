@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase-admin'; // Используем Admin SDK
+import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { Sport } from '@/lib/workout-data';
 import type { Workout } from './workoutService';
@@ -68,8 +68,9 @@ const secondsToPace = (seconds: number): string => {
  * @returns A promise that resolves to the user's records.
  */
 export async function getUserRecords(userId: string): Promise<UserRecords> {
-    const q = db.collection('workouts').where('userId', '==', userId);
-    const querySnapshot = await q.get();
+    const workoutsCollection = collection(db, 'workouts');
+    const q = query(workoutsCollection, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
     const workouts: Workout[] = [];
     querySnapshot.forEach((doc) => {
         workouts.push({ id: doc.id, ...doc.data() } as Workout);

@@ -1,8 +1,8 @@
 
 'use server';
 
-import { db } from '@/lib/firebase-admin'; // Используем Admin SDK
-import { doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, serverTimestamp, documentId } from 'firebase/firestore';
 
 export interface Meal {
     id: string;
@@ -11,6 +11,7 @@ export interface Meal {
     photo?: string | null;
     type: 'Завтрак' | 'Обед' | 'Ужин' | 'Перекусы';
     date: string; // YYYY-MM-DD
+    userId: string;
 }
 
 export interface NutritionData {
@@ -32,16 +33,18 @@ export interface WaterData {
  * @returns The user's nutrition data for that day.
  */
 export async function getDailyNutrition(userId: string, date: string): Promise<NutritionData> {
-    const nutritionDocRef = db.collection('users').doc(userId).collection('nutrition').doc(date);
-    const nutritionDocSnap = await nutritionDocRef.get();
+    const nutritionDocRef = doc(db, 'users', userId, 'nutrition', date);
+    const nutritionDocSnap = await getDoc(nutritionDocRef);
 
     let calorieGoal = 2500;
-    if (nutritionDocSnap.exists) {
+    if (nutritionDocSnap.exists()) {
         calorieGoal = nutritionDocSnap.data()?.calorieGoal || 2500;
     }
     
-    const mealsQuery = db.collection('users').doc(userId).collection('meals').where('date', '==', date);
-    const mealsSnap = await mealsQuery.get();
+    const mealsCollectionRef = collection(db, 'users', userId, 'meals');
+    const mealsQuery = query(mealsCollectionRef, where('date', '==', date), where('userId', '==', userId));
+    
+    const mealsSnap = await getDocs(mealsQuery);
     const meals: Meal[] = mealsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Meal));
 
     return {
@@ -58,8 +61,8 @@ export async function getDailyNutrition(userId: string, date: string): Promise<N
  * @returns The newly created meal object with its ID.
  */
 export async function addMeal(userId: string, mealData: Omit<Meal, 'id'>): Promise<Meal> {
-    const mealsColRef = db.collection('users').doc(userId).collection('meals');
-    const docRef = await mealsColRef.add(mealData);
+    const mealsColRef = collection(db, 'users', userId, 'meals');
+    const docRef = await addDoc(mealsColRef, { ...mealData, userId });
     return { id: docRef.id, ...mealData };
 }
 
@@ -70,8 +73,8 @@ export async function addMeal(userId: string, mealData: Omit<Meal, 'id'>): Promi
  * @param goal The new calorie goal.
  */
 export async function updateCalorieGoal(userId: string, date: string, goal: number): Promise<void> {
-    const nutritionDocRef = db.collection('users').doc(userId).collection('nutrition').doc(date);
-    await nutritionDocRef.set({ calorieGoal: goal }, { merge: true });
+    const nutritionDocRef = doc(db, 'users', userId, 'nutrition', date);
+    await setDoc(nutritionDocRef, { calorieGoal: goal }, { merge: true });
 }
 
 /**
@@ -81,9 +84,9 @@ export async function updateCalorieGoal(userId: string, date: string, goal: numb
  * @returns The user's water intake data.
  */
 export async function getWaterIntake(userId: string, date: string): Promise<WaterData> {
-    const waterDocRef = db.collection('users').doc(userId).collection('water').doc(date);
-    const docSnap = await waterDocRef.get();
-    if (docSnap.exists) {
+    const waterDocRef = doc(db, 'users', userId, 'water', date);
+    const docSnap = await getDoc(waterDocRef);
+    if (docSnap.exists()) {
         return docSnap.data() as WaterData;
     }
     // Return default if no data exists for the day
@@ -98,6 +101,6 @@ export async function getWaterIntake(userId: string, date: string): Promise<Wate
  * @param goal The daily goal in ml.
  */
 export async function updateWaterIntake(userId: string, date: string, consumed: number, goal: number): Promise<void> {
-    const waterDocRef = db.collection('users').doc(userId).collection('water').doc(date);
-    await waterDocRef.set({ consumed, goal }, { merge: true });
+    const waterDocRef = doc(db, 'users', userId, 'water', date);
+    await setDoc(waterDocRef, { consumed, goal }, { merge: true });
 }

@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase-admin'; // Используем Admin SDK
+import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
 import { Sport } from '@/lib/workout-data';
 import { getUserProfile, UserProfile } from './userService';
@@ -47,7 +47,8 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
             ...workoutData,
             createdAt: serverTimestamp(),
         };
-        const docRef = await db.collection('workouts').add(dataToSave);
+        const workoutsCollection = collection(db, 'workouts');
+        const docRef = await addDoc(workoutsCollection, dataToSave);
         return docRef.id;
     } catch (error) {
         console.error("Error adding workout document: ", error);
@@ -61,8 +62,9 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
  * @returns A promise that resolves to an array of workout documents.
  */
 export async function getUserWorkouts(userId: string): Promise<Workout[]> {
-    const q = db.collection('workouts').where('userId', '==', userId).orderBy('createdAt', 'desc');
-    const querySnapshot = await q.get();
+    const workoutsCollection = collection(db, 'workouts');
+    const q = query(workoutsCollection, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
     const workouts: Workout[] = [];
     querySnapshot.forEach((doc) => {
         workouts.push({ id: doc.id, ...doc.data() } as Workout);
@@ -76,10 +78,10 @@ export async function getUserWorkouts(userId: string): Promise<Workout[]> {
  * @returns A promise that resolves to the workout document or null if not found.
  */
 export async function getWorkoutById(workoutId: string): Promise<Workout | null> {
-    const docRef = db.collection('workouts').doc(workoutId);
-    const docSnap = await docRef.get();
+    const docRef = doc(db, 'workouts', workoutId);
+    const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists) {
+    if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as Workout;
     } else {
         return null;
@@ -92,8 +94,8 @@ export async function getWorkoutById(workoutId: string): Promise<Workout | null>
  * @param workoutId The ID of the workout to delete.
  */
 export async function deleteWorkout(workoutId: string): Promise<void> {
-    const docRef = db.collection('workouts').doc(workoutId);
-    await docRef.delete();
+    const docRef = doc(db, 'workouts', workoutId);
+    await deleteDoc(docRef);
 }
 
 
@@ -103,8 +105,9 @@ export async function deleteWorkout(workoutId: string): Promise<void> {
  * @returns A promise that resolves to an array of workout documents with user info.
  */
 export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWithUser[]> {
-    const q = db.collection('workouts').orderBy('createdAt', 'desc').limit(20);
-    const querySnapshot = await q.get();
+    const workoutsCollection = collection(db, 'workouts');
+    const q = query(workoutsCollection, orderBy('createdAt', 'desc'), limit(20));
+    const querySnapshot = await getDocs(q);
     
     const feedWorkouts: WorkoutWithUser[] = [];
     const userPromises = new Map<string, Promise<UserProfile>>();

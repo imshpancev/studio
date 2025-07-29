@@ -1,21 +1,22 @@
 
 'use server';
 
-import { db } from '@/lib/firebase-admin'; // Используем Admin SDK на сервере
+import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/models/user-profile';
+import { doc, getDoc, setDoc, collection, getDocs, query, limit } from "firebase/firestore";
 
 
 /**
- * Retrieves a user's profile from Firestore. (This is now a server-side function)
+ * Retrieves a user's profile from Firestore.
  * @param userId The UID of the user.
  * @param email The email of the user, used for creating a default profile shell.
  * @returns The user's profile data or a default object if not found.
  */
 export async function getUserProfile(userId: string, email: string): Promise<UserProfile> {
-    const userDocRef = db.collection('users').doc(userId);
-    const userDocSnap = await userDocRef.get();
+    const userDocRef = doc(db, 'users', userId);
+    const userDocSnap = await getDoc(userDocRef);
 
-    if (userDocSnap.exists) {
+    if (userDocSnap.exists()) {
         const data = userDocSnap.data();
         return { ...data, uid: userId, email: data?.email || email } as UserProfile;
     } else {
@@ -31,24 +32,23 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 }
 
 /**
- * Creates or updates a user's profile in Firestore. (This is now a server-side function)
+ * Creates or updates a user's profile in Firestore.
  * @param userId The UID of the user to create/update.
  * @param data The profile data to set.
  */
-export async function updateUserProfile(userId: string, data: Omit<Partial<UserProfile>, 'uid'>): Promise<void> {
-    const userDocRef = db.collection('users').doc(userId);
-    // Use setDoc with merge:true to create or update.
-    await userDocRef.set(data, { merge: true });
+export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, data, { merge: true });
 }
 
 
 /**
- * Fetches all users from the database. (This is now a server-side function)
+ * Fetches all users from the database.
  * @returns An array of user profiles.
  */
 export async function getAllUsers(): Promise<UserProfile[]> {
-    const usersCollection = db.collection('users');
-    const usersSnap = await usersCollection.get();
+    const usersCollection = collection(db, 'users');
+    const usersSnap = await getDocs(usersCollection);
     const users: UserProfile[] = [];
     usersSnap.forEach(doc => {
         users.push({ uid: doc.id, ...doc.data() } as UserProfile);
@@ -62,11 +62,11 @@ export async function getAllUsers(): Promise<UserProfile[]> {
  * @returns An array of users sorted for the leaderboard.
  */
 export async function getLeaderboardData(): Promise<UserProfile[]> {
-     const usersRef = db.collection("users");
+    const usersRef = collection(db, "users");
     // Example: ordering by total distance. You can change 'totalDistance' to other fields.
-    const q = usersRef.limit(10);
+    const q = query(usersRef, limit(10));
     
-    const querySnapshot = await q.get();
+    const querySnapshot = await getDocs(q);
     const leaderboard: UserProfile[] = [];
     querySnapshot.forEach((doc) => {
         leaderboard.push({ uid: doc.id, ...doc.data() } as UserProfile);
