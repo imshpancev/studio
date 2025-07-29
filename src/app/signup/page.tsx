@@ -8,7 +8,7 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
-import { createUserProfileAction } from '@/app/actions'; // Импортируем новый Server Action
+// The Server Action is no longer needed here. The profile is created by a Firebase Function.
 
 const signupSchema = z.object({
   // Auth fields
@@ -61,32 +61,31 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Создаем пользователя в Firebase Auth
+      // 1. Create user in Firebase Auth.
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // 2. Вызываем Server Action для создания профиля в Firestore
-      await createUserProfileAction(user.uid, {
-          name: values.name,
-          gender: values.gender,
-          age: values.age,
-          weight: values.weight,
-          height: values.height,
-          mainGoal: values.mainGoal,
+      // 2. Update the new user's Auth profile with their name.
+      await updateProfile(user, {
+        displayName: values.name,
       });
-      
+
+      // 3. The `onUserCreate` Firebase Function will automatically create the Firestore profile.
+      // We don't need to call a server action anymore. We just need to wait for the function to trigger.
+
       toast({
         title: 'Аккаунт создан!',
-        description: 'Добро пожаловать в OptimumPulse!',
+        description: 'Добро пожаловать в OptimumPulse! Ваш профиль создается...',
       });
-      router.push('/'); // Перенаправляем на главную страницу
+      
+      // Redirect to the main page. The main page logic will handle fetching the newly created profile.
+      router.push('/');
+
     } catch (error: any) {
       console.error("Signup error:", error);
       let errorMessage = 'Произошла ошибка при регистрации.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Этот email уже используется.';
-      } else if (error.message.includes('Failed to create user profile')) {
-        errorMessage = 'Не удалось сохранить данные профиля. Пожалуйста, попробуйте войти.';
       } else {
         errorMessage = error.message || errorMessage;
       }
