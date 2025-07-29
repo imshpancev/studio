@@ -45,6 +45,7 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
     try {
         const dataToSave = {
             ...workoutData,
+            userId: workoutData.userId, // Ensure userId is explicitly in the data being saved
             createdAt: serverTimestamp(),
         };
         const docRef = await addDoc(collection(db, 'workouts'), dataToSave);

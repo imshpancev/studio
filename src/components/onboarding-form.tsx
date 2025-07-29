@@ -53,7 +53,7 @@ export function OnboardingForm() {
     try {
         await updateUserProfile(user.uid, {
             ...values,
-            uid: user.uid, // Ensure UID is part of the object being saved
+            uid: user.uid, // Explicitly include uid to ensure it's in the object being saved
             onboardingCompleted: true,
         });
         toast({

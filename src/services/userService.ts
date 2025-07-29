@@ -123,13 +123,15 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
         const mergedProfile = { ...defaultProfile, ...data, uid: userId, email: email };
         return mergedProfile as UserProfile;
     } else {
-        // Document does not exist, return a default profile to be saved upon onboarding completion.
+        // Document does not exist, create it with default data.
         const newProfile: UserProfile = {
             ...defaultProfile,
             uid: userId,
             email: email,
             username: `@user_${userId.substring(0, 8)}`
         };
+        // We don't save it here, we just return the object.
+        // The save operation happens in updateUserProfile upon onboarding completion.
         return newProfile;
     }
 }
@@ -137,14 +139,15 @@ export async function getUserProfile(userId: string, email: string): Promise<Use
 /**
  * Creates or updates a user's profile in Firestore.
  * Ensures the 'uid' field is always present in the document.
- * @param userId The UID of the user.
+ * @param userId The UID of the user to create/update.
  * @param data The partial profile data to update.
  */
 export async function updateUserProfile(userId: string, data: Partial<Omit<UserProfile, 'email'>>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
+    // Ensure the UID is always part of the document data, as required by security rules.
     const dataToSave = {
         ...data,
-        uid: userId, // Ensure the UID is always part of the document data
+        uid: userId,
     };
     await setDoc(userDocRef, dataToSave, { merge: true });
 }
