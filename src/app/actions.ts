@@ -1,10 +1,9 @@
 
 'use server';
 
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/models/user-profile';
 import type { OnboardingFormData } from '@/app/onboarding/page';
-import { serverTimestamp } from 'firebase-admin/firestore';
 import { db } from '@/lib/firebase'; // Client SDK for client-context operations
 import { doc, setDoc } from "firebase/firestore";
 
@@ -98,4 +97,5 @@ export async function generatePlanAction(input: import('@/ai/flows/generate-work
     const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
     return generateWorkoutPlan(input);
 }
+
 
