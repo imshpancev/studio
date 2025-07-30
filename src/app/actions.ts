@@ -34,7 +34,7 @@ export async function signUpAction(email: string, password: string): Promise<{ u
       email: userRecord.email || '',
     };
   } catch (error: any) {
-    if (error.code === 'auth/email-already-exists') {
+    if (error.code === 'auth/email-already-in-use') {
       throw new Error('Этот email уже используется. Попробуйте войти.');
     }
     console.error('Error in signUpAction:', error);
