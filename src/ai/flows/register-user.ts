@@ -6,9 +6,8 @@ import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { UserProfile } from '@/models/user-profile';
-import { serverTimestamp } from 'firebase/firestore';
 
 // Initialize Firebase Admin services
 const adminAuth = getAuth();
@@ -62,7 +61,7 @@ export const registerUserFlow = ai.defineFlow(
         username: `@user_${uid.substring(0, 8)}`,
         avatar: `https://i.pravatar.cc/150?u=${uid}`,
         onboardingCompleted: true, // Registration and onboarding are now one step
-        createdAt: serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         gender: input.gender,
         age: input.age,
         weight: input.weight,
