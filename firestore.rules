@@ -3,49 +3,31 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users Collection
     match /users/{userId} {
-      // Helper function to check ownership
-      function isOwner() {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      // Read: A user can read their own document.
-      // Other users can only read a limited set of public fields.
-      allow read: if isOwner() || (resource.data.keys().hasAll(['name', 'username', 'avatar', 'bio', 'favoriteSports']));
-
-      // Create: A user can create their own profile document, but only once.
-      allow create: if isOwner();
-
-      // Update: A user can only update their own document.
-      allow update: if isOwner();
-
-      // Delete: Disallow deleting user profiles.
-      allow delete: if false;
-
-      // Subcollections (Workouts, Nutrition, etc.)
-      match /{collection}/{docId} {
-        // Read, Write, Delete: Only the owner of the profile can manage their subcollections.
-        allow read, write, delete: if isOwner();
-      }
+      // Allow user to read and write their own profile
+      allow read, update, delete: if request.auth.uid == userId;
+      // Allow user to create their own profile, ensuring the UID matches
+      allow create: if request.auth.uid == request.resource.data.uid;
+    }
+    
+    match /workouts/{workoutId} {
+      // Allow user to create, read, update, delete their own workouts
+      allow read, write: if request.auth.uid == resource.data.userId;
     }
 
-    // Workouts Collection (assuming a top-level collection for simplicity in some queries)
-    match /workouts/{workoutId} {
-        // Helper function to check ownership
-        function isWorkoutOwner() {
-            return request.auth != null && request.auth.uid == resource.data.userId;
-        }
+    match /meals/{mealId} {
+        // Allow user to manage their own meals
+        allow read, write: if request.auth.uid == resource.data.userId;
+    }
 
-        // Read: Anyone can read workouts (for the feed), but you could restrict this further.
-        allow read: if request.auth != null;
-
-        // Create: A user can create a workout for themselves.
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        
-        // Update, Delete: Only the user who created the workout can update or delete it.
-        allow update, delete: if isWorkoutOwner();
+    match /nutrition/{date} {
+        // Allow user to manage their own daily nutrition goals
+        allow read, write: if request.auth.uid == request.path[2];
+    }
+    
+    match /water/{date} {
+        // Allow user to manage their own daily water intake
+        allow read, write: if request.auth.uid == request.path[2];
     }
   }
 }
