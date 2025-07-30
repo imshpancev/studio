@@ -1,55 +1,42 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Users can only read and update their own profile.
+    // New profiles can be created by any authenticated request (needed for server-side signup).
     match /users/{userId} {
-      // Users can create their own profile document
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
-
-      // Users can only read their own profile
-      allow read: if request.auth != null && request.auth.uid == userId;
-
-      // Users can only update their own profile
-      allow update: if request.auth != null && request.auth.uid == userId;
-
-      // Users cannot delete their profile through the client
-      allow delete: if false;
-
-      // Nested collections
-      match /nutrition/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      match /water/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      match /meals/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
     }
 
+    // Allow users to read/write their own workouts.
     match /workouts/{workoutId} {
-      // Any authenticated user can create a workout
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-
-      // Users can only read their own workouts
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-
-      // Users can only update their own workouts
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-
-      // Users can only delete their own workouts
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
-    // Allow logged-in users to read from the 'users' collection for features like leaderboards or finding friends.
-    // This rule is broad; in a production app, you might want more granular control.
-    match /users/{document=**} {
-      allow list: if request.auth != null;
-    }
-
-    // Allow reading from the 'workouts' collection for the feed feature
+    // Allow users to list their own workouts.
     match /workouts/{document=**} {
       allow list: if request.auth != null;
     }
+
+    // Allow users to manage their own nutrition data.
+    match /users/{userId}/nutrition/{date} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow users to manage their own meal entries.
+    match /users/{userId}/meals/{mealId} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+     match /users/{userId}/meals/{document=**} {
+      allow list: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow users to manage their own water intake entries.
+    match /users/{userId}/water/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
   }
 }
