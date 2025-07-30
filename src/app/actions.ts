@@ -5,9 +5,13 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/models/user-profile';
 import type { OnboardingFormData } from '@/app/onboarding/page';
 import { serverTimestamp } from 'firebase-admin/firestore';
+import { db } from '@/lib/firebase'; // Client SDK for client-context operations
+import { doc, setDoc } from "firebase/firestore";
+
 
 /**
- * Server Action for user sign-up. Creates user in Auth and a basic profile in Firestore.
+ * Server Action for user sign-up. Creates user ONLY in Firebase Authentication.
+ * Firestore document creation is now handled in `completeOnboardingAction`.
  * @param email - User's email.
  * @param password - User's password.
  * @returns The newly created user's UID and email.
@@ -20,22 +24,15 @@ export async function signUpAction(email: string, password: string): Promise<{ u
       password,
     });
 
-    const initialProfile: UserProfile = {
-      uid: userRecord.uid,
-      email: userRecord.email,
-      onboardingCompleted: false,
-      createdAt: serverTimestamp(),
-      language: 'ru',
-    };
-
-    await adminDb.collection('users').doc(userRecord.uid).set(initialProfile);
+    // Firestore document is NOT created here anymore.
+    // It will be created during onboarding.
 
     return {
       uid: userRecord.uid,
       email: userRecord.email || '',
     };
   } catch (error: any) {
-    if (error.code === 'auth/email-already-in-use') {
+    if (error.code === 'auth/email-already-exists') {
       throw new Error('Этот email уже используется. Попробуйте войти.');
     }
     if (error.code === 'auth/invalid-password') {
@@ -48,30 +45,37 @@ export async function signUpAction(email: string, password: string): Promise<{ u
 
 
 /**
- * Server Action to complete the onboarding process. Updates the user's profile with detailed info.
+ * Server Action to complete the onboarding process. 
+ * Creates the user's profile document in Firestore with detailed info.
  * @param uid - The user's UID.
  * @param data - The onboarding form data.
  * @returns A success message.
- * @throws Will throw an error if the profile update fails.
+ * @throws Will throw an error if the profile creation fails.
  */
-export async function completeOnboardingAction(uid: string, data: OnboardingFormData) {
+export async function completeOnboardingAction(uid: string, email: string, data: OnboardingFormData) {
     try {
-        const userProfileRef = adminDb.collection('users').doc(uid);
+        const userProfileRef = doc(db, 'users', uid);
 
-        const profileUpdateData: Partial<UserProfile> = {
+        const newProfile: UserProfile = {
+            uid: uid,
+            email: email,
             ...data,
+            onboardingCompleted: true,
+            createdAt: new Date().toISOString(), // Use client-side timestamp for simplicity here
+            language: 'ru',
             username: `@user_${uid.substring(0, 8)}`,
             avatar: `https://i.pravatar.cc/150?u=${uid}`,
-            onboardingCompleted: true,
         };
 
-        await userProfileRef.update(profileUpdateData);
+        // Use setDoc from the client SDK because this action is initiated
+        // by an authenticated client, and our rules expect that.
+        await setDoc(userProfileRef, newProfile);
 
-        return { success: true, message: "Профиль успешно обновлен!" };
+        return { success: true, message: "Профиль успешно создан!" };
 
     } catch (error: any) {
         console.error('Error in completeOnboardingAction:', error);
-        throw new Error('Не удалось обновить профиль.');
+        throw new Error('Не удалось создать профиль.');
     }
 }
 
@@ -94,3 +98,4 @@ export async function generatePlanAction(input: import('@/ai/flows/generate-work
     const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
     return generateWorkoutPlan(input);
 }
+

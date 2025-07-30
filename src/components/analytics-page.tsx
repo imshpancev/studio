@@ -52,7 +52,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
             try {
                 const [userWorkouts, profile] = await Promise.all([
                     getUserWorkouts(user!.uid),
-                    getUserProfile(user!.uid, user!.email || '')
+                    getUserProfile(user!.uid)
                 ]);
                 setWorkouts(userWorkouts);
                 setUserProfile(profile);

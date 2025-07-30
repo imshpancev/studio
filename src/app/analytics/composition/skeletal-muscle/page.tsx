@@ -25,8 +25,8 @@ export default function SkeletalMusclePage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setSkeletalMuscle(profile.skeletalMuscle || 37.9); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setSkeletalMuscle(profile?.skeletalMuscle || 37.9); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о скелетных мышцах.' });
         } finally {

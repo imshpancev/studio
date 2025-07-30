@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -47,7 +46,7 @@ export default function UserProfilePage() {
         async function fetchUser() {
             try {
                 setIsLoading(true);
-                const userProfile = await getUserProfile(userId, '');
+                const userProfile = await getUserProfile(userId);
                 setUser(userProfile);
             } catch (error) {
                 toast({

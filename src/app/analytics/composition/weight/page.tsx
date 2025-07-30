@@ -45,8 +45,8 @@ export default function WeightPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setWeight(profile.weight || 99.3); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setWeight(profile?.weight || 99.3); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о весе.' });
         } finally {

@@ -25,8 +25,8 @@ export default function VisceralFatPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setVisceralFat(profile.visceralFat || 11); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setVisceralFat(profile?.visceralFat || 11); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о висцеральном жире.' });
         } finally {

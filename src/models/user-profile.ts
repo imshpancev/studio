@@ -6,7 +6,7 @@
 
 export interface UserProfile {
     uid: string;
-    email?: string;
+    email: string;
     onboardingCompleted: boolean;
     createdAt: any; // Can be a server timestamp or a Date object
     name?: string;

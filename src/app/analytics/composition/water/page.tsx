@@ -26,8 +26,8 @@ export default function WaterPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setWater(profile.water || 48.6); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setWater(profile?.water || 48.6); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о воде в организме.' });
         } finally {
@@ -74,7 +74,7 @@ export default function WaterPage() {
                 </AlertDescription>
             </Alert>
             
-            <WaterIntakeCard />
+            <WaterIntakeCard date={new Date().toISOString().split('T')[0]} />
 
              <div>
                 <h3 className="font-semibold mb-2">Оптимальные диапазоны:</h3>

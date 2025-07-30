@@ -44,8 +44,8 @@ export default function MuscleMassPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setMuscleMass(profile.muscleMass || 68.4); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setMuscleMass(profile?.muscleMass || 68.4); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о мышечной массе.' });
         } finally {

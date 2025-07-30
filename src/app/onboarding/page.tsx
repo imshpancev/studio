@@ -62,13 +62,13 @@ export default function OnboardingPage() {
   });
 
   const onSubmit = async (values: OnboardingFormData) => {
-    if (!user) {
+    if (!user || !user.email) {
         toast({ variant: 'destructive', title: 'Ошибка', description: 'Пользователь не найден. Пожалуйста, войдите снова.' });
         return;
     }
     setIsLoading(true);
     try {
-      await completeOnboardingAction(user.uid, values);
+      await completeOnboardingAction(user.uid, user.email, values);
       
       toast({
         title: 'Профиль настроен!',

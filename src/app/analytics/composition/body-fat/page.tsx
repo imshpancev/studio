@@ -44,8 +44,8 @@ export default function BodyFatPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setBodyFat(profile.bodyFat || 27.8); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setBodyFat(profile?.bodyFat || 27.8); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о жире.' });
         } finally {

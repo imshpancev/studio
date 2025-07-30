@@ -110,7 +110,7 @@ export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWit
     const querySnapshot = await getDocs(q);
     
     const feedWorkouts: WorkoutWithUser[] = [];
-    const userPromises = new Map<string, Promise<UserProfile>>();
+    const userPromises = new Map<string, Promise<UserProfile | null>>();
 
     for (const doc of querySnapshot.docs) {
         const workout = { id: doc.id, ...doc.data() } as Workout;
@@ -118,7 +118,7 @@ export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWit
         if (workout.userId === currentUserId) continue;
 
         if (!userPromises.has(workout.userId)) {
-            userPromises.set(workout.userId, getUserProfile(workout.userId, ''));
+            userPromises.set(workout.userId, getUserProfile(workout.userId));
         }
         
         try {

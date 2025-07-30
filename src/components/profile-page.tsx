@@ -47,6 +47,7 @@ const bikeSchema = z.object({
 const profileSchema = z.object({
   // This field is crucial for security rules
   uid: z.string().min(1, 'UID is required.'),
+  email: z.string().email(),
 
   // Basic Info
   name: z.string().min(1, 'Имя обязательно.'),
@@ -80,7 +81,7 @@ const profileSchema = z.object({
   // Workout Plan - these are not edited here but need to be in the schema
   // to avoid being stripped out on save.
   onboardingCompleted: z.boolean().optional(),
-  email: z.string().email().optional(),
+  createdAt: z.any().optional(),
   workoutPlan: z.any().optional(),
   workoutPlanInput: z.any().optional(),
 
@@ -118,6 +119,7 @@ export function ProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
         uid: '',
+        email: '',
         name: '',
         username: '',
         bio: '',
@@ -145,9 +147,11 @@ export function ProfilePage() {
         return;
       }
       try {
-        const userProfile = await getUserProfile(user.uid, user.email || '');
-        setProfile(userProfile);
-        form.reset(userProfile);
+        const userProfile = await getUserProfile(user.uid);
+        if (userProfile) {
+            setProfile(userProfile);
+            form.reset(userProfile);
+        }
       } catch (error) {
         console.error("Failed to fetch user profile:", error);
         toast({

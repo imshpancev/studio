@@ -25,8 +25,8 @@ export default function BmrPage() {
     }
     async function fetchData() {
         try {
-            const profile = await getUserProfile(user.uid, user.email || '');
-            setBmr(profile.bmr || 1919); // fallback to mock
+            const profile = await getUserProfile(user.uid);
+            setBmr(profile?.bmr || 1919); // fallback to mock
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о СООВ.' });
         } finally {

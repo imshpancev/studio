@@ -40,7 +40,7 @@ export default function SleepDetailPage() {
     }
     async function fetchData() {
         try {
-            const userProfile = await getUserProfile(user!.uid, user!.email || '');
+            const userProfile = await getUserProfile(user!.uid);
             setProfile(userProfile);
         } catch (error) {
              toast({
