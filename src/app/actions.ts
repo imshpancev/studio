@@ -1,25 +1,70 @@
 
 'use server';
 
+import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { generateWorkoutPlan as generateWorkoutPlanFlow, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkoutSummaryInput, type ProcessWorkoutSummaryOutput } from "@/ai/flows/process-workout-summary";
-import { registerUserFlow, type RegisterUserInput, type RegisterUserOutput } from "@/ai/flows/register-user";
+import { UserProfile } from '@/models/user-profile';
+import { z } from 'zod';
 
+const adminDb = getFirestore();
+
+// Define the schema for the input data for creating a user profile
+export const CreateUserSchema = z.object({
+  uid: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  gender: z.enum(['male', 'female', 'other']),
+  age: z.number(),
+  weight: z.number(),
+  height: z.number(),
+  mainGoal: z.string(),
+});
+
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
 /**
- * Server Action to register a user.
- * This wraps the Genkit flow for user registration.
- * @param input - The user's registration details.
+ * Server Action to create a user profile document in Firestore.
+ * This is called AFTER the user is created in Firebase Auth on the client.
+ * @param input - The user's profile details, including the UID from Auth.
  * @returns The newly created user's basic info.
  */
-export async function registerUserAction(input: RegisterUserInput): Promise<RegisterUserOutput> {
+export async function createUserProfileAction(input: CreateUserInput) {
   try {
-    const result = await registerUserFlow(input);
-    return result;
-  } catch (error) {
-    console.error('Error in registerUserAction:', error);
-    // Re-throw with a generic message for the client
-    throw new Error('An error occurred during registration. Please try again.');
+    const { uid, name, email, gender, age, weight, height, mainGoal } = input;
+
+    // Create user profile document in Firestore
+    const userProfile: UserProfile = {
+      uid,
+      email,
+      name,
+      username: `@user_${uid.substring(0, 8)}`,
+      avatar: `https://i.pravatar.cc/150?u=${uid}`,
+      onboardingCompleted: true, // Registration and onboarding are now one step
+      createdAt: FieldValue.serverTimestamp(),
+      gender,
+      age,
+      weight,
+      height,
+      mainGoal,
+      language: 'ru',
+      favoriteSports: [],
+      bio: '',
+    };
+    
+    await adminDb.collection('users').doc(uid).set(userProfile);
+
+    return {
+      uid,
+      email,
+      name,
+    };
+  } catch (error: any) {
+      console.error('Error creating user profile in Server Action:', error);
+      // Throw a more specific error to be handled by the client
+      throw new Error('Failed to create user profile in database.');
   }
 }
 
@@ -54,4 +99,3 @@ export async function processWorkoutSummaryAction(input: ProcessWorkoutSummaryIn
     throw new Error('Failed to process workout summary.');
   }
 }
-

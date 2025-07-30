@@ -7,4 +7,4 @@ config();
 // import '@/ai/flows/generate-workout-plan.ts';
 // import '@/ai/flows/adapt-workout-plan.ts';
 // import '@/ai/flows/process-workout-summary.ts';
-import '@/ai/flows/register-user';
+// User registration is no longer handled by a Genkit flow

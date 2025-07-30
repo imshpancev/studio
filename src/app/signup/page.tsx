@@ -8,7 +8,7 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { registerUserAction } from '../actions';
+import { createUserProfileAction } from '../actions';
 import { Separator } from '@/components/ui/separator';
 
 const signupSchema = z.object({
@@ -54,30 +54,34 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Call the server action to handle registration
-      await registerUserAction(values);
+      // 1. Create user in Firebase Auth.
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
 
-      // 2. If successful, sign the user in on the client
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // 2. Update the new user's Auth profile with their name.
+      await updateProfile(user, { displayName: values.name });
+
+      // 3. Call the server action to create the Firestore profile document.
+      await createUserProfileAction({
+        uid: user.uid,
+        ...values,
+      });
       
       toast({
         title: 'Аккаунт создан!',
         description: 'Добро пожаловать в OptimumPulse!',
       });
       
-      // 3. Redirect to the main app page
+      // 4. Redirect to the main app page.
       router.push('/');
 
     } catch (error: any) {
       console.error("Signup error:", error);
       let errorMessage = 'Произошла ошибка при регистрации.';
-       // Check for specific backend errors, e.g., from Firebase Admin SDK
-      if (error.message.includes('auth/email-already-exists')) {
-        errorMessage = 'Этот email уже используется.';
-      } else if (error.message.includes('auth/email-already-in-use')) {
-        errorMessage = 'Этот email уже используется.';
-      } else {
-        errorMessage = error.message || errorMessage;
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Этот email уже используется. Попробуйте войти или использовать другой email.';
+      } else if (error.message.includes('Failed to create user profile')) {
+        errorMessage = 'Не удалось создать профиль в базе данных. Попробуйте еще раз.'
       }
       toast({
         variant: 'destructive',
@@ -186,4 +190,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
