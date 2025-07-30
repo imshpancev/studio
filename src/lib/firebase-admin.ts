@@ -5,12 +5,16 @@ import * as admin from 'firebase-admin';
 
 // Ensure the app is not already initialized
 if (!admin.apps.length) {
-  admin.initializeApp({
-    // If you have specific service account credentials, you can pass them here.
-    // Otherwise, it will try to use Application Default Credentials.
-    // credential: admin.credential.applicationDefault(),
-    // databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
-  });
+  try {
+    admin.initializeApp({
+      // If you have specific service account credentials, you can pass them here.
+      // Otherwise, it will try to use Application Default Credentials.
+      credential: admin.credential.applicationDefault(),
+      // databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+    });
+  } catch (error) {
+    console.error('Firebase Admin initialization error:', error);
+  }
 }
 
 const adminDb = admin.firestore();

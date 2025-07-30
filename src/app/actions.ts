@@ -1,85 +1,72 @@
 
 'use server';
 
-import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
-import { getFirestore } from 'firebase-admin/firestore';
-import { generateWorkoutPlan as generateWorkoutPlanFlow, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
-import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkoutSummaryInput, type ProcessWorkoutSummaryOutput } from "@/ai/flows/process-workout-summary";
-import { UserProfile } from '@/models/user-profile';
-import type { CreateUserInput } from '@/app/signup/page';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import type { UserProfile } from '@/models/user-profile';
+import type { OnboardingFormData } from '@/app/onboarding/page';
 
 /**
- * Server Action to create a user profile document in Firestore.
- * This is called AFTER the user is created in Firebase Auth on the client.
- * @param input - The user's profile details, including the UID from Auth.
- * @returns The newly created user's basic info.
+ * Server Action for user sign-up. Creates user in Auth and a basic profile in Firestore.
+ * @param email - User's email.
+ * @param password - User's password.
+ * @returns The newly created user's UID and email.
+ * @throws Will throw an error if the user already exists or another error occurs.
  */
-export async function createUserProfileAction(input: CreateUserInput & { uid: string }) {
+export async function signUpAction(email: string, password: string): Promise<{ uid: string; email: string }> {
   try {
-    const adminDb = getFirestore(); // Initialize Firestore inside the action
-    const { uid, name, email, gender, age, weight, height, mainGoal } = input;
-
-    // Create user profile document in Firestore
-    const userProfile: UserProfile = {
-      uid,
+    const userRecord = await adminAuth.createUser({
       email,
-      name,
-      username: `@user_${uid.substring(0, 8)}`,
-      avatar: `https://i.pravatar.cc/150?u=${uid}`,
-      onboardingCompleted: true, // Registration and onboarding are now one step
-      createdAt: adminDb.Timestamp.now(), // Correct way to set timestamp on server
-      gender,
-      age,
-      weight,
-      height,
-      mainGoal,
+      password,
+    });
+
+    const initialProfile: UserProfile = {
+      uid: userRecord.uid,
+      email: userRecord.email || '',
+      onboardingCompleted: false,
+      createdAt: adminDb.Timestamp.now(),
       language: 'ru',
-      favoriteSports: [],
-      bio: '',
     };
-    
-    await adminDb.collection('users').doc(uid).set(userProfile);
+
+    await adminDb.collection('users').doc(userRecord.uid).set(initialProfile);
 
     return {
-      uid,
-      email,
-      name,
+      uid: userRecord.uid,
+      email: userRecord.email || '',
     };
   } catch (error: any) {
-      console.error('Error creating user profile in Server Action:', error);
-      // Throw a more specific error to be handled by the client
-      throw new Error('Failed to create user profile in database.');
+    if (error.code === 'auth/email-already-exists') {
+      throw new Error('Этот email уже используется. Попробуйте войти.');
+    }
+    console.error('Error in signUpAction:', error);
+    throw new Error('Произошла ошибка во время регистрации.');
   }
 }
 
 
 /**
- * Server Action to generate a workout plan.
- * @param input - The input data for the workout plan generation.
- * @returns The generated workout plan.
+ * Server Action to complete the onboarding process. Updates the user's profile with detailed info.
+ * @param uid - The user's UID.
+ * @param data - The onboarding form data.
+ * @returns A success message.
+ * @throws Will throw an error if the profile update fails.
  */
-export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promise<GenerateWorkoutPlanOutput> {
-  try {
-    const plan = await generateWorkoutPlanFlow(input);
-    return plan;
-  } catch (error) {
-    console.error('Error in generatePlanAction:', error);
-    throw new Error('Failed to generate workout plan.');
-  }
-}
+export async function completeOnboardingAction(uid: string, data: OnboardingFormData) {
+    try {
+        const userProfileRef = adminDb.collection('users').doc(uid);
 
+        const profileUpdateData: Partial<UserProfile> = {
+            ...data,
+            username: `@user_${uid.substring(0, 8)}`,
+            avatar: `https://i.pravatar.cc/150?u=${uid}`,
+            onboardingCompleted: true,
+        };
 
-/**
- * Server Action to process a workout summary.
- * @param input - The workout summary and feedback.
- * @returns The analysis of the feedback.
- */
-export async function processWorkoutSummaryAction(input: ProcessWorkoutSummaryInput): Promise<ProcessWorkoutSummaryOutput> {
-  try {
-    const result = await processWorkoutSummaryFlow(input);
-    return result;
-  } catch (error) {
-    console.error('Error in processWorkoutSummaryAction:', error);
-    throw new Error('Failed to process workout summary.');
-  }
+        await userProfileRef.update(profileUpdateData);
+
+        return { success: true, message: "Профиль успешно обновлен!" };
+
+    } catch (error: any) {
+        console.error('Error in completeOnboardingAction:', error);
+        throw new Error('Не удалось обновить профиль.');
+    }
 }

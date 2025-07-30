@@ -63,7 +63,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle>Вход в OptimumPulse</CardTitle>
+          <CardTitle>Вход в The LighSport</CardTitle>
           <CardDescription>Введите свои данные, чтобы продолжить.</CardDescription>
         </CardHeader>
         <CardContent>

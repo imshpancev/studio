@@ -41,18 +41,21 @@ export default function Home() {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoadingAuth(true);
       if (currentUser) {
         setUser(currentUser);
         try {
           const userProfile = await getUserProfile(currentUser.uid);
           
-          // If for some reason profile doesn't exist, log it.
-          // This can happen in dev if Firestore is cleared.
           if (!userProfile) {
             console.warn(`No profile found for user ${currentUser.uid}, logging them out.`);
             auth.signOut();
             return;
+          }
+
+          // Redirect to onboarding if not completed
+          if (!userProfile.onboardingCompleted) {
+            router.push('/onboarding');
+            return; // Stop further execution
           }
 
           if (userProfile.workoutPlan) {
@@ -236,7 +239,7 @@ export default function Home() {
              <div className="text-center py-16">
                 <Card className="max-w-lg mx-auto">
                     <CardHeader>
-                        <CardTitle>Добро пожаловать в OptimumPulse!</CardTitle>
+                        <CardTitle>Добро пожаловать в The LighSport!</CardTitle>
                         <CardDescription>Ваш персональный помощник для тренировок. Пожалуйста, войдите или зарегистрируйтесь, чтобы начать.</CardDescription>
                     </CardHeader>
                      <CardContent className="flex justify-center gap-4">

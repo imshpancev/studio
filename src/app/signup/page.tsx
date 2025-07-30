@@ -8,7 +8,7 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,23 +16,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createUserProfileAction } from '../actions';
-import { Separator } from '@/components/ui/separator';
+import { signUpAction } from '../actions';
 
 const signupSchema = z.object({
   email: z.string().email('Неверный формат email.'),
   password: z.string().min(6, 'Пароль должен содержать не менее 6 символов.'),
-  name: z.string().min(1, 'Имя обязательно.'),
-  gender: z.enum(['male', 'female', 'other']),
-  age: z.coerce.number().min(1, 'Возраст обязателен.'),
-  weight: z.coerce.number().min(1, 'Вес обязателен.'),
-  height: z.coerce.number().min(1, 'Рост обязателен.'),
-  mainGoal: z.string().min(1, 'Цель обязательна.'),
 });
-
-export type CreateUserInput = z.infer<typeof signupSchema>;
-
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,51 +33,32 @@ export default function SignupPage() {
     defaultValues: {
       email: '',
       password: '',
-      name: '',
-      gender: 'male',
-      age: 30,
-      weight: 80,
-      height: 180,
-      mainGoal: 'Поддерживать форму',
     },
   });
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Create user in Firebase Auth.
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
-
-      // 2. Update the new user's Auth profile with their name.
-      await updateProfile(user, { displayName: values.name });
-
-      // 3. Call the server action to create the Firestore profile document.
-      await createUserProfileAction({
-        uid: user.uid,
-        ...values,
-      });
+      // 1. Call server action to create user in Auth and Firestore
+      await signUpAction(values.email, values.password);
       
+      // 2. Sign in the user on the client to establish a session
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+
       toast({
         title: 'Аккаунт создан!',
-        description: 'Добро пожаловать в OptimumPulse!',
+        description: 'Теперь давайте завершим настройку вашего профиля.',
       });
       
-      // 4. Redirect to the main app page.
-      router.push('/');
+      // 3. Redirect to the onboarding page
+      router.push('/onboarding');
 
     } catch (error: any) {
       console.error("Signup error:", error);
-      let errorMessage = 'Произошла ошибка при регистрации.';
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'Этот email уже используется. Попробуйте войти или использовать другой email.';
-      } else if (error.message.includes('Failed to create user profile')) {
-        errorMessage = 'Не удалось создать профиль в базе данных. Попробуйте еще раз.'
-      }
       toast({
         variant: 'destructive',
         title: 'Ошибка регистрации',
-        description: errorMessage,
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
@@ -97,24 +67,14 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 py-8">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle>Создать аккаунт</CardTitle>
-          <CardDescription>Присоединяйтесь к OptimumPulse и начните свой путь к лучшей форме уже сегодня!</CardDescription>
+          <CardDescription>Присоединяйтесь к The LighSport и начните свой путь к лучшей форме уже сегодня!</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
-              <div className="space-y-4">
-                 <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Полное имя</FormLabel>
-                    <FormControl><Input placeholder="Сергей Рахманинов" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-
                 <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
@@ -130,48 +90,6 @@ export default function SignupPage() {
                       <FormMessage />
                     </FormItem>
                 )} />
-              </div>
-              
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <FormField control={form.control} name="gender" render={({ field }) => (
-                        <FormItem><FormLabel>Пол</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent><SelectItem value="male">Мужской</SelectItem><SelectItem value="female">Женский</SelectItem><SelectItem value="other">Другой</SelectItem></SelectContent>
-                        </Select><FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="age" render={({ field }) => (
-                        <FormItem><FormLabel>Возраст</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="weight" render={({ field }) => (
-                        <FormItem><FormLabel>Вес (кг)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="height" render={({ field }) => (
-                        <FormItem><FormLabel>Рост (см)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                </div>
-                 <FormField control={form.control} name="mainGoal" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Ваша основная фитнес-цель?</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                <SelectItem value="Похудеть">Похудеть</SelectItem>
-                                <SelectItem value="Нарастить мышечную массу">Нарастить мышечную массу</SelectItem>
-                                <SelectItem value="Улучшить выносливость">Улучшить выносливость</SelectItem>
-                                <SelectItem value="Поддерживать форму">Поддерживать форму</SelectItem>
-                                <SelectItem value="Подготовиться к соревнованиям">Подготовиться к соревнованиям</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )} />
-              </div>
-
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
