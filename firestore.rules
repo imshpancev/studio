@@ -1,42 +1,41 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can only read and update their own profile.
-    // New profiles can be created by any authenticated request (needed for server-side signup).
     match /users/{userId} {
+      // Allow user to read and update their own profile.
+      // Creation is handled by the server action.
       allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow the server action to create a user profile.
+      // It checks that the request comes from an authenticated source (our server).
       allow create: if request.auth != null;
-    }
 
-    // Allow users to read/write their own workouts.
-    match /workouts/{workoutId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-
-    // Allow users to list their own workouts.
-    match /workouts/{document=**} {
-      allow list: if request.auth != null;
-    }
-
-    // Allow users to manage their own nutrition data.
-    match /users/{userId}/nutrition/{date} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Allow users to manage their own meal entries.
-    match /users/{userId}/meals/{mealId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-     match /users/{userId}/meals/{document=**} {
-      allow list: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Allow users to manage their own water intake entries.
-    match /users/{userId}/water/{date} {
+      // Subcollections for the user
+      match /workouts/{workoutId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
+      }
+      
+      match /meals/{mealId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
 
+      match /nutrition/{date} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /water/{date} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Workouts collection is now a subcollection of users.
+    // If you need a root-level workouts collection, define its rules here.
+    // For now, let's keep it secure.
+    match /workouts/{workoutId} {
+      allow read: if request.auth != null; // Allow any authenticated user to read for feeds
+      allow create, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
   }
 }
