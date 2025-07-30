@@ -37,6 +37,9 @@ export async function signUpAction(email: string, password: string): Promise<{ u
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Этот email уже используется. Попробуйте войти.');
     }
+    if (error.code === 'auth/invalid-password') {
+        throw new Error('Пароль слишком слабый. Он должен содержать не менее 6 символов.');
+    }
     console.error('Error in signUpAction:', error);
     throw new Error('Произошла ошибка во время регистрации.');
   }
