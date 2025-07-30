@@ -34,7 +34,8 @@ export async function signUpAction(email: string, password: string): Promise<{ u
     if (error.code === 'auth/email-already-exists') {
       throw new Error('Этот email уже используется. Попробуйте войти.');
     }
-    if (error.code === 'auth/invalid-password') {
+    // Catches 'auth/weak-password', 'auth/password-too-short', etc.
+    if (error.code === 'auth/invalid-password' || error.code.includes('password')) {
         throw new Error('Пароль слишком слабый. Он должен содержать не менее 6 символов.');
     }
     console.error('Error in signUpAction:', error);
@@ -97,5 +98,6 @@ export async function generatePlanAction(input: import('@/ai/flows/generate-work
     const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
     return generateWorkoutPlan(input);
 }
+
 
 
