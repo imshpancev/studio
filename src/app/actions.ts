@@ -20,9 +20,8 @@ export async function signUpAction(email: string, password: string): Promise<{ u
       password,
     });
 
-    const initialProfile: UserProfile = {
-      uid: userRecord.uid,
-      email: userRecord.email || '',
+    // The user document ID is the UID. We don't need to store it inside the doc itself.
+    const initialProfile: Omit<UserProfile, 'uid' | 'email'> = {
       onboardingCompleted: false,
       createdAt: serverTimestamp(),
       language: 'ru',
