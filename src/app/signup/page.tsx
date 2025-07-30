@@ -31,6 +31,8 @@ const signupSchema = z.object({
   mainGoal: z.string().min(1, 'Цель обязательна.'),
 });
 
+export type CreateUserInput = z.infer<typeof signupSchema>;
+
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);

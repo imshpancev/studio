@@ -2,28 +2,13 @@
 'use server';
 
 import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
-import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { generateWorkoutPlan as generateWorkoutPlanFlow, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkoutSummaryInput, type ProcessWorkoutSummaryOutput } from "@/ai/flows/process-workout-summary";
 import { UserProfile } from '@/models/user-profile';
-import { z } from 'zod';
+import type { CreateUserInput } from '@/app/signup/page'; // We'll define this type in the signup page
 
 const adminDb = getFirestore();
-
-// Define the schema for the input data for creating a user profile
-export const CreateUserSchema = z.object({
-  uid: z.string(),
-  name: z.string(),
-  email: z.string().email(),
-  gender: z.enum(['male', 'female', 'other']),
-  age: z.number(),
-  weight: z.number(),
-  height: z.number(),
-  mainGoal: z.string(),
-});
-
-export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
 /**
  * Server Action to create a user profile document in Firestore.
@@ -31,7 +16,7 @@ export type CreateUserInput = z.infer<typeof CreateUserSchema>;
  * @param input - The user's profile details, including the UID from Auth.
  * @returns The newly created user's basic info.
  */
-export async function createUserProfileAction(input: CreateUserInput) {
+export async function createUserProfileAction(input: CreateUserInput & { uid: string }) {
   try {
     const { uid, name, email, gender, age, weight, height, mainGoal } = input;
 
