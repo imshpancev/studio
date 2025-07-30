@@ -1,7 +1,8 @@
+
 // THIS FILE IS FOR CLIENT-SIDE FIREBASE SDK
 // DO NOT USE IN SERVER-SIDE CODE (e.g. Server Actions, Genkit flows)
 
-import { initializeApp, getApp, getApps, deleteApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 

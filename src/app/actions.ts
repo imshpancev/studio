@@ -73,3 +73,23 @@ export async function completeOnboardingAction(uid: string, data: OnboardingForm
         throw new Error('Не удалось обновить профиль.');
     }
 }
+
+/**
+ * Server action to process a completed workout, save it, and analyze feedback.
+ * @param input - The workout summary and feedback.
+ * @returns The analysis output from the AI.
+ */
+export async function processWorkoutSummaryAction(input: import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryInput): Promise<import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryOutput> {
+  const { processWorkoutSummary } = await import('@/ai/flows/process-workout-summary');
+  return processWorkoutSummary(input);
+}
+
+/**
+ * Server action to generate a workout plan.
+ * @param input - The user's preferences and goals for the plan.
+ * @returns The generated workout plan.
+ */
+export async function generatePlanAction(input: import('@/ai/flows/generate-workout-plan').GenerateWorkoutPlanInput): Promise<import('@/ai/flows/generate-workout-plan').GenerateWorkoutPlanOutput> {
+    const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
+    return generateWorkoutPlan(input);
+}
