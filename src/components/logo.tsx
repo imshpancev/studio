@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-export const OptimumPulseLogo = ({ className }: { className?: string }) => (
+export const TheLighSportLogo = ({ className }: { className?: string }) => (
     <div className={cn("flex items-center gap-2", className)}>
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary h-10 w-10">
             <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>

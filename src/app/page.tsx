@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GeneratePlanForm } from "@/components/generate-plan-form";
 import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
-import { OptimumPulseLogo } from "@/components/logo";
+import { TheLighSportLogo } from "@/components/logo";
 import { ProfilePage } from "@/components/profile-page";
 import { MyPlanPage } from "@/components/my-plan-page";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ export default function Home() {
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
              <Link href="/" className="flex items-center gap-4">
-                <OptimumPulseLogo className="h-12 w-auto" />
+                <TheLighSportLogo className="h-12 w-auto" />
              </Link>
           </div>
           {user ? (
