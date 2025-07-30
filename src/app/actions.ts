@@ -4,6 +4,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/models/user-profile';
 import type { OnboardingFormData } from '@/app/onboarding/page';
+import { serverTimestamp } from 'firebase-admin/firestore';
 
 /**
  * Server Action for user sign-up. Creates user in Auth and a basic profile in Firestore.
@@ -23,7 +24,7 @@ export async function signUpAction(email: string, password: string): Promise<{ u
       uid: userRecord.uid,
       email: userRecord.email || '',
       onboardingCompleted: false,
-      createdAt: adminDb.Timestamp.now(),
+      createdAt: serverTimestamp(),
       language: 'ru',
     };
 
