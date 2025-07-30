@@ -12,7 +12,6 @@ const firebaseConfig = {
   apiKey: "AIzaSyB1N-yohIDmxxFwqUJX4QT-F3qo40UAFB0",
   authDomain: "optimumpulse.firebaseapp.com",
   messagingSenderId: "257655082700",
-  databaseURL: "https://optimumpulse.firebaseio.com",
 };
 
 // Initialize Firebase
