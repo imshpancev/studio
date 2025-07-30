@@ -8,10 +8,7 @@ import * as admin from 'firebase-admin';
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
-      // If you have specific service account credentials, you can pass them here.
-      // Otherwise, it will try to use Application Default Credentials.
-      credential: admin.credential.applicationDefault(),
-      projectId: 'optimumpulse',
+      // Application Default Credentials will be used in the App Hosting environment.
     });
   } catch (error) {
     console.error('Firebase Admin initialization error:', error);
