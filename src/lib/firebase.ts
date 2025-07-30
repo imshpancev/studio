@@ -7,11 +7,11 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  projectId: "the-lighsport",
+  projectId: "optimumpulse",
   appId: "1:257655082700:web:18ef8355c1a2f5e6f97c69",
-  storageBucket: "the-lighsport.appspot.com",
+  storageBucket: "optimumpulse.appspot.com",
   apiKey: "AIzaSyB1N-yohIDmxxFwqUJX4QT-F3qo40UAFB0",
-  authDomain: "the-lighsport.firebaseapp.com",
+  authDomain: "optimumpulse.firebaseapp.com",
   messagingSenderId: "257655082700",
 };
 
@@ -28,3 +28,4 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 export { app, auth, db };
+

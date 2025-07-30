@@ -11,7 +11,7 @@ if (!admin.apps.length) {
       // If you have specific service account credentials, you can pass them here.
       // Otherwise, it will try to use Application Default Credentials.
       credential: admin.credential.applicationDefault(),
-      projectId: 'the-lighsport',
+      projectId: 'optimumpulse',
     });
   } catch (error) {
     console.error('Firebase Admin initialization error:', error);
