@@ -2,11 +2,11 @@
 'use server';
 
 import '@/lib/firebase-admin'; // Ensure Firebase Admin is initialized
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { generateWorkoutPlan as generateWorkoutPlanFlow, type GenerateWorkoutPlanInput, type GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
 import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkoutSummaryInput, type ProcessWorkoutSummaryOutput } from "@/ai/flows/process-workout-summary";
 import { UserProfile } from '@/models/user-profile';
-import type { CreateUserInput } from '@/app/signup/page'; // We'll define this type in the signup page
+import type { CreateUserInput } from '@/app/signup/page';
 
 const adminDb = getFirestore();
 
@@ -28,7 +28,7 @@ export async function createUserProfileAction(input: CreateUserInput & { uid: st
       username: `@user_${uid.substring(0, 8)}`,
       avatar: `https://i.pravatar.cc/150?u=${uid}`,
       onboardingCompleted: true, // Registration and onboarding are now one step
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: adminDb.Timestamp.now(), // Correct way to set timestamp on server
       gender,
       age,
       weight,
