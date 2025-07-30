@@ -8,8 +8,6 @@ import { processWorkoutSummary as processWorkoutSummaryFlow, type ProcessWorkout
 import { UserProfile } from '@/models/user-profile';
 import type { CreateUserInput } from '@/app/signup/page';
 
-const adminDb = getFirestore();
-
 /**
  * Server Action to create a user profile document in Firestore.
  * This is called AFTER the user is created in Firebase Auth on the client.
@@ -18,6 +16,7 @@ const adminDb = getFirestore();
  */
 export async function createUserProfileAction(input: CreateUserInput & { uid: string }) {
   try {
+    const adminDb = getFirestore(); // Initialize Firestore inside the action
     const { uid, name, email, gender, age, weight, height, mainGoal } = input;
 
     // Create user profile document in Firestore
