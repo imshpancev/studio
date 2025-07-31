@@ -49,6 +49,7 @@ export default function Home() {
           if (!userProfile) {
             console.warn(`No profile found for user ${currentUser.uid}, logging them out.`);
             auth.signOut();
+            setLoadingAuth(false);
             return;
           }
 
