@@ -97,7 +97,7 @@ export default function OnboardingPage() {
       toast({
         variant: 'destructive',
         title: 'Ошибка',
-        description: error.message || 'Не удалось обновить профиль.',
+        description: 'Не удалось создать профиль.',
       });
     } finally {
       setIsLoading(false);
