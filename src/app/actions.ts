@@ -54,7 +54,7 @@ export async function signUpAction(email: string, password: string): Promise<{ u
  */
 export async function completeOnboardingAction(uid: string, email: string, data: OnboardingFormData) {
     try {
-        const userProfileRef = doc(db, 'users', uid);
+        const userDocRef = doc(db, 'users', uid);
 
         const newProfile: UserProfile = {
             uid: uid,
@@ -69,7 +69,7 @@ export async function completeOnboardingAction(uid: string, email: string, data:
 
         // Use setDoc from the client SDK because this action is initiated
         // by an authenticated client, and our rules expect that.
-        await setDoc(userProfileRef, newProfile);
+        await setDoc(userDocRef, newProfile);
 
         return { success: true, message: "Профиль успешно создан!" };
 
@@ -98,6 +98,7 @@ export async function generatePlanAction(input: import('@/ai/flows/generate-work
     const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
     return generateWorkoutPlan(input);
 }
+
 
 
 
