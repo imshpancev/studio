@@ -45,13 +45,11 @@ export async function signUpAction(email: string, password: string): Promise<{ u
 
 
 /**
- * Server Action to complete the onboarding process. 
- * Creates the user's profile document in Firestore with detailed info.
- * @param uid - The user's UID.
- * @param data - The onboarding form data.
- * @returns A success message.
- * @throws Will throw an error if the profile creation fails.
+ * DEPRECATED: This server action is no longer used.
+ * The logic has been moved to the client-side on the onboarding page
+ * to correctly handle Firebase authentication context for Firestore rules.
  */
+/*
 export async function completeOnboardingAction(uid: string, email: string, data: OnboardingFormData) {
     try {
         const userDocRef = doc(db, 'users', uid);
@@ -78,6 +76,7 @@ export async function completeOnboardingAction(uid: string, email: string, data:
         throw new Error('Не удалось создать профиль.');
     }
 }
+*/
 
 /**
  * Server action to process a completed workout, save it, and analyze feedback.

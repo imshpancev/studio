@@ -14,10 +14,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { completeOnboardingAction } from '../actions';
 import { Separator } from '@/components/ui/separator';
+import { doc, setDoc } from 'firebase/firestore';
+import type { UserProfile } from '@/models/user-profile';
+
 
 const onboardingSchema = z.object({
   name: z.string().min(1, 'Имя обязательно.'),
@@ -68,7 +70,20 @@ export default function OnboardingPage() {
     }
     setIsLoading(true);
     try {
-      await completeOnboardingAction(user.uid, user.email, values);
+      const userDocRef = doc(db, 'users', user.uid);
+
+      const newProfile: UserProfile = {
+          uid: user.uid,
+          email: user.email,
+          ...values,
+          onboardingCompleted: true,
+          createdAt: new Date().toISOString(),
+          language: 'ru',
+          username: `@user_${user.uid.substring(0, 8)}`,
+          avatar: `https://i.pravatar.cc/150?u=${user.uid}`,
+      };
+      
+      await setDoc(userDocRef, newProfile);
       
       toast({
         title: 'Профиль настроен!',
