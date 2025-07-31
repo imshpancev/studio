@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { getWaterIntake, updateWaterIntake } from '@/services/nutritionService';
 
-export function WaterIntakeCard({ date, disabled }: { date: string, disabled?: boolean }) {
+export function WaterIntakeCard({ date, disabled = false }: { date: string, disabled?: boolean }) {
   const [consumed, setConsumed] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(2700);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +41,7 @@ export function WaterIntakeCard({ date, disabled }: { date: string, disabled?: b
   const progress = (consumed / dailyGoal) * 100;
 
   const handleAddWater = async (amount: number) => {
-    if (!user) return;
+    if (!user || disabled) return;
     const newConsumed = Math.max(0, consumed + amount);
     setConsumed(newConsumed); // Optimistic update
     try {
