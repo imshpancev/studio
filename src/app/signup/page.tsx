@@ -8,7 +8,7 @@ import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
-import { signUpAction } from '../actions';
+// We no longer call the server action directly for auth creation
+// import { signUpAction } from '../actions';
 
 const signupSchema = z.object({
   email: z.string().email('Неверный формат email.'),
@@ -39,26 +40,32 @@ export default function SignupPage() {
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Call server action to create user in Auth and Firestore
-      await signUpAction(values.email, values.password);
-      
-      // 2. Sign in the user on the client to establish a session
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // 1. Create user directly with the client SDK
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+
+      // The user is automatically signed in after creation,
+      // so no need to call signInWithEmailAndPassword.
 
       toast({
         title: 'Аккаунт создан!',
         description: 'Теперь давайте завершим настройку вашего профиля.',
       });
       
-      // 3. Redirect to the onboarding page
+      // 2. Redirect to the onboarding page
       router.push('/onboarding');
 
     } catch (error: any) {
+      let errorMessage = 'Произошла ошибка во время регистрации.';
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'Этот email уже используется. Попробуйте войти.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Пароль слишком слабый. Он должен содержать не менее 6 символов.';
+        }
       console.error("Signup error:", error);
       toast({
         variant: 'destructive',
         title: 'Ошибка регистрации',
-        description: error.message,
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
