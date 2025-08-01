@@ -1,36 +1,35 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Users can only create, read, and update their own profile.
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Allow creation if the user is creating their own profile document.
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Rules for subcollections of user
+      match /workouts/{workoutId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      match /nutrition/{date} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /water/{date} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /meals/{mealId} {
+         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+       match /records/{recordId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
-    
+
+    // Workouts can be read by anyone (for feeds), but only created/updated/deleted by the owner.
     match /workouts/{workoutId} {
-      allow read, create: if request.auth.uid != null;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+       allow read: if request.auth != null;
+       allow write: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
-
-    match /users/{userId}/meals/{mealId} {
-      allow read, create, update, delete: if request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/nutrition/{date} {
-       allow read, create, update, delete: if request.auth.uid == userId;
-    }
-
-     match /users/{userId}/water/{date} {
-       allow read, create, update, delete: if request.auth.uid == userId;
-    }
-
-    // Allow public read for users, but only authenticated writes
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth.uid == userId;
-    }
-
   }
 }
