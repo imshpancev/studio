@@ -22,7 +22,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { allSports } from '@/lib/workout-data';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { UserProfile, getUserProfile, updateUserProfile } from '@/services/userService';
 import { Skeleton } from './ui/skeleton';
@@ -140,31 +140,33 @@ export function ProfilePage() {
     },
   });
   
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const userProfile = await getUserProfile(user.uid);
-        if (userProfile) {
-            setProfile(userProfile);
-            form.reset(userProfile);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
-        toast({
-          variant: 'destructive',
-          title: 'Ошибка загрузки профиля',
-          description: 'Не удалось загрузить ваши данные. Попробуйте обновить страницу.',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchProfile = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-    fetchProfile();
+    setIsLoading(true);
+    try {
+      const userProfile = await getUserProfile(user.uid);
+      if (userProfile) {
+          setProfile(userProfile);
+          form.reset(userProfile);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка загрузки профиля',
+        description: 'Не удалось загрузить ваши данные. Попробуйте обновить страницу.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [user, form, toast]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
 
   const { fields: shoes, append: appendShoe, remove: removeShoe, update: updateShoe } = useFieldArray({
@@ -224,6 +226,7 @@ export function ProfilePage() {
       toast({
         title: 'Вы вышли из системы',
       });
+      // No need to router.push, the onAuthStateChanged in page.tsx will handle it
     } catch (error) {
       toast({
         variant: 'destructive',

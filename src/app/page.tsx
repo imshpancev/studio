@@ -76,6 +76,7 @@ export default function Home() {
         setWorkoutPlanInput(null);
         setActiveTab("analytics"); 
         setLoadingAuth(false);
+        router.push('/login');
       }
     });
     return () => unsubscribe();
