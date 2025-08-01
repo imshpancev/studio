@@ -48,8 +48,7 @@ export default function Home() {
           
           if (!userProfile) {
             console.warn(`No profile found for user ${currentUser.uid}, logging them out.`);
-            auth.signOut();
-            setLoadingAuth(false);
+            auth.signOut(); // This will re-trigger the listener and redirect to /login
             return;
           }
 
@@ -71,12 +70,12 @@ export default function Home() {
           setLoadingAuth(false);
         }
       } else {
+        // User is signed out
         setUser(null);
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
-        setActiveTab("analytics"); 
         setLoadingAuth(false);
-        router.push('/login');
+        router.push('/login'); // Force redirect to login if not authenticated
       }
     });
     return () => unsubscribe();

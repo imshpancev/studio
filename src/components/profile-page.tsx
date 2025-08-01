@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
@@ -165,7 +166,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+  }, [fetchProfile, user]);
 
 
   const { fields: shoes, append: appendShoe, remove: removeShoe, update: updateShoe } = useFieldArray({
