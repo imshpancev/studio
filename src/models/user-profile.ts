@@ -4,6 +4,8 @@
  * This provides strong typing for user data throughout the application.
  */
 
+import { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-workout-plan";
+
 export interface UserProfile {
     uid: string;
     email: string;
@@ -45,8 +47,8 @@ export interface UserProfile {
     bikes?: any[];
 
     // Workout Plan
-    workoutPlan?: any | null;
-    workoutPlanInput?: any | null;
+    workoutPlan?: GenerateWorkoutPlanOutput | null;
+    workoutPlanInput?: GenerateWorkoutPlanInput | null;
 
     // For leaderboard purposes
     totalDistance?: number;

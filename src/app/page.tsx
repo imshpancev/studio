@@ -23,13 +23,17 @@ import WorkoutHistoryPage from "./history/page";
 import { RecordsPage } from "@/components/records-page";
 import { FeedPage } from "@/components/feed-page";
 import { NutritionDiaryPage } from "@/components/nutrition-diary-page";
-import { getUserProfile, updateUserProfile } from "@/services/userService";
+import { getUserProfile, updateUserProfile, UserProfile } from "@/services/userService";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
+  
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const defaultTab = searchParams.get('tab') || "analytics";
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -41,31 +45,40 @@ export default function Home() {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoadingAuth(true);
       if (currentUser) {
         setUser(currentUser);
         try {
-          const userProfile = await getUserProfile(currentUser.uid);
+          const profile = await getUserProfile(currentUser.uid);
           
-          if (!userProfile) {
-            console.warn(`No profile found for user ${currentUser.uid}, logging them out.`);
-            auth.signOut(); // This will re-trigger the listener and redirect to /login
+          if (!profile) {
+            console.warn(`No profile found for user ${currentUser.uid}, redirecting to onboarding.`);
+            router.push('/onboarding');
             return;
           }
 
-          // Redirect to onboarding if not completed
-          if (!userProfile.onboardingCompleted) {
+          if (!profile.onboardingCompleted) {
             router.push('/onboarding');
-            return; // Stop further execution
+            return;
           }
+          
+          setUserProfile(profile);
 
-          if (userProfile.workoutPlan) {
-            setWorkoutPlan(userProfile.workoutPlan);
+          if (profile.workoutPlan) {
+            setWorkoutPlan(profile.workoutPlan);
           }
-          if (userProfile.workoutPlanInput) {
-            setWorkoutPlanInput(userProfile.workoutPlanInput);
+          if (profile.workoutPlanInput) {
+            setWorkoutPlanInput(profile.workoutPlanInput);
           }
         } catch (e) {
           console.error("Failed to fetch user profile or plan", e);
+          toast({
+            variant: "destructive",
+            title: "Ошибка загрузки данных",
+            description: "Не удалось загрузить ваш профиль. Попробуйте перезагрузить страницу."
+          })
+          // Sign out if profile loading fails critically
+          await auth.signOut();
         } finally {
           setLoadingAuth(false);
         }
@@ -74,12 +87,13 @@ export default function Home() {
         setUser(null);
         setWorkoutPlan(null);
         setWorkoutPlanInput(null);
+        setUserProfile(null);
         setLoadingAuth(false);
-        router.push('/login'); // Force redirect to login if not authenticated
+        router.push('/login');
       }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, toast]);
 
   useEffect(() => {
     // Sync URL with active tab
@@ -101,8 +115,10 @@ export default function Home() {
   };
   
   const handlePlanFinished = async () => {
-    if (user) {
+    if (user && userProfile) {
+        const updatedProfile = { ...userProfile, workoutPlan: null, workoutPlanInput: null };
         await updateUserProfile(user.uid, { workoutPlan: null, workoutPlanInput: null });
+        setUserProfile(updatedProfile);
     }
     setWorkoutPlan(null);
     setWorkoutPlanInput(null);
@@ -113,6 +129,10 @@ export default function Home() {
   const handleStartEditing = () => {
     setIsEditingPlan(true);
     setActiveTab("my-plan");
+  }
+  
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+    setUserProfile(updatedProfile);
   }
 
   if (loadingAuth) {
@@ -153,7 +173,7 @@ export default function Home() {
 
         </header>
 
-       {user ? (
+       {user && userProfile ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 sm:grid-cols-5 md:grid-cols-8 max-w-6xl mx-auto mb-8">
             <TabsTrigger value="analytics" className="gap-2">
@@ -233,7 +253,7 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="profile">
-            <ProfilePage />
+            <ProfilePage profile={userProfile} onProfileUpdate={handleProfileUpdate} />
           </TabsContent>
         </Tabs>
         ) : (

@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { UserProfile, getUserProfile, updateUserProfile } from '@/services/userService';
+import { UserProfile, updateUserProfile } from '@/services/userService';
 import { Skeleton } from './ui/skeleton';
 
 
@@ -105,68 +105,27 @@ const profileSchema = z.object({
   totalCalories: z.number().optional(),
 });
 
+interface ProfilePageProps {
+  profile: UserProfile;
+  onProfileUpdate: (updatedProfile: UserProfile) => void;
+}
 
-export function ProfilePage() {
+
+export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const user = auth.currentUser;
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-        uid: '',
-        email: '',
-        name: '',
-        username: '',
-        bio: '',
-        avatar: '',
-        favoriteSports: [],
-        gender: 'other',
-        age: 0,
-        weight: 0,
-        height: 0,
-        language: 'ru',
-        mainGoal: '',
-        restingHeartRate: 0,
-        hrv: 0,
-        dailySteps: 0,
-        avgSleepDuration: 0,
-        runningShoes: [],
-        bikes: [],
-    },
+    defaultValues: profile,
   });
   
-  const fetchProfile = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const userProfile = await getUserProfile(user.uid);
-      if (userProfile) {
-          setProfile(userProfile);
-          form.reset(userProfile);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user profile:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Ошибка загрузки профиля',
-        description: 'Не удалось загрузить ваши данные. Попробуйте обновить страницу.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, form, toast]);
-
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile, user]);
+    form.reset(profile);
+  }, [profile, form]);
 
 
   const { fields: shoes, append: appendShoe, remove: removeShoe, update: updateShoe } = useFieldArray({
@@ -197,7 +156,7 @@ export function ProfilePage() {
     setIsSaving(true);
     try {
         await updateUserProfile(user.uid, values);
-        setProfile(prev => prev ? { ...prev, ...values } : null);
+        onProfileUpdate(values); // Update parent state
         toast({
             title: 'Профиль обновлен!',
             description: 'Ваши данные были успешно сохранены.',
@@ -216,7 +175,7 @@ export function ProfilePage() {
   }
 
   function handleCancel() {
-    if(profile) form.reset(profile); 
+    form.reset(profile); 
     setIsEditing(false);
   }
 
@@ -234,32 +193,6 @@ export function ProfilePage() {
         description: 'Не удалось выйти из системы. Попробуйте еще раз.',
       });
     }
-  }
-  
-  if (isLoading) {
-      return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-1/2" />
-                    <Skeleton className="h-4 w-3/4" />
-                </CardHeader>
-                <CardContent className="space-y-8">
-                    <div className="flex flex-col items-center gap-4">
-                        <Skeleton className="h-24 w-24 rounded-full" />
-                    </div>
-                    <div className="space-y-4">
-                        <Skeleton className="h-6 w-1/4" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                        <Skeleton className="h-20 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-      )
   }
 
   return (
