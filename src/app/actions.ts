@@ -4,6 +4,9 @@
 import { adminAuth } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/models/user-profile';
 import type { OnboardingFormData } from '@/app/onboarding/page';
+import type { ProcessWorkoutSummaryInput, ProcessWorkoutSummaryOutput } from '@/ai/flows/process-workout-summary';
+import type { GenerateWorkoutPlanInput, GenerateWorkoutPlanOutput } from '@/ai/flows/generate-workout-plan';
+
 
 /**
  * Server Action for user sign-up. Creates user ONLY in Firebase Authentication.
@@ -81,7 +84,7 @@ export async function completeOnboardingAction(uid: string, email: string, data:
  * @param input - The workout summary and feedback, including the user's ID.
  * @returns The analysis output from the AI.
  */
-export async function processWorkoutSummaryAction(input: import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryInput): Promise<import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryOutput> {
+export async function processWorkoutSummaryAction(input: ProcessWorkoutSummaryInput): Promise<ProcessWorkoutSummaryOutput> {
   const { processWorkoutSummary } = await import('@/ai/flows/process-workout-summary');
   return processWorkoutSummary(input);
 }
@@ -91,7 +94,7 @@ export async function processWorkoutSummaryAction(input: import('@/ai/flows/proc
  * @param input - The user's preferences and goals for the plan.
  * @returns The generated workout plan.
  */
-export async function generatePlanAction(input: import('@/ai/flows/generate-workout-plan').GenerateWorkoutPlanInput): Promise<import('@/ai/flows/generate-workout-plan').GenerateWorkoutPlanOutput> {
+export async function generatePlanAction(input: GenerateWorkoutPlanInput): Promise<GenerateWorkoutPlanOutput> {
     const { generateWorkoutPlan } = await import('@/ai/flows/generate-workout-plan');
     return generateWorkoutPlan(input);
 }

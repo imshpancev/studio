@@ -17,7 +17,6 @@ import {
   type AnalyzeWorkoutFeedbackInput,
   type AnalyzeWorkoutFeedbackOutput,
 } from './analyze-workout-feedback';
-// Import addWorkout from the server-only service file.
 import { addWorkout } from '@/services/workoutService.server';
 
 
@@ -85,11 +84,12 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       throw new Error('User ID is required.');
     }
     
-    // 1. Sanitize the workout object to remove any `undefined` fields, which Firestore rejects.
-    const workoutToSave = workout as { [key: string]: any };
-    Object.keys(workoutToSave).forEach(key => {
-        if (workoutToSave[key] === undefined) {
-            delete workoutToSave[key];
+    // 1. Create a sanitized workout object to save, excluding any `undefined` fields.
+    const workoutToSave: { [key: string]: any } = {};
+    Object.keys(workout).forEach(key => {
+        const value = (workout as any)[key];
+        if (value !== undefined) {
+            workoutToSave[key] = value;
         }
     });
 
