@@ -2,6 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin'; // Import adminDb
 import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
 import { Sport } from '@/lib/workout-data';
 import { getUserProfile, UserProfile } from './userService';
@@ -35,7 +36,8 @@ export interface WorkoutWithUser extends Workout {
 }
 
 /**
- * Adds a new workout document to the 'workouts' collection in Firestore.
+ * Adds a new workout document to the 'workouts' collection in Firestore using the Admin SDK.
+ * This is meant to be called from a trusted server-side environment (like a Genkit flow).
  * @param workoutData The workout data to save. The 'userId' field MUST be present.
  */
 export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>): Promise<string> {
@@ -47,7 +49,8 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
             ...workoutData,
             createdAt: serverTimestamp(),
         };
-        const workoutsCollection = collection(db, 'workouts');
+        // Use adminDb to bypass security rules for server-side operations
+        const workoutsCollection = collection(adminDb, 'workouts');
         const docRef = await addDoc(workoutsCollection, dataToSave);
         return docRef.id;
     } catch (error) {
@@ -57,7 +60,8 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
 }
 
 /**
- * Fetches all workouts for a specific user.
+ * Fetches all workouts for a specific user using the CLIENT SDK.
+ * This respects security rules and should be used for client-facing requests.
  * @param userId The UID of the user whose workouts to fetch.
  * @returns A promise that resolves to an array of workout documents.
  */
@@ -73,7 +77,7 @@ export async function getUserWorkouts(userId: string): Promise<Workout[]> {
 }
 
 /**
- * Fetches a single workout by its document ID.
+ * Fetches a single workout by its document ID using the CLIENT SDK.
  * @param workoutId The ID of the workout document to fetch.
  * @returns A promise that resolves to the workout document or null if not found.
  */
@@ -90,7 +94,7 @@ export async function getWorkoutById(workoutId: string): Promise<Workout | null>
 
 
 /**
- * Deletes a workout document from Firestore.
+ * Deletes a workout document from Firestore using the CLIENT SDK.
  * @param workoutId The ID of the workout to delete.
  */
 export async function deleteWorkout(workoutId: string): Promise<void> {

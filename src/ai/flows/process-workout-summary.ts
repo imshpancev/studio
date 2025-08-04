@@ -17,9 +17,9 @@ import {
   type AnalyzeWorkoutFeedbackInput,
   type AnalyzeWorkoutFeedbackOutput,
 } from './analyze-workout-feedback';
+// addWorkout is now called from the server, so we don't need client-side auth.
 import { addWorkout } from '@/services/workoutService';
-// We don't use client-side auth here
-// import { auth } from '@/lib/firebase';
+
 
 // This schema must be defined here because it's used in this flow's outputSchema,
 // and it cannot be imported from 'analyze-workout-feedback.ts' because that file
@@ -85,14 +85,15 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       throw new Error('User ID is required.');
     }
 
-    // 1. Save the workout to Firestore
-    await addWorkout({
+    // 1. Save the workout to Firestore using the Admin SDK via addWorkout
+    const workoutId = await addWorkout({
       ...workout,
       userId: userId,
     });
 
     // 2. Fetch user profile and current plan for context
-    // const userProfile = await getUserProfile(user.uid, user.email || '');
+    // In a real app, you would fetch user profile here using Admin SDK if needed for analysis
+    // const userProfile = await getUserProfile(userId); 
 
     // 3. Prepare input for feedback analysis
     const analysisInput: AnalyzeWorkoutFeedbackInput = {
@@ -101,16 +102,16 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       workoutFeedback: feedback.notes || 'No feedback provided.',
       // In a real app, you might pass sensor data URI here
       // wearableSensorData: ...
+      // And the user's current plan
       // workoutPlan: JSON.stringify(userProfile.workoutPlan || {}),
-      workoutPlan: '{}', // Temporarily providing an empty plan
+      workoutPlan: '{}', // Temporarily providing an empty plan for now
     };
 
     // 4. Analyze the feedback
     const analysisOutput = await analyzeWorkoutFeedback(analysisInput);
 
-    // 5. Optionally, adapt the workout plan based on the analysis
-    // This could be a separate step or integrated here.
-    // For now, we just return the analysis.
+    // 5. Optionally, you could update the user's plan in Firestore here
+    // based on the analysis output. For now, we just return the analysis.
 
     return analysisOutput;
   }
