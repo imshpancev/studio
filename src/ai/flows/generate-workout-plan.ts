@@ -116,7 +116,7 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   input: {schema: GenerateWorkoutPlanInputSchema},
   output: {schema: GenerateWorkoutPlanOutputSchema},
   tools: [getWorkoutDatabase],
-  model: 'googleai/gemini-1.5-flash-preview-0514',
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are an expert personal trainer. Your task is to create a personalized, multi-week workout plan. The total duration of the plan must be exactly {{{planDurationWeeks}}} weeks.
 
 First, use the 'getWorkoutDatabase' tool to fetch the available workouts and exercises for the user's specified 'sportPreferences'.
@@ -157,7 +157,7 @@ Adapt the plan based on the user's entire profile:
   - For each week, define a specific 'weekGoal'.
   - For each day in the week, define a 'day' (e.g., "День 1"), a 'title', a brief 'description', and an array of 'exercises'.
   - Distribute the {{{workoutDaysPerWeek}}} workout days evenly throughout the week, with appropriate rest days in between.
-  - For each workout day, select a suitable workout type and a set of exercises from the database. For each exercise, you MUST include 'name', 'details', 'technique', and 'description'.
+  - For each workout day, select a suitable workout type and a set of exercises from the database. For each exercise, you MUST include 'name', 'details', 'technique', 'description'.
   - Adapt sets, reps, duration, and intensity based on the user's fitness level, goals, and the week number (e.g., progressive overload).
   - For rest days, the 'title' should be "День отдыха" and the 'exercises' array should be empty. The 'description' can mention light activity.
   - The final output MUST be a JSON object that perfectly matches the required output schema, including a 'planTitle'.
