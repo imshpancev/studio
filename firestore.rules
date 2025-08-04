@@ -2,34 +2,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can read their own profile or list all users, but only write to their own.
-    // Create is allowed for any authenticated user to complete onboarding.
+    
+    // Users can read their own profile and list all users for discovery.
+    // They can only write to their own profile.
     match /users/{userId} {
       allow get, list: if request.auth != null;
       allow write: if request.auth.uid == userId;
-      allow create: if request.auth.uid != null;
     }
-
-    // Users can only get or list their own workouts.
+    
+    // A user can only read/write/delete their own workouts.
+    // The 'list' permission is granted if the query is filtered by the user's own userId.
     match /workouts/{workoutId} {
-      allow get, write: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid == request.query.filters[0].value;
+      allow get, delete: if request.auth.uid == resource.data.userId;
+      allow list: if request.auth.uid == request.query.filters.userId;
+      allow write: if request.auth.uid == request.resource.data.userId;
     }
-
-    // Users can only read/write their own meals.
-    match /meals/{mealId} {
-      allow get, write: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid == request.query.filters[0].value;
+    
+    // A user can only read/write their own nutrition data.
+    match /users/{userId}/nutrition/{date} {
+      allow read, write: if request.auth.uid == userId;
     }
-
-    // Users can only read/write their own nutrition goals.
-    match /nutrition/{date} {
+    
+    // A user can only read/write their own meal data.
+    match /users/{userId}/meals/{mealId} {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // Users can only read/write their own water intake.
-    match /water/{date} {
+    // A user can only read/write their own water data.
+    match /users/{userId}/water/{date} {
       allow read, write: if request.auth.uid == userId;
     }
   }
