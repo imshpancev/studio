@@ -164,6 +164,15 @@ Adapt the plan based on the user's entire profile:
   - Ensure the response is in Russian.
   - IMPORTANT: Before finishing, double-check that EVERY day object in EVERY week of the plan contains the required fields: 'day', 'title', and 'exercises' to conform to the schema.
 `,
+  // Add retry configuration for network or temporary API errors.
+  retry: {
+    maxAttempts: 5,
+    backoff: {
+      initialDelay: 2000,
+      maxDelay: 30000,
+      multiplier: 2,
+    },
+  },
 });
 
 const generateWorkoutPlanFlow = ai.defineFlow(
@@ -198,3 +207,4 @@ const generateWorkoutPlanFlow = ai.defineFlow(
     return output;
   }
 );
+
