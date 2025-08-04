@@ -1,10 +1,10 @@
-
 // THIS FILE IS FOR CLIENT-SIDE FIREBASE SDK
 // DO NOT USE IN SERVER-SIDE CODE (e.g. Server Actions, Genkit flows)
 
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   projectId: "optimumpulse",
@@ -26,5 +26,6 @@ if (getApps().length === 0) {
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { app, auth, db };
+export { app, auth, db, storage };

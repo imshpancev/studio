@@ -31,9 +31,9 @@ export default function Home() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<GenerateWorkoutPlanOutput | null>(null);
   const [workoutPlanInput, setWorkoutPlanInput] = useState<GenerateWorkoutPlanInput | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const defaultTab = searchParams.get('tab') || "analytics";
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -51,14 +51,11 @@ export default function Home() {
         try {
           const profile = await getUserProfile(currentUser.uid);
           
-          if (!profile) {
-            console.warn(`No profile found for user ${currentUser.uid}, redirecting to onboarding.`);
-            router.push('/onboarding');
-            return;
-          }
-
-          if (!profile.onboardingCompleted) {
-            router.push('/onboarding');
+          if (!profile || !profile.onboardingCompleted) {
+            console.warn(`No profile found or onboarding incomplete for user ${currentUser.uid}, redirecting.`);
+            // Sign out to clear any partial state before redirecting to login
+            await auth.signOut(); 
+            // The redirect to /login will be handled by the 'else' block below
             return;
           }
           
@@ -105,20 +102,19 @@ export default function Home() {
   }, [activeTab]);
 
 
-  const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
+  const handlePlanGenerated = async (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
     setWorkoutPlanInput(input);
-    setIsEditingPlan(false); 
-    if (plan && input) {
+    setIsEditingPlan(false);
+    if (plan && input && user) {
+      await updateUserProfile(user.uid, { workoutPlan: plan, workoutPlanInput: input });
       setActiveTab("my-plan");
     }
   };
   
   const handlePlanFinished = async () => {
-    if (user && userProfile) {
-        const updatedProfile = { ...userProfile, workoutPlan: null, workoutPlanInput: null };
+    if (user) {
         await updateUserProfile(user.uid, { workoutPlan: null, workoutPlanInput: null });
-        setUserProfile(updatedProfile);
     }
     setWorkoutPlan(null);
     setWorkoutPlanInput(null);

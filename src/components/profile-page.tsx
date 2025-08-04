@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { HeartPulse, Activity, Moon, Ruler, Weight, Droplets, Target, LogOut, Camera, Check, Footprints, Bike, Trash2, Languages, Pencil, X, Star, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
+import { signOut, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { NotificationsSettings } from './notifications-settings';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -22,11 +22,10 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { allSports } from '@/lib/workout-data';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { UserProfile, updateUserProfile } from '@/services/userService';
-import { Skeleton } from './ui/skeleton';
-
+import { uploadFile } from '@/services/storageService';
 
 const runningShoeSchema = z.object({
   id: z.string().optional(),
@@ -116,7 +115,9 @@ export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const user = auth.currentUser;
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -148,6 +149,22 @@ export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
     bikes.forEach((bike, i) => {
         updateBike(i, { ...bike, isDefault: i === index });
     });
+  }
+  
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0] || !user) return;
+    const file = event.target.files[0];
+    setIsUploading(true);
+    try {
+      const filePath = `avatars/${user.uid}/${file.name}`;
+      const downloadURL = await uploadFile(file, filePath);
+      form.setValue('avatar', downloadURL);
+      toast({ title: "Аватар обновлен!" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить фото." });
+    } finally {
+      setIsUploading(false);
+    }
   }
 
 
@@ -185,7 +202,7 @@ export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
       toast({
         title: 'Вы вышли из системы',
       });
-      // No need to router.push, the onAuthStateChanged in page.tsx will handle it
+      // The onAuthStateChanged listener in page.tsx will handle the redirect
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -207,8 +224,9 @@ export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
                   <CardDescription>Обновите вашу личную информацию и отслеживаемые показатели здоровья.</CardDescription>
                 </div>
                 {!isEditing && (
-                  <Button type="button" variant="outline" size="icon" onClick={() => setIsEditing(true)}>
-                    <Pencil className="h-4 w-4" />
+                  <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Редактировать
                   </Button>
                 )}
               </div>
@@ -216,15 +234,25 @@ export function ProfilePage({ profile, onProfileUpdate }: ProfilePageProps) {
             <CardContent className="space-y-8">
               
               <div className="flex flex-col items-center gap-4">
-                 <Avatar className="h-24 w-24">
-                    <AvatarImage src={profile?.avatar} alt="User avatar" />
-                    <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
+                 <div className="relative">
+                   <Avatar className="h-24 w-24">
+                      <AvatarImage src={form.watch('avatar')} alt="User avatar" />
+                      <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                       <Loader2 className="h-8 w-8 animate-spin text-white"/>
+                    </div>
+                   )}
+                 </div>
                 {isEditing && (
-                  <Button type="button" variant="outline" disabled={!isEditing}>
-                      <Camera className="mr-2 h-4 w-4"/>
-                      Изменить фото
-                  </Button>
+                  <>
+                    <input type="file" ref={avatarInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
+                    <Button type="button" variant="outline" disabled={!isEditing || isUploading} onClick={() => avatarInputRef.current?.click()}>
+                        <Camera className="mr-2 h-4 w-4"/>
+                        Изменить фото
+                    </Button>
+                  </>
                 )}
               </div>
 
