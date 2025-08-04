@@ -18,7 +18,7 @@ import { Slider } from './ui/slider';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { FeedbackAnalysisDisplay } from './feedback-analysis-display';
 
-type WorkoutSummaryData = Omit<ProcessWorkoutSummaryInput['workout'], 'date' | 'userId'>;
+type WorkoutSummaryData = Omit<ProcessWorkoutSummaryInput['workout'], 'date'>;
 
 type WorkoutSummaryProps = {
   summary: WorkoutSummaryData;
