@@ -112,28 +112,39 @@ export async function deleteWorkout(workoutId: string): Promise<void> {
  */
 export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWithUser[]> {
     const workoutsCollection = collection(db, 'workouts');
+    // We need to query by userId eventually for a proper feed, but for now we get latest.
+    // The query needs to not include the current user.
     const q = query(workoutsCollection, orderBy('createdAt', 'desc'), limit(20));
+    
     const querySnapshot = await getDocs(q);
     
     const feedWorkouts: WorkoutWithUser[] = [];
-    const userPromises = new Map<string, Promise<UserProfile | null>>();
+
+    // Batch user profile requests
+    const userIds = new Set<string>();
+    querySnapshot.docs.forEach(doc => {
+        const workout = doc.data() as Workout;
+        if (workout.userId !== currentUserId) {
+            userIds.add(workout.userId);
+        }
+    });
+
+    const userProfiles = new Map<string, UserProfile | null>();
+    const userPromises = Array.from(userIds).map(uid => getUserProfile(uid).then(p => ({uid, p})));
+    
+    (await Promise.all(userPromises)).forEach(result => {
+        userProfiles.set(result.uid, result.p);
+    });
+
 
     for (const doc of querySnapshot.docs) {
         const workout = { id: doc.id, ...doc.data() } as Workout;
         
         if (workout.userId === currentUserId) continue;
 
-        if (!userPromises.has(workout.userId)) {
-            userPromises.set(workout.userId, getUserProfile(workout.userId));
-        }
-        
-        try {
-             const userProfile = await userPromises.get(workout.userId);
-            if (userProfile) {
-                feedWorkouts.push({ ...workout, user: userProfile });
-            }
-        } catch (error) {
-            console.error(`Failed to fetch profile for user ${workout.userId}`, error);
+        const userProfile = userProfiles.get(workout.userId);
+        if (userProfile) {
+            feedWorkouts.push({ ...workout, user: userProfile });
         }
     }
 

@@ -17,7 +17,7 @@ import {
   type AnalyzeWorkoutFeedbackInput,
   type AnalyzeWorkoutFeedbackOutput,
 } from './analyze-workout-feedback';
-// addWorkout is now called from the server, so we don't need client-side auth.
+// Import addWorkout from the service, which now uses the Admin SDK.
 import { addWorkout } from '@/services/workoutService';
 
 
@@ -88,7 +88,7 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     // 1. Save the workout to Firestore using the Admin SDK via addWorkout
     const workoutId = await addWorkout({
       ...workout,
-      userId: userId,
+      userId: userId, // Ensure userId is passed to the workout data object
     });
 
     // 2. Fetch user profile and current plan for context
