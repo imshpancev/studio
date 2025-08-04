@@ -3,34 +3,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Users can see other users' profiles, but only write to their own.
     match /users/{userId} {
       allow get, list: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Users can only read/write their own workouts.
+    // list operation is allowed only if the query filters by the user's own UID.
     match /workouts/{workoutId} {
       allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      // Allow a user to list their own workouts, but not anyone else's.
-      allow list: if request.auth != null && request.query.where['userId'] == request.auth.uid;
+      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
+    // Nutrition, meals, and water data is private to each user.
     match /users/{userId}/nutrition/{date} {
-      // Users can read/write their own nutrition data.
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow get, list, write: if request.auth != null && request.auth.uid == userId;
     }
     
     match /users/{userId}/meals/{mealId} {
-       // A user can only list their own meals.
-      allow list: if request.auth != null && request.query.where['userId'] == request.auth.uid;
-      // A user can get, create, update, or delete their own meal entries.
-      allow get, write: if request.auth != null && request.auth.uid == userId;
+      allow get: if request.auth != null && request.auth.uid == userId;
+      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     match /users/{userId}/water/{date} {
-      // Users can read/write their own water intake data.
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow get, list, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
