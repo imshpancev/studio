@@ -86,8 +86,9 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     
     // 1. Create a sanitized workout object to save, excluding any `undefined` fields.
     const workoutToSave: { [key: string]: any } = {};
-    Object.keys(workout).forEach(key => {
-        const value = (workout as any)[key];
+    Object.keys(workout).forEach(keyStr => {
+        const key = keyStr as keyof typeof workout;
+        const value = workout[key];
         if (value !== undefined) {
             workoutToSave[key] = value;
         }
