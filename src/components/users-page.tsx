@@ -22,7 +22,7 @@ export function UsersPage() {
     const { toast } = useToast();
     
     useEffect(() => {
-        async function fetchUsers() {
+        const fetchUsers = async () => {
             try {
                 const fetchedUsers = await getAllUsers();
                 setUsers(fetchedUsers);
@@ -41,7 +41,7 @@ export function UsersPage() {
             }
         }
         fetchUsers();
-    }, [toast]);
+    }, []);
 
     const handleFollowToggle = (userId: string, name?: string) => {
         setFollowingState(current => {
