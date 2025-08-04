@@ -45,7 +45,7 @@ export default function BodyFatPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setBodyFat(profile?.bodyFat || 27.8); // fallback to mock
+            setBodyFat(profile?.bodyFat || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о жире.' });
         } finally {
@@ -58,6 +58,8 @@ export default function BodyFatPage() {
   if (isLoading) {
     return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
+  
+  const status = bodyFat ? (bodyFat > 25 ? 'Высокий' : 'Норма') : '-';
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -73,7 +75,7 @@ export default function BodyFatPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Процент телесного жира</CardTitle>
-                 <CardDescription className="text-lg text-orange-500 font-bold">{bodyFat}% (Высокий)</CardDescription>
+                 <CardDescription className="text-lg text-orange-500 font-bold">{bodyFat ?? 'N/A'}% ({status})</CardDescription>
             </div>
           </div>
         </CardHeader>

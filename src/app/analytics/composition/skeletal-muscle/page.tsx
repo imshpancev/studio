@@ -26,7 +26,7 @@ export default function SkeletalMusclePage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setSkeletalMuscle(profile?.skeletalMuscle || 37.9); // fallback to mock
+            setSkeletalMuscle(profile?.skeletalMuscle || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о скелетных мышцах.' });
         } finally {
@@ -56,7 +56,7 @@ export default function SkeletalMusclePage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Скелетные мышцы</CardTitle>
-                 <CardDescription className="text-lg text-teal-500 font-bold">{skeletalMuscle}% {status}</CardDescription>
+                 <CardDescription className="text-lg text-teal-500 font-bold">{skeletalMuscle ?? 'N/A'}% {status}</CardDescription>
             </div>
           </div>
         </CardHeader>

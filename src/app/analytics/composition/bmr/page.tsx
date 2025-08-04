@@ -26,7 +26,7 @@ export default function BmrPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setBmr(profile?.bmr || 1919); // fallback to mock
+            setBmr(profile?.bmr || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о СООВ.' });
         } finally {
@@ -54,7 +54,7 @@ export default function BmrPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Базальный метаболизм (СООВ)</CardTitle>
-                 <CardDescription className="text-lg text-red-500 font-bold">{bmr} ккал/день</CardDescription>
+                 <CardDescription className="text-lg text-red-500 font-bold">{bmr ?? 'N/A'} ккал/день</CardDescription>
             </div>
           </div>
         </CardHeader>

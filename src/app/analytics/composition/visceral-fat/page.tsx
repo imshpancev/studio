@@ -26,7 +26,7 @@ export default function VisceralFatPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setVisceralFat(profile?.visceralFat || 11); // fallback to mock
+            setVisceralFat(profile?.visceralFat || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о висцеральном жире.' });
         } finally {
@@ -56,7 +56,7 @@ export default function VisceralFatPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Висцеральный жир</CardTitle>
-                 <CardDescription className="text-lg text-purple-500 font-bold">Индекс: {visceralFat} {status}</CardDescription>
+                 <CardDescription className="text-lg text-purple-500 font-bold">Индекс: {visceralFat ?? 'N/A'} {status}</CardDescription>
             </div>
           </div>
         </CardHeader>

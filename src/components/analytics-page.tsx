@@ -69,18 +69,10 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         fetchData();
     }, [user, toast]);
     
-    // REAL DATA
-    const readinessScore = userProfile?.readinessScore || 0;
-    const trainingLoadRatio = userProfile?.trainingLoadRatio || 0;
-    const stressLevel = userProfile?.stressLevel || 0;
-    const bodyBattery = userProfile?.bodyBattery || 0;
-    const sleepQuality = userProfile?.avgSleepDuration ? Math.round((userProfile.avgSleepDuration / 8) * 100) : 0;
-    const sleepDuration = userProfile?.avgSleepDuration || 0;
-    const recoveryTime = userProfile?.recoveryTimeHours || 0;
-    
     // --- CALCULATIONS ---
     const calculateTotalTime = (workouts: Workout[]) => {
         return workouts.reduce((acc, workout) => {
+            if (!workout.duration) return acc;
             const parts = workout.duration.split(':').map(Number);
             const seconds = (parts[0] * 3600) + (parts[1] * 60) + parts[2];
             return acc + (seconds / 60); // time in minutes
@@ -89,7 +81,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
 
     const totalTime = calculateTotalTime(workouts);
     const totalCaloriesBurned = workouts.reduce((acc, w) => acc + (w.calories || 0), 0);
-    const totalCaloriesConsumed = 1850; // Mocked for now
+    const totalCaloriesConsumed = userProfile?.bmr || 2000; // Use BMR as a baseline for consumed calories for now
 
      const generateWeeklyActivityData = (workouts: Workout[]) => {
         const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -102,8 +94,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
             const dayOfWeek = workoutDate.getDay(); // 0 for Sunday, 1 for Monday...
             const dayName = days[dayOfWeek];
             
-            const durationParts = workout.duration.split(':').map(Number);
-            const durationInMinutes = durationParts[0] * 60 + durationParts[1] + durationParts[2] / 60;
+            const durationInMinutes = workout.duration ? (durationToSeconds(workout.duration) / 60) : 0;
 
             const key = workout.type.toLowerCase()
                 .replace('тренажерный зал', 'gym')
@@ -119,23 +110,32 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
         return orderedData;
     };
     
+    const durationToSeconds = (duration: string) => {
+        const parts = duration.split(':').map(Number);
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        return 0;
+    }
+    
     const weeklyActivityData = generateWeeklyActivityData(workouts);
 
 
-    const getReadinessColor = (score: number) => {
+    const getReadinessColor = (score?: number) => {
+        if (!score) return "bg-gray-500";
         if (score > 80) return "bg-green-500";
         if (score > 60) return "bg-yellow-500";
         return "bg-red-500";
     }
 
-     const getTrainingLoadText = (ratio: number) => {
+     const getTrainingLoadText = (ratio?: number) => {
+        if (!ratio) return "Нет данных";
         if (ratio < 0.8) return "Недостаточная нагрузка";
         if (ratio < 1.3) return "Оптимальная";
         if (ratio < 1.5) return "Перегрузка";
         return "Высокий риск травмы";
     }
     
-    const getTrainingLoadBadgeVariant = (ratio: number): "default" | "secondary" | "destructive" | "outline" => {
+    const getTrainingLoadBadgeVariant = (ratio?: number): "default" | "secondary" | "destructive" | "outline" => {
+        if (!ratio) return "secondary";
         if (ratio < 0.8) return "secondary";
         if (ratio < 1.3) return "default";
         if (ratio < 1.5) return "outline";
@@ -229,9 +229,9 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                                 <Zap className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">45.2</div>
+                                <div className="text-2xl font-bold">N/A</div>
                                 <p className="text-xs text-muted-foreground">
-                                    мл/кг/мин (Хорошо)
+                                    (Скоро)
                                 </p>
                             </CardContent>
                         </Card>
@@ -308,7 +308,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                              <TrendingDown className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                             <div className="text-2xl font-bold">{totalCaloriesConsumed.toLocaleString()} / 2500 ккал</div>
+                             <div className="text-2xl font-bold">{totalCaloriesConsumed.toLocaleString()} / {userProfile?.bmr || 2000} ккал</div>
                              <p className="text-xs text-muted-foreground">Факт / План</p>
                         </CardContent>
                     </Card>
@@ -319,7 +319,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                         </CardHeader>
                         <CardContent>
                              <div className="text-2xl font-bold">{totalCaloriesBurned.toLocaleString()} ккал</div>
-                             <p className="text-xs text-muted-foreground">Активные: {totalCaloriesBurned.toLocaleString()}, В покое: 1650</p>
+                             <p className="text-xs text-muted-foreground">Активные: {totalCaloriesBurned.toLocaleString()}, В покое: {userProfile?.bmr || 1650}</p>
                         </CardContent>
                     </Card>
 
@@ -330,10 +330,10 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                         </CardHeader>
                         <CardContent className="flex-1 flex flex-col justify-between">
                             <div>
-                                <div className="text-2xl font-bold">{readinessScore}%</div>
+                                <div className="text-2xl font-bold">{userProfile?.readinessScore ?? 0}%</div>
                                 <p className="text-xs text-muted-foreground">На основе ВСР, сна и недавней нагрузки</p>
                             </div>
-                            <Progress value={readinessScore} className="mt-4 h-2" indicatorClassName={getReadinessColor(readinessScore)} />
+                            <Progress value={userProfile?.readinessScore} className="mt-4 h-2" indicatorClassName={getReadinessColor(userProfile?.readinessScore)} />
                         </CardContent>
                     </Card>
                     <Card onClick={() => handleCardClick('sleep')} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
@@ -343,10 +343,10 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                         </CardHeader>
                         <CardContent className="flex-1 flex flex-col justify-between">
                             <div>
-                                <div className="text-2xl font-bold">{sleepDuration} ч</div>
-                                <p className="text-xs text-muted-foreground">Качество: <span className={cn(sleepQuality > 80 ? "text-green-500" : "text-yellow-500")}>{sleepQuality}%</span></p>
+                                <div className="text-2xl font-bold">{userProfile?.avgSleepDuration ?? 0} ч</div>
+                                <p className="text-xs text-muted-foreground">Качество: <span className={cn(userProfile?.sleepData ? "text-green-500" : "text-yellow-500")}>{(userProfile?.avgSleepDuration || 0) > 7 ? 'Хорошее' : 'Нормальное'}</span></p>
                             </div>
-                            <Progress value={sleepQuality} className="mt-4 h-2" indicatorClassName={getReadinessColor(sleepQuality)} />
+                            <Progress value={userProfile?.avgSleepDuration ? (userProfile.avgSleepDuration/8)*100 : 0} className="mt-4 h-2" indicatorClassName={getReadinessColor(userProfile?.avgSleepDuration ? (userProfile.avgSleepDuration/8)*100 : 0)} />
                         </CardContent>
                     </Card>
                     <Card onClick={() => handleCardClick('training-load')} className="cursor-pointer hover:border-primary transition-colors">
@@ -356,9 +356,9 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                <Badge variant={getTrainingLoadBadgeVariant(trainingLoadRatio)}>{getTrainingLoadText(trainingLoadRatio)}</Badge>
+                                <Badge variant={getTrainingLoadBadgeVariant(userProfile?.trainingLoadRatio)}>{getTrainingLoadText(userProfile?.trainingLoadRatio)}</Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground">Соотношение острой и хронической нагрузки: {trainingLoadRatio.toFixed(1)}</p>
+                            <p className="text-xs text-muted-foreground">Соотношение острой и хронической нагрузки: {userProfile?.trainingLoadRatio?.toFixed(1) ?? 'N/A'}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                                 <div className="h-2 w-2 rounded-full bg-green-500"></div><span>Оптимально (0.8-1.3)</span>
                                 <div className="h-2 w-2 rounded-full bg-yellow-500"></div><span>Перегрузка (1.3-1.5)</span>
@@ -373,10 +373,10 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                         </CardHeader>
                         <CardContent className="flex-1 flex flex-col justify-between">
                             <div>
-                                <div className="text-2xl font-bold">{bodyBattery}%</div>
+                                <div className="text-2xl font-bold">{userProfile?.bodyBattery ?? 0}%</div>
                                 <p className="text-xs text-muted-foreground">Оценка запаса энергии вашего тела</p>
                             </div>
-                            <Progress value={bodyBattery} className="mt-4 h-2" indicatorClassName={getReadinessColor(bodyBattery)} />
+                            <Progress value={userProfile?.bodyBattery} className="mt-4 h-2" indicatorClassName={getReadinessColor(userProfile?.bodyBattery)} />
                         </CardContent>
                     </Card>
                     <Card onClick={() => handleCardClick('recovery')} className="cursor-pointer hover:border-primary transition-colors">
@@ -385,7 +385,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{recoveryTime} часов</div>
+                            <div className="text-2xl font-bold">{userProfile?.recoveryTimeHours ?? 0} часов</div>
                             <p className="text-xs text-muted-foreground">Рекомендуемое время до следующей тяжелой тренировки</p>
                         </CardContent>
                     </Card>
@@ -395,7 +395,7 @@ export function AnalyticsPage({ setActiveTab }: { setActiveTab: (tab: string) =>
                             <HeartCrack className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stressLevel} / 100</div>
+                            <div className="text-2xl font-bold">{userProfile?.stressLevel ?? 0} / 100</div>
                             <p className="text-xs text-muted-foreground">На основе вариабельности сердечного ритма</p>
                         </CardContent>
                     </Card>

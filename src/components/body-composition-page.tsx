@@ -26,7 +26,7 @@ const MetricRow = ({ title, value, unit, icon, metricId, status }: { title: stri
                 <span className="font-medium">{title}</span>
             </div>
             <div className="flex items-center gap-2">
-                <span className={`font-semibold text-lg ${statusColor}`}>{value}{unit}</span>
+                <span className={`font-semibold text-lg ${statusColor}`}>{value ?? 'N/A'}{unit}</span>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </div>
         </div>
@@ -39,18 +39,6 @@ export function BodyCompositionPage() {
     const user = auth.currentUser;
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-
-    const bodyCompData = {
-        weight: { value: profile?.weight, unit: 'кг', metricId: 'weight' },
-        bodyFat: { value: profile?.bodyFat, unit: '%', status: 'high', metricId: 'body-fat' },
-        muscleMass: { value: profile?.muscleMass, unit: '%', status: 'normal', metricId: 'muscle-mass' },
-        visceralFat: { value: profile?.visceralFat, unit: '', status: 'high', metricId: 'visceral-fat' },
-        bmr: { value: profile?.bmr, unit: 'ккал', status: 'normal', metricId: 'bmr' },
-        water: { value: profile?.water, unit: '%', status: 'low', metricId: 'water' },
-        skeletalMuscle: { value: profile?.skeletalMuscle, unit: '%', status: 'normal', metricId: 'skeletal-muscle' },
-        score: { value: 4.1, max: 10 },
-        bodyType: 'Крупное'
-    };
     
     useEffect(() => {
         if (!user) {
@@ -73,6 +61,24 @@ export function BodyCompositionPage() {
         }
         fetchData();
     }, [user, toast]);
+    
+    const getStatusForFat = (fat?: number) => {
+        if (!fat) return 'normal';
+        // Simplified logic
+        return fat > 25 ? 'high' : 'normal';
+    }
+
+    const getStatusForWater = (water?: number, gender?: string) => {
+        if (!water) return 'normal';
+        const lowerBound = gender === 'female' ? 45 : 50;
+        return water < lowerBound ? 'low' : 'normal';
+    }
+    
+    const getStatusForVisceralFat = (fat?: number) => {
+        if (!fat) return 'normal';
+        return fat >= 10 ? 'high' : 'normal';
+    }
+
 
     if(isLoading) {
         return (
@@ -94,7 +100,7 @@ export function BodyCompositionPage() {
             <CardHeader>
                 <CardTitle>Отчет об измерениях</CardTitle>
                 <CardDescription>
-                    Данные синхронизированы с Apple Health.
+                    Данные синхронизированы с вашими устройствами.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -105,11 +111,11 @@ export function BodyCompositionPage() {
                         <div className="space-y-8 text-right">
                            <div className="space-y-1">
                              <p className="text-sm text-muted-foreground">Вес</p>
-                             <p className="text-xl font-bold">{bodyCompData.weight.value}кг</p>
+                             <p className="text-xl font-bold">{profile?.weight ?? 'N/A'}кг</p>
                            </div>
                            <div className="space-y-1">
                              <p className="text-sm text-muted-foreground">Телесный жир</p>
-                             <p className="text-xl font-bold">{bodyCompData.bodyFat.value}%</p>
+                             <p className="text-xl font-bold">{profile?.bodyFat ?? 'N/A'}%</p>
                            </div>
                         </div>
 
@@ -123,11 +129,11 @@ export function BodyCompositionPage() {
                         <div className="space-y-8 text-left">
                             <div className="space-y-1">
                                 <p className="text-sm text-muted-foreground">Оценка</p>
-                                <p className="text-xl font-bold">{bodyCompData.score.value}<span className="text-base text-muted-foreground">/10</span></p>
+                                <p className="text-xl font-bold">N/A<span className="text-base text-muted-foreground">/10</span></p>
                             </div>
                            <div className="space-y-1">
                                 <p className="text-sm text-muted-foreground">Телосложение</p>
-                                <p className="text-xl font-bold">{bodyCompData.bodyType}</p>
+                                <p className="text-xl font-bold">N/A</p>
                            </div>
                         </div>
                     </div>
@@ -137,20 +143,20 @@ export function BodyCompositionPage() {
                     <Bot className="h-4 w-4"/>
                     <AlertTitle className="flex items-center gap-2">Анализ от умного помощника</AlertTitle>
                     <AlertDescription>
-                        За последние дни почти ничего не изменилось. Однако с точки зрения долгосрочных тенденций, вы на правильном пути.
+                       За последние дни почти ничего не изменилось. Однако с точки зрения долгосрочных тенденций, вы на правильном пути.
                     </AlertDescription>
                 </Alert>
                 
                 <div>
                     <h3 className="text-lg font-semibold text-foreground mb-4">Требующие особого внимания</h3>
                     <div className="space-y-2">
-                        <MetricRow title="Вес тела" value={bodyCompData.weight.value} unit="кг" icon={<Scale className="h-6 w-6 text-primary"/>} metricId="weight" />
-                        <MetricRow title="Телесный жир" value={bodyCompData.bodyFat.value} unit="%" icon={<Percent className="h-6 w-6 text-primary"/>} metricId="body-fat" status={bodyCompData.bodyFat.status} />
-                        <MetricRow title="Мышцы" value={bodyCompData.muscleMass.value} unit="%" icon={<Dumbbell className="h-6 w-6 text-primary"/>} metricId="muscle-mass" status={bodyCompData.muscleMass.status} />
-                        <MetricRow title="Индекс висцерального жира" value={bodyCompData.visceralFat.value} unit="" icon={<FileText className="h-6 w-6 text-primary"/>} metricId="visceral-fat" status={bodyCompData.visceralFat.status} />
-                        <MetricRow title="СООВ" value={bodyCompData.bmr.value} unit="ккал" icon={<Flame className="h-6 w-6 text-primary"/>} metricId="bmr" status={bodyCompData.bmr.status} />
-                        <MetricRow title="Вода в организме" value={bodyCompData.water.value} unit="%" icon={<Droplets className="h-6 w-6 text-primary"/>} metricId="water" status={bodyCompData.water.status} />
-                        <MetricRow title="Скелетные мышцы" value={bodyCompData.skeletalMuscle.value} unit="%" icon={<PersonStanding className="h-6 w-6 text-primary"/>} metricId="skeletal-muscle" status={bodyCompData.skeletalMuscle.status}/>
+                        <MetricRow title="Вес тела" value={profile?.weight} unit="кг" icon={<Scale className="h-6 w-6 text-primary"/>} metricId="weight" />
+                        <MetricRow title="Телесный жир" value={profile?.bodyFat} unit="%" icon={<Percent className="h-6 w-6 text-primary"/>} metricId="body-fat" status={getStatusForFat(profile?.bodyFat)} />
+                        <MetricRow title="Мышцы" value={profile?.muscleMass} unit="%" icon={<Dumbbell className="h-6 w-6 text-primary"/>} metricId="muscle-mass" />
+                        <MetricRow title="Индекс висцерального жира" value={profile?.visceralFat} unit="" icon={<FileText className="h-6 w-6 text-primary"/>} metricId="visceral-fat" status={getStatusForVisceralFat(profile?.visceralFat)} />
+                        <MetricRow title="СООВ" value={profile?.bmr} unit="ккал" icon={<Flame className="h-6 w-6 text-primary"/>} metricId="bmr" />
+                        <MetricRow title="Вода в организме" value={profile?.water} unit="%" icon={<Droplets className="h-6 w-6 text-primary"/>} metricId="water" status={getStatusForWater(profile?.water, profile?.gender)} />
+                        <MetricRow title="Скелетные мышцы" value={profile?.skeletalMuscle} unit="%" icon={<PersonStanding className="h-6 w-6 text-primary"/>} metricId="skeletal-muscle" />
                     </div>
                 </div>
             </CardContent>

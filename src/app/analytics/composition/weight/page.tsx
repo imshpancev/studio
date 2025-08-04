@@ -46,7 +46,7 @@ export default function WeightPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setWeight(profile?.weight || 99.3); // fallback to mock
+            setWeight(profile?.weight || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о весе.' });
         } finally {
@@ -74,7 +74,7 @@ export default function WeightPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Вес тела</CardTitle>
-                 <CardDescription className="text-lg text-primary font-bold">{weight} кг</CardDescription>
+                 <CardDescription className="text-lg text-primary font-bold">{weight ?? 'N/A'} кг</CardDescription>
             </div>
           </div>
         </CardHeader>

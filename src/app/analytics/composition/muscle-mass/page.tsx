@@ -45,7 +45,7 @@ export default function MuscleMassPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setMuscleMass(profile?.muscleMass || 68.4); // fallback to mock
+            setMuscleMass(profile?.muscleMass || null);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о мышечной массе.' });
         } finally {
@@ -58,6 +58,8 @@ export default function MuscleMassPage() {
   if (isLoading) {
     return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
+  
+  const status = muscleMass ? (muscleMass < 65 ? 'Низкая' : muscleMass > 85 ? 'Высокая' : 'Норма') : '-';
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -73,7 +75,7 @@ export default function MuscleMassPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Мышечная масса</CardTitle>
-                 <CardDescription className="text-lg text-green-500 font-bold">{muscleMass}% (Норма)</CardDescription>
+                 <CardDescription className="text-lg text-green-500 font-bold">{muscleMass ?? 'N/A'}% ({status})</CardDescription>
             </div>
           </div>
         </CardHeader>

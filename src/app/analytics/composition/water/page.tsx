@@ -17,6 +17,7 @@ export default function WaterPage() {
   const { toast } = useToast();
   const user = auth.currentUser;
   const [water, setWater] = useState<number | null>(null);
+  const [gender, setGender] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function WaterPage() {
     async function fetchData() {
         try {
             const profile = await getUserProfile(user.uid);
-            setWater(profile?.water || 48.6); // fallback to mock
+            setWater(profile?.water || null);
+            setGender(profile?.gender);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось загрузить данные о воде в организме.' });
         } finally {
@@ -36,8 +38,14 @@ export default function WaterPage() {
     }
     fetchData();
   }, [user, toast]);
+  
+  const getStatus = () => {
+      if (!water) return '-';
+      const lowerBound = gender === 'female' ? 45 : 50;
+      return water < lowerBound ? 'Низкий' : 'Норма';
+  }
 
-  const status = water ? (water < 50 ? '(Низкий)' : '(Норма)') : '';
+  const status = getStatus();
 
   if (isLoading) {
     return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -57,7 +65,7 @@ export default function WaterPage() {
             </div>
             <div>
                  <CardTitle className="text-3xl">Вода в организме</CardTitle>
-                 <CardDescription className="text-lg text-blue-500 font-bold">{water}% {status}</CardDescription>
+                 <CardDescription className="text-lg text-blue-500 font-bold">{water ?? 'N/A'}% ({status})</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -66,13 +74,15 @@ export default function WaterPage() {
                 Этот показатель отражает общее количество жидкости в организме в процентах от его общей массы. Адекватная гидратация крайне важна для здоровья, спортивных результатов, когнитивных функций и метаболизма.
             </p>
 
-            <Alert variant="destructive">
-                <Droplet className="h-4 w-4"/>
-                <AlertTitle>Рекомендация</AlertTitle>
-                <AlertDescription>
-                    Ваш уровень гидратации ниже оптимального. Увеличьте потребление воды в течение дня, особенно до, во время и после тренировок.
-                </AlertDescription>
-            </Alert>
+            {status === 'Низкий' && (
+                <Alert variant="destructive">
+                    <Droplet className="h-4 w-4"/>
+                    <AlertTitle>Рекомендация</AlertTitle>
+                    <AlertDescription>
+                        Ваш уровень гидратации ниже оптимального. Увеличьте потребление воды в течение дня, особенно до, во время и после тренировок.
+                    </AlertDescription>
+                </Alert>
+            )}
             
             <WaterIntakeCard date={new Date().toISOString().split('T')[0]} />
 
