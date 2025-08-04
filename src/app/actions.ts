@@ -4,9 +4,6 @@
 import { adminAuth } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/models/user-profile';
 import type { OnboardingFormData } from '@/app/onboarding/page';
-import { db } from '@/lib/firebase'; // Client SDK for client-context operations
-import { doc, setDoc } from "firebase/firestore";
-
 
 /**
  * Server Action for user sign-up. Creates user ONLY in Firebase Authentication.
