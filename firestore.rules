@@ -3,34 +3,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users can read any profile, but only write to their own.
+    // Users can read their own profile and any public profile.
+    // They can only create/update their own profile document.
     match /users/{userId} {
-      allow get, list: if request.auth != null;
+      allow get: if request.auth != null;
+      allow list: if request.auth != null; // Allow listing users for search/feed
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Users can only read/delete their own workouts.
-    // Listing workouts requires filtering by their own userId.
-    // Creating/updating workouts requires the workout's data to have the correct userId.
+    // Workouts are in a root collection.
+    // Reading a single workout is allowed if you are the owner.
+    // Listing workouts is only allowed if you query by your own userId.
+    // Writing is only allowed if you are the owner.
     match /workouts/{workoutId} {
       allow get, delete: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid != null;
+      allow list: if request.query.where.userId == request.auth.uid;
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update: if request.auth.uid == resource.data.userId;
     }
     
-    // For user-specific sub-collections, access is granted if the user ID in the path
-    // matches the authenticated user's ID. This is simpler and more secure for sub-collections.
+    // Nutrition, meals, and water are in subcollections under the user.
+    // Access is granted if the requesting user's UID matches the user ID in the path.
     match /users/{userId}/nutrition/{date} {
-      allow read, write: if request.auth.uid == userId;
+      allow get, list, write: if request.auth.uid == userId;
     }
     
     match /users/{userId}/meals/{mealId} {
-       allow get, list, write: if request.auth.uid == userId;
+      allow get, list, write: if request.auth.uid == userId;
     }
 
     match /users/{userId}/water/{date} {
-      allow read, write: if request.auth.uid == userId;
+      allow get, list, write: if request.auth.uid == userId;
     }
   }
 }
