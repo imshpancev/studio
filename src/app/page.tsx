@@ -102,20 +102,11 @@ export default function Home() {
   }, [activeTab]);
 
 
-  const handlePlanGenerated = async (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
+  const handlePlanGenerated = (plan: GenerateWorkoutPlanOutput | null, input: GenerateWorkoutPlanInput | null) => {
     setWorkoutPlan(plan);
     setWorkoutPlanInput(input);
     setIsEditingPlan(false);
-    if (plan && input && user) {
-        const dataToUpdate = {
-            workoutPlan: plan,
-            workoutPlanInput: {
-                ...input,
-                // Ensure `competitionDate` is serializable (or null) for Firestore
-                competitionDate: input.competitionDate ? input.competitionDate : null,
-            },
-        };
-        await updateUserProfile(user.uid, dataToUpdate);
+    if (plan && input) {
         setActiveTab("my-plan");
     }
 };
@@ -282,3 +273,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

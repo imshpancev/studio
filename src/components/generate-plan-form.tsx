@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { allEquipment, allSports, Sport, sportsWithEquipment } from '@/lib/workout-data';
 import { Slider } from './ui/slider';
 import { Calendar } from './ui/calendar';
+import { auth } from '@/lib/firebase';
 
 
 const formSchema = z.object({
@@ -62,6 +63,7 @@ type GeneratePlanFormProps = {
 export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: GeneratePlanFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const user = auth.currentUser;
   // In a real app, you'd fetch this from a user context or API
   const userProfile = {
       gender: 'male',
@@ -128,6 +130,10 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
   const planDuration = form.watch('planDurationWeeks');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Ошибка', description: 'Вы должны быть авторизованы, чтобы создать план.' });
+        return;
+    }
     setIsLoading(true);
     onPlanGenerated(null, null); // Clear previous plan
     try {
@@ -145,6 +151,7 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
 
       // Merge form values with the static user profile data
       const fullInput: GenerateWorkoutPlanInput = {
+        userId: user.uid,
         ...userProfile,
         ...values,
         sportPreferences: values.sportPreferences.join(', '), // Convert array to string for the flow
@@ -538,3 +545,5 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
     </Form>
   );
 }
+
+    

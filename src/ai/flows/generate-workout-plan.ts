@@ -14,6 +14,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { workoutDatabase, Sport, type Workout } from '@/lib/workout-data';
+import { updateUserProfile } from '@/services/userService';
 
 // Tool to get the workout database
 const getWorkoutDatabase = ai.defineTool(
@@ -41,6 +42,7 @@ const getWorkoutDatabase = ai.defineTool(
 
 
 const GenerateWorkoutPlanInputSchema = z.object({
+  userId: z.string().describe("The user's unique ID."),
   gender: z.enum(['male', 'female', 'other']).describe("The user's gender."),
   age: z.number().describe("The user's age."),
   weight: z.number().describe("The user's weight in kilograms."),
@@ -204,7 +206,14 @@ const generateWorkoutPlanFlow = ai.defineFlow(
       }
     });
 
+    // Save the generated plan to the user's profile
+    await updateUserProfile(input.userId, {
+        workoutPlan: output,
+        workoutPlanInput: input,
+    });
+
     return output;
   }
 );
 
+    
