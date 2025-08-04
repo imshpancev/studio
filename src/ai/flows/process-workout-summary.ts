@@ -85,17 +85,25 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       throw new Error('User ID is required.');
     }
 
-    // 1. Save the workout to Firestore using the Admin SDK via addWorkout
+    // 1. Create a "clean" workout object for Firestore, excluding any undefined fields
+    const workoutToSave: { [key: string]: any } = {};
+    for (const [key, value] of Object.entries(workout)) {
+        if (value !== undefined) {
+            workoutToSave[key] = value;
+        }
+    }
+
+    // 2. Save the workout to Firestore using the Admin SDK via addWorkout
     const workoutId = await addWorkout({
-      ...workout,
+      ...workoutToSave,
       userId: userId, // Ensure userId is passed to the workout data object
     });
 
-    // 2. Fetch user profile and current plan for context
+    // 3. Fetch user profile and current plan for context
     // In a real app, you would fetch user profile here using Admin SDK if needed for analysis
     // const userProfile = await getUserProfile(userId); 
 
-    // 3. Prepare input for feedback analysis
+    // 4. Prepare input for feedback analysis
     const analysisInput: AnalyzeWorkoutFeedbackInput = {
       workoutName: workout.title,
       workoutDifficulty: feedback.difficulty,
@@ -107,10 +115,10 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       workoutPlan: '{}', // Temporarily providing an empty plan for now
     };
 
-    // 4. Analyze the feedback
+    // 5. Analyze the feedback
     const analysisOutput = await analyzeWorkoutFeedback(analysisInput);
 
-    // 5. Optionally, you could update the user's plan in Firestore here
+    // 6. Optionally, you could update the user's plan in Firestore here
     // based on the analysis output. For now, we just return the analysis.
 
     return analysisOutput;
