@@ -1,46 +1,40 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+  
+    // Users can only read and update their own profile.
+    // They can list all users for searching friends.
     match /users/{userId} {
-      // Allow authenticated users to view profiles (for public profile pages)
-      allow get: if request.auth != null;
-      // Allow users to list other users (for search functionality)
+      allow get: if request.auth != null && request.auth.uid == userId;
       allow list: if request.auth != null;
-      // Only the user themselves can write to their own profile
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
     }
-    
+
+    // Users can only manage their own workouts.
     match /workouts/{workoutId} {
-      // Allow any authenticated user to get a single workout by its ID.
-      // The UI logic should prevent users from accessing URLs of workouts not their own.
-      allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // IMPORTANT: Only allow a user to LIST workouts that belong to them.
-      // This is the most crucial rule for the history page.
-      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
-
-      // Allow users to create workouts for themselves.
-      // The `addWorkout` function in the flow uses the Admin SDK, which bypasses this rule.
-      // This rule is for potential future client-side workout creation.
+      allow get, delete, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null && request.query.where.size() > 0 && request.query.where[0].field == 'userId' && request.query.where[0].value == request.auth.uid;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      
-      // Allow users to update their own workouts.
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    // Nutrition and other private user data can only be accessed by the user themselves.
-    match /users/{userId}/nutrition/{date} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/meals/{mealId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /users/{userId}/water/{date} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Users can only manage their own meals.
+    match /meals/{mealId} {
+      allow get, delete, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null && request.query.where.size() > 0 && request.query.where[0].field == 'userId' && request.query.where[0].value == request.auth.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Users can only manage their own daily nutrition goals.
+    match /users/{userId}/nutrition/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users can only manage their own daily water intake.
+     match /users/{userId}/water/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
