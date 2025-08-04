@@ -1,38 +1,29 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read public profiles, but only write to their own.
+
+    // Users:
+    // - Anyone authenticated can list and get user profiles (for feeds, user search)
+    // - A user can only create, update or delete their own profile
     match /users/{userId} {
-      allow read;
-      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow get, list: if request.auth != null;
+      allow create, update, delete: if request.auth.uid == userId;
     }
 
-    // Users can only manage their own workouts.
-    match /workouts/{workoutId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // Users can only manage their own meals.
-    match /meals/{mealId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    // Workouts, Meals, Nutrition, Water logs:
+    // - Users can only manage their own documents in these subcollections.
+    match /users/{userId}/{collection}/{docId} {
+        allow read, write: if request.auth.uid == userId;
     }
     
-    // Users can only manage their own daily nutrition goals.
-    match /nutrition/{date} {
-      // Assuming the document is under /users/{userId}/nutrition/{date}
-      // The rule needs to check the userId from the path.
-      match /users/{userId}/nutrition/{date} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
+    // Top-level collections that require userId matching
+    match /workouts/{docId} {
+      allow read, write: if request.resource.data.userId == request.auth.uid;
     }
-
-    // Users can only manage their own water intake.
-     match /water/{date} {
-      match /users/{userId}/water/{date} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
+    
+    match /meals/{docId} {
+       allow read, write: if request.resource.data.userId == request.auth.uid;
     }
   }
 }
