@@ -84,17 +84,17 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     if (!userId) {
       throw new Error('User ID is required.');
     }
-
-    // 1. Create a "clean" workout object for Firestore, excluding any undefined/null fields
-    const workoutToSave: { [key: string]: any } = {};
-    for (const [key, value] of Object.entries(workout)) {
-        if (value !== undefined && value !== null) {
-            workoutToSave[key] = value;
-        }
-    }
     
-    // 2. Save the workout to Firestore using the Admin SDK via addWorkout
-    // Ensure the userId is included in the object being saved.
+    // 1. Sanitize the workout object to remove any `undefined` fields, which Firestore rejects.
+    // Zod's .optional() can result in `undefined` if a field is not provided.
+    const workoutToSave = workout as { [key: string]: any };
+    Object.keys(workoutToSave).forEach(key => {
+        if (workoutToSave[key] === undefined) {
+            delete workoutToSave[key];
+        }
+    });
+
+    // 2. Save the workout to Firestore using the Admin SDK
     await addWorkout({
       ...workoutToSave,
       userId: userId, 
