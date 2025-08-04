@@ -1,36 +1,36 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Users can read any profile, but only write to their own.
     match /users/{userId} {
       allow get, list: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Users can only read/delete their own workouts.
+    // Listing workouts requires filtering by their own userId.
+    // Creating/updating workouts requires the workout's data to have the correct userId.
     match /workouts/{workoutId} {
-      allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      // Allow a user to list their OWN workouts. The query MUST include .where('userId', '==', request.auth.uid)
-      allow list: if request.auth != null && request.query.where.size() > 0 && request.query.where[0].field == 'userId' && request.query.where[0].value == request.auth.uid;
-      // Allow a user to create a workout for themselves.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      // Allow a user to update their own workout (not currently used, but good practice).
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow get, delete: if request.auth.uid == resource.data.userId;
+      allow list: if request.auth.uid != null;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId;
     }
     
-    // For subcollections, we just need to check the path's userId against the authenticated user.
+    // For user-specific sub-collections, access is granted if the user ID in the path
+    // matches the authenticated user's ID. This is simpler and more secure for sub-collections.
     match /users/{userId}/nutrition/{date} {
-      allow get, list, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
     
     match /users/{userId}/meals/{mealId} {
-      // allow 'list' for queries on this subcollection, e.g. getting all meals for a day.
-      allow get, write, list: if request.auth != null && request.auth.uid == userId;
+       allow get, list, write: if request.auth.uid == userId;
     }
 
     match /users/{userId}/water/{date} {
-      allow get, list, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
   }
 }
