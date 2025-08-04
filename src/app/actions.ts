@@ -80,7 +80,8 @@ export async function completeOnboardingAction(uid: string, email: string, data:
 
 /**
  * Server action to process a completed workout, save it, and analyze feedback.
- * @param input - The workout summary and feedback.
+ * The input now requires the userId.
+ * @param input - The workout summary and feedback, including the user's ID.
  * @returns The analysis output from the AI.
  */
 export async function processWorkoutSummaryAction(input: import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryInput): Promise<import('@/ai/flows/process-workout-summary').ProcessWorkoutSummaryOutput> {

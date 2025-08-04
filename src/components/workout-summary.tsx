@@ -18,7 +18,7 @@ import { Slider } from './ui/slider';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { FeedbackAnalysisDisplay } from './feedback-analysis-display';
 
-type WorkoutSummaryData = Omit<ProcessWorkoutSummaryInput['workout'], 'date'>;
+type WorkoutSummaryData = Omit<ProcessWorkoutSummaryInput['workout'], 'date' | 'userId'>;
 
 type WorkoutSummaryProps = {
   summary: WorkoutSummaryData;
@@ -65,6 +65,7 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
         };
 
         const input: ProcessWorkoutSummaryInput = {
+            userId: user.uid, // Pass the user ID explicitly
             workout: workoutData,
             feedback: {
                 difficulty: feedbackDifficulty,

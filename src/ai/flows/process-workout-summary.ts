@@ -18,8 +18,8 @@ import {
   type AnalyzeWorkoutFeedbackOutput,
 } from './analyze-workout-feedback';
 import { addWorkout } from '@/services/workoutService';
-import { auth } from '@/lib/firebase';
-// import { getUserProfile } from '@/services/userService';
+// We don't use client-side auth here
+// import { auth } from '@/lib/firebase';
 
 // This schema must be defined here because it's used in this flow's outputSchema,
 // and it cannot be imported from 'analyze-workout-feedback.ts' because that file
@@ -56,6 +56,7 @@ const WorkoutInputSchema = z.object({
 
 
 const ProcessWorkoutSummaryInputSchema = z.object({
+  userId: z.string(),
   workout: WorkoutInputSchema,
   feedback: z.object({
     difficulty: z.number().min(1).max(10),
@@ -78,16 +79,16 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     inputSchema: ProcessWorkoutSummaryInputSchema,
     outputSchema: AnalyzeWorkoutFeedbackOutputSchema,
   },
-  async ({ workout, feedback }) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('User not authenticated');
+  async ({ userId, workout, feedback }) => {
+    // We get the user ID from the input, not from client-side auth
+    if (!userId) {
+      throw new Error('User ID is required.');
     }
 
     // 1. Save the workout to Firestore
     await addWorkout({
       ...workout,
-      userId: user.uid,
+      userId: userId,
     });
 
     // 2. Fetch user profile and current plan for context
