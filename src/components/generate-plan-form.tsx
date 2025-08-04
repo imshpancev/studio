@@ -149,6 +149,10 @@ export function GeneratePlanForm({ onPlanGenerated, existingPlanInput }: Generat
         ...values,
         sportPreferences: values.sportPreferences.join(', '), // Convert array to string for the flow
         upcomingCompetitionReference: upcomingCompetitionReference,
+        // Convert undefined date to null for Firestore compatibility
+        exerciseContraindications: values.exerciseContraindications || undefined,
+        healthDataFromWearables: values.healthDataFromWearables || undefined,
+        workoutDifficultyFeedback: values.workoutDifficultyFeedback || undefined,
       };
 
       const result = await generatePlanAction(fullInput);

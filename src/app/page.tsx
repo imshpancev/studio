@@ -107,10 +107,18 @@ export default function Home() {
     setWorkoutPlanInput(input);
     setIsEditingPlan(false);
     if (plan && input && user) {
-      await updateUserProfile(user.uid, { workoutPlan: plan, workoutPlanInput: input });
-      setActiveTab("my-plan");
+        const dataToUpdate = {
+            workoutPlan: plan,
+            workoutPlanInput: {
+                ...input,
+                // Ensure `competitionDate` is serializable (or null) for Firestore
+                competitionDate: input.competitionDate ? input.competitionDate : null,
+            },
+        };
+        await updateUserProfile(user.uid, dataToUpdate);
+        setActiveTab("my-plan");
     }
-  };
+};
   
   const handlePlanFinished = async () => {
     if (user) {
