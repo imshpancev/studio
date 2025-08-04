@@ -85,10 +85,12 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       throw new Error('User ID is required.');
     }
 
-    // 1. Create a "clean" workout object for Firestore, excluding any undefined/null fields
+    // 1. Create a "clean" workout object for Firestore, excluding any undefined fields
+    // Note: The schema now uses .nullable(), so the client sends null instead of undefined.
+    // This loop remains as a safeguard.
     const workoutToSave: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(workout)) {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined) {
             workoutToSave[key] = value;
         }
     }

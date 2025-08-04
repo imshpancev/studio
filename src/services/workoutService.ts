@@ -17,17 +17,17 @@ export interface Workout {
     date: string; // ISO string
     duration: string;
     calories: number;
-    distance?: string;
-    avgPace?: string;
-    avgSpeed?: string;
-    avgHeartRate?: number;
-    peakHeartRate?: number;
-    volume?: string;
-    track?: Point[];
-    splits?: any[];
-    elevationGain?: string;
-    avgCadence?: string;
-    avgPower?: string;
+    distance: string | null;
+    avgPace: string | null;
+    avgSpeed: string | null;
+    avgHeartRate: number | null;
+    peakHeartRate: number | null;
+    volume: string | null;
+    track: Point[] | null;
+    splits: any[] | null;
+    elevationGain: string | null;
+    avgCadence: string | null;
+    avgPower: string | null;
     createdAt?: any;
 }
 
