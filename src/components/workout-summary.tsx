@@ -60,8 +60,22 @@ export function WorkoutSummary({ summary }: WorkoutSummaryProps) {
 
     try {
         const workoutData: ProcessWorkoutSummaryInput['workout'] = {
-            ...summary,
+            title: summary.title,
+            type: summary.type,
             date: new Date().toISOString(),
+            duration: summary.duration,
+            calories: summary.calories,
+            distance: summary.distance || null,
+            avgPace: summary.avgPace || null,
+            avgSpeed: summary.avgSpeed || null,
+            avgHeartRate: summary.avgHeartRate || null,
+            peakHeartRate: summary.peakHeartRate || null,
+            volume: summary.volume || null,
+            track: summary.track || null,
+            splits: summary.splits || null,
+            elevationGain: summary.elevationGain || null,
+            avgCadence: summary.avgCadence || null,
+            avgPower: summary.avgPower || null,
         };
 
         const input: ProcessWorkoutSummaryInput = {

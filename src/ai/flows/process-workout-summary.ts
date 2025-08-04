@@ -41,17 +41,17 @@ const WorkoutInputSchema = z.object({
   date: z.string(),
   duration: z.string(),
   calories: z.number(),
-  distance: z.string().optional(),
-  avgPace: z.string().optional(),
-  avgSpeed: z.string().optional(),
-  avgHeartRate: z.number().optional(),
-  peakHeartRate: z.number().optional(),
-  volume: z.string().optional(),
-  track: z.array(z.object({ lat: z.number(), lng: z.number() })).optional(),
-  splits: z.array(z.any()).optional(),
-  elevationGain: z.string().optional(),
-  avgCadence: z.string().optional(),
-  avgPower: z.string().optional(),
+  distance: z.string().nullable(),
+  avgPace: z.string().nullable(),
+  avgSpeed: z.string().nullable(),
+  avgHeartRate: z.number().nullable(),
+  peakHeartRate: z.number().nullable(),
+  volume: z.string().nullable(),
+  track: z.array(z.object({ lat: z.number(), lng: z.number() })).nullable(),
+  splits: z.array(z.any()).nullable(),
+  elevationGain: z.string().nullable(),
+  avgCadence: z.string().nullable(),
+  avgPower: z.string().nullable(),
 });
 
 
@@ -85,16 +85,16 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       throw new Error('User ID is required.');
     }
 
-    // 1. Create a "clean" workout object for Firestore, excluding any undefined fields
+    // 1. Create a "clean" workout object for Firestore, excluding any undefined/null fields
     const workoutToSave: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(workout)) {
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
             workoutToSave[key] = value;
         }
     }
 
     // 2. Save the workout to Firestore using the Admin SDK via addWorkout
-    const workoutId = await addWorkout({
+    await addWorkout({
       ...workoutToSave,
       userId: userId, // Ensure userId is passed to the workout data object
     });

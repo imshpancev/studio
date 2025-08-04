@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square, PlayCircle, MapPin, TrendingUp, Bike } from "lucide-react";
+import { Dumbbell, Flame, HeartPulse, Zap, Timer, Repeat, SkipForward, Flag, Play, Pause, Square, PlayCircle, MapPin, TrendingUp, Bike, Waves, Footprints } from "lucide-react";
 import { useState, useEffect, useMemo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -202,24 +202,29 @@ export default function WorkoutPage() {
           type: sport,
           duration: formatTime(time),
           calories: Math.round(calories),
-          avgPace: sport === Sport.Running ? formatPace(pace.average) : undefined,
-          avgSpeed: sport === Sport.Cycling ? formatSpeed(pace.average) : undefined,
-          distance: isCardio ? (distance / 1000).toFixed(2) + ' км' : undefined,
+          avgPace: sport === Sport.Running ? formatPace(pace.average) : null,
+          avgSpeed: sport === Sport.Cycling ? formatSpeed(pace.average) : null,
+          distance: isCardio ? (distance / 1000).toFixed(2) + ' км' : null,
           avgHeartRate: isNaN(avgHeartRate) ? 75 : avgHeartRate,
           peakHeartRate: Math.round(peakHeartRate),
-          volume: !isCardio ? `${totalVolume} кг` : undefined,
+          volume: !isCardio ? `${totalVolume} кг` : null,
+          track: null,
+          splits: null,
+          elevationGain: null,
+          avgCadence: null,
+          avgPower: null,
       };
       return <WorkoutSummary summary={summary} />;
   }
 
  const getIconForSport = () => {
       switch (sport) {
-          case Sport.Running: return <MapPin className="h-8 w-8 text-primary" />;
+          case Sport.Running: return <Footprints className="h-8 w-8 text-primary" />;
           case Sport.Cycling: return <Bike className="h-8 w-8 text-primary" />;
           case Sport.Gym: return <Dumbbell className="h-8 w-8 text-primary" />;
           case Sport.Home: return <Dumbbell className="h-8 w-8 text-primary" />;
-          case Sport.Swimming: return <Dumbbell className="h-8 w-8 text-primary" />;
-          case Sport.Yoga: return <Dumbbell className="h-8 w-8 text-primary" />;
+          case Sport.Swimming: return <Waves className="h-8 w-8 text-primary" />;
+          case Sport.Yoga: return <Zap className="h-8 w-8 text-primary" />;
           case Sport.Triathlon: return <Dumbbell className="h-8 w-8 text-primary" />;
           default: return <Dumbbell className="h-8 w-8 text-primary" />;
       }
