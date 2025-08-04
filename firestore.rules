@@ -4,27 +4,37 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     match /users/{userId} {
+      // Allow authenticated users to get and list user profiles.
       allow get, list: if request.auth != null;
+      // Allow users to write ONLY to their own profile.
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     match /workouts/{workoutId} {
+      // Allow users to get or delete their own workouts.
       allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Allow users to list workouts ONLY if they are querying for their own workouts.
+      // This is crucial for getUserWorkouts() to work.
       allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      // Allow users to create or update their own workouts.
+      // The `create` and `update` can be combined into `write`.
+      allow write: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
     
+    // For subcollections, the security is simpler: just check if the parent document's
+    // {userId} matches the authenticated user's ID. The `.where()` check is not needed or supported here.
     match /users/{userId}/nutrition/{date} {
-      allow get, list, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
     match /users/{userId}/meals/{mealId} {
-      allow get, write, list: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     match /users/{userId}/water/{date} {
-      allow get, list, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
