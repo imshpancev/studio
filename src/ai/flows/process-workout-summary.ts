@@ -86,7 +86,6 @@ const processWorkoutSummaryFlow = ai.defineFlow(
     }
     
     // 1. Sanitize the workout object to remove any `undefined` fields, which Firestore rejects.
-    // Zod's .optional() can result in `undefined` if a field is not provided.
     const workoutToSave = workout as { [key: string]: any };
     Object.keys(workoutToSave).forEach(key => {
         if (workoutToSave[key] === undefined) {
