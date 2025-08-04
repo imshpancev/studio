@@ -1,41 +1,39 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read any user's profile for public profile pages,
-    // but can only write to their own.
-    // list allows fetching all users for the search page.
     match /users/{userId} {
+      // Allow any authenticated user to read/list user profiles
+      // Allow users to only write to their own document
       allow get, list: if request.auth != null;
       allow write: if request.auth.uid == userId;
     }
 
-    // Users can only read/write their own workouts.
-    // The query in `getUserWorkouts` uses a `where("userId", "==", userId)` clause.
-    // To secure this, we check if the `userId` in the query matches the authenticated user's UID.
     match /workouts/{workoutId} {
+      // Allow users to get their own document, and list their own documents
       allow get: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid == request.query.filters[0][2];
+      allow list: if request.auth.uid == request.query.filters[0].value;
+      
+      // Allow users to create workouts for themselves
       allow create: if request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to update/delete their own workouts
       allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
-    // Rules for nutrition subcollections
-    match /users/{userId}/nutrition/{date} {
-       allow get, list: if request.auth.uid == userId;
-       allow write: if request.auth.uid == userId;
-    }
-    
     match /users/{userId}/meals/{mealId} {
-       allow get, list: if request.auth.uid == userId;
-       allow write: if request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/water/{date} {
-       allow get, list: if request.auth.uid == userId;
-       allow write: if request.auth.uid == userId;
+        // Allow users to read/write their own meals
+        allow read, write: if request.auth.uid == userId;
     }
 
+    match /users/{userId}/nutrition/{date} {
+       // Allow users to read/write their own nutrition data
+       allow read, write: if request.auth.uid == userId;
+    }
+    
+     match /users/{userId}/water/{date} {
+        // Allow users to read/write their own water intake data
+        allow read, write: if request.auth.uid == userId;
+    }
   }
 }
