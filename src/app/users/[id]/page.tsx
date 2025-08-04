@@ -13,6 +13,7 @@ import { allSports } from '@/lib/workout-data';
 import { useState, useEffect } from 'react';
 import { getUserProfile, UserProfile } from '@/services/userService';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
 
 
 const getSportIcon = (sport: string) => {
@@ -31,6 +32,7 @@ export default function UserProfilePage() {
     const params = useParams();
     const userId = params.id as string;
     const { toast } = useToast();
+    const currentUser = auth.currentUser;
 
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +81,8 @@ export default function UserProfilePage() {
         );
     }
     
+    const isCurrentUserProfile = currentUser?.uid === userId;
+
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
              <Button variant="ghost" onClick={() => router.back()} className="mb-4">
@@ -115,16 +119,18 @@ export default function UserProfilePage() {
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className='flex justify-center gap-2 border-t pt-6'>
-                    <Button onClick={() => setIsFollowing(!isFollowing)}>
-                        <UserPlus className="mr-2" />
-                        {isFollowing ? 'Отписаться' : 'Подписаться'}
-                    </Button>
-                     <Button variant="outline">
-                        <MessageSquare className="mr-2" />
-                        Сообщение
-                    </Button>
-                </CardFooter>
+                {!isCurrentUserProfile && (
+                     <CardFooter className='flex justify-center gap-2 border-t pt-6'>
+                        <Button onClick={() => setIsFollowing(!isFollowing)}>
+                            <UserPlus className="mr-2" />
+                            {isFollowing ? 'Отписаться' : 'Подписаться'}
+                        </Button>
+                        <Button variant="outline">
+                            <MessageSquare className="mr-2" />
+                            Сообщение
+                        </Button>
+                    </CardFooter>
+                )}
             </Card>
 
             <Tabs defaultValue="history" className="w-full mt-8">

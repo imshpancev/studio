@@ -116,6 +116,7 @@ const generateWorkoutPlanPrompt = ai.definePrompt({
   input: {schema: GenerateWorkoutPlanInputSchema},
   output: {schema: GenerateWorkoutPlanOutputSchema},
   tools: [getWorkoutDatabase],
+  model: 'googleai/gemini-1.5-flash-preview-0514',
   prompt: `You are an expert personal trainer. Your task is to create a personalized, multi-week workout plan. The total duration of the plan must be exactly {{{planDurationWeeks}}} weeks.
 
 First, use the 'getWorkoutDatabase' tool to fetch the available workouts and exercises for the user's specified 'sportPreferences'.
