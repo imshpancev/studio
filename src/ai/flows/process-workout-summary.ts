@@ -115,8 +115,12 @@ const processWorkoutSummaryFlow = ai.defineFlow(
       workoutPlan: '{}', // Temporarily providing an empty plan for now
     };
 
-    // 5. Analyze the feedback
-    const analysisOutput = await analyzeWorkoutFeedback(analysisInput);
+    // 5. Analyze the feedback (Temporarily disabled for debugging)
+    // const analysisOutput = await analyzeWorkoutFeedback(analysisInput);
+    const analysisOutput: AnalyzeWorkoutFeedbackOutput = {
+      adaptedWorkoutPlan: '{}',
+      recommendations: 'Анализ временно отключен для отладки. Тренировка сохранена.',
+    };
 
     // 6. Optionally, you could update the user's plan in Firestore here
     // based on the analysis output. For now, we just return the analysis.
