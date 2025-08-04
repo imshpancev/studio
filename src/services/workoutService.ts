@@ -3,6 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import { adminDb } from '@/lib/firebase-admin'; // Import adminDb
+import * as admin from 'firebase-admin'; // Import the full admin SDK
 import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
 import { Sport } from '@/lib/workout-data';
 import { getUserProfile, UserProfile } from './userService';
@@ -47,11 +48,11 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
     try {
         const dataToSave = {
             ...workoutData,
-            createdAt: serverTimestamp(),
+            // Use the serverTimestamp from the 'firebase-admin' package
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
         };
-        // Use adminDb to bypass security rules for server-side operations
-        const workoutsCollection = collection(adminDb, 'workouts');
-        const docRef = await addDoc(workoutsCollection, dataToSave);
+        // Use the correct method for the Admin SDK
+        const docRef = await adminDb.collection('workouts').add(dataToSave);
         return docRef.id;
     } catch (error) {
         console.error("Error adding workout document: ", error);
