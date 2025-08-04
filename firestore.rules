@@ -3,37 +3,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users can read their own profile and any public profile.
-    // They can only create/update their own profile document.
+    // Users can read anyone's profile, but only write to their own.
     match /users/{userId} {
-      allow get: if request.auth != null;
-      allow list: if request.auth != null; // Allow listing users for search/feed
+      allow get, list: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Workouts are in a root collection.
-    // Reading a single workout is allowed if you are the owner.
-    // Listing workouts is only allowed if you query by your own userId.
-    // Writing is only allowed if you are the owner.
+    // Users can get/delete their own workouts.
+    // They can LIST workouts only if the query is filtered by their own userId.
+    // They can create/update their own workouts.
     match /workouts/{workoutId} {
-      allow get, delete: if request.auth.uid == resource.data.userId;
-      allow list: if request.query.where.userId == request.auth.uid;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId;
+      allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
-    // Nutrition, meals, and water are in subcollections under the user.
-    // Access is granted if the requesting user's UID matches the user ID in the path.
+    // For user-specific subcollections, access is granted if the user is authenticated
+    // and their UID matches the {userId} in the path.
     match /users/{userId}/nutrition/{date} {
-      allow get, list, write: if request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
     match /users/{userId}/meals/{mealId} {
-      allow get, list, write: if request.auth.uid == userId;
+      // Get/write for single documents, list for queries on the collection
+      allow get, write: if request.auth != null && request.auth.uid == userId;
+      allow list: if request.auth != null && request.auth.uid == userId;
     }
 
     match /users/{userId}/water/{date} {
-      allow get, list, write: if request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
