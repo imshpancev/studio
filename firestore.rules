@@ -1,39 +1,39 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Users can read any other user's public profile data.
+    // They can only write to their own profile.
     match /users/{userId} {
-      // Allow any authenticated user to read/list user profiles
-      // Allow users to only write to their own document
-      allow get, list: if request.auth != null;
+      allow get, list: if request.auth.uid != null;
       allow write: if request.auth.uid == userId;
     }
-
+    
+    // Users can only read or write their own workouts.
     match /workouts/{workoutId} {
-      // Allow users to get their own document, and list their own documents
-      allow get: if request.auth.uid == resource.data.userId;
-      allow list: if request.auth.uid == request.query.filters[0].value;
-      
-      // Allow users to create workouts for themselves
-      allow create: if request.auth.uid == request.resource.data.userId;
-      
-      // Allow users to update/delete their own workouts
-      allow update, delete: if request.auth.uid == resource.data.userId;
-    }
-
-    match /users/{userId}/meals/{mealId} {
-        // Allow users to read/write their own meals
-        allow read, write: if request.auth.uid == userId;
-    }
-
-    match /users/{userId}/nutrition/{date} {
-       // Allow users to read/write their own nutrition data
-       allow read, write: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == request.resource.data.userId;
     }
     
-     match /users/{userId}/water/{date} {
-        // Allow users to read/write their own water intake data
-        allow read, write: if request.auth.uid == userId;
+    // Users can only manage their own nutrition data.
+    match /users/{userId}/nutrition/{date} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Users can only manage their own meal data.
+    match /users/{userId}/meals/{mealId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Users can only manage their own water intake data.
+    match /users/{userId}/water/{date} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Records are derived data, making them read-only for the user.
+    match /users/{userId}/records/{recordId} {
+        allow read: if request.auth.uid == userId;
+        allow write: if false; // No direct writes
     }
   }
 }
