@@ -1,7 +1,8 @@
+// This file now contains functions that use the CLIENT-SIDE SDK
+// and should be called from client components or hooks.
+// It no longer uses 'use server'.
 
-'use server';
-
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, serverTimestamp, documentId } from 'firebase/firestore';
 
 export interface Meal {
@@ -62,7 +63,7 @@ export async function getDailyNutrition(userId: string, date: string): Promise<N
  */
 export async function addMeal(userId: string, mealData: Omit<Meal, 'id'>): Promise<Meal> {
     const mealsColRef = collection(db, 'users', userId, 'meals');
-    const docRef = await addDoc(mealsColRef, { ...mealData, userId });
+    const docRef = await addDoc(mealsColRef, { ...mealData, userId, createdAt: serverTimestamp() });
     return { id: docRef.id, ...mealData };
 }
 

@@ -1,5 +1,6 @@
-
-'use server';
+// This file now contains functions that use the CLIENT-SIDE SDK
+// and should be called from client components or hooks.
+// It no longer uses 'use server'.
 
 import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/models/user-profile';
@@ -7,7 +8,8 @@ import { doc, getDoc, setDoc, collection, getDocs, query, limit, serverTimestamp
 
 
 /**
- * Retrieves a user's profile from Firestore.
+ * Retrieves a user's profile from Firestore using the client SDK.
+ * Respects security rules.
  * @param userId The UID of the user.
  * @returns The user's profile data or null if not found.
  */
@@ -18,26 +20,27 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     if (userDocSnap.exists()) {
         return userDocSnap.data() as UserProfile;
     } else {
+        console.warn(`No profile found for UID: ${userId}`);
         return null;
     }
 }
 
 /**
- * Creates or updates a user's profile in Firestore.
- * This function is used by the onboarding form to add the detailed info.
+ * Creates or updates a user's profile in Firestore using the client SDK.
+ * This is intended to be called from a client where a user is authenticated.
  * @param userId The UID of the user to create/update.
  * @param data The profile data to set.
  */
 export async function updateUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
-    // Use updateDoc instead of setDoc with merge to avoid creating a new doc if it doesn't exist
-    // from a client call, which is safer. The doc should already exist.
+    // Using updateDoc is generally safer as it doesn't create a doc if it doesn't exist.
+    // However, for profile updates, set with merge is also acceptable. We'll stick to update.
     await updateDoc(userDocRef, data);
 }
 
 
 /**
- * Fetches all users from the database.
+ * Fetches all users from the database using the client SDK.
  * @returns An array of user profiles.
  */
 export async function getAllUsers(): Promise<UserProfile[]> {
@@ -51,7 +54,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 }
 
 /**
- * Fetches leaderboard data.
+ * Fetches leaderboard data using the client SDK.
  * This is a simplified version; a real-world scenario would involve more complex queries or cloud functions.
  * @returns An array of users sorted for the leaderboard.
  */

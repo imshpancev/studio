@@ -1,5 +1,6 @@
-
-'use server';
+// This file now contains functions that use the CLIENT-SIDE SDK
+// and should be called from client components or hooks.
+// It no longer uses 'use server'.
 
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';

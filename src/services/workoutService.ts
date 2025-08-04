@@ -1,10 +1,9 @@
 
-'use server';
+// This file contains functions that use the CLIENT-SIDE SDK
+// and should be called from client components or hooks.
 
-import { db } from '@/lib/firebase';
-import { adminDb } from '@/lib/firebase-admin'; // Import adminDb
-import * as admin from 'firebase-admin'; // Import the full admin SDK
-import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase'; // Client SDK
+import { collection, getDocs, query, where, doc, getDoc, deleteDoc, orderBy, limit } from 'firebase/firestore'; // Client SDK methods
 import { Sport } from '@/lib/workout-data';
 import { getUserProfile, UserProfile } from './userService';
 
@@ -37,33 +36,8 @@ export interface WorkoutWithUser extends Workout {
 }
 
 /**
- * Adds a new workout document to the 'workouts' collection in Firestore using the Admin SDK.
- * This is meant to be called from a trusted server-side environment (like a Genkit flow).
- * @param workoutData The workout data to save. The 'userId' field MUST be present.
- */
-export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>): Promise<string> {
-    if (!workoutData.userId) {
-        throw new Error("User ID is required to add a workout.");
-    }
-    try {
-        const dataToSave = {
-            ...workoutData,
-            // Use the serverTimestamp from the 'firebase-admin' package
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        };
-        // Use the correct method for the Admin SDK
-        const docRef = await adminDb.collection('workouts').add(dataToSave);
-        return docRef.id;
-    } catch (error) {
-        console.error("Error adding workout document: ", error);
-        throw new Error('Could not save workout.');
-    }
-}
-
-
-/**
- * Fetches all workouts for a specific user using the CLIENT SDK.
- * This respects security rules and should be used for client-facing requests.
+ * [CLIENT SDK] Fetches all workouts for a specific user.
+ * This function respects security rules and should be used for client-facing requests.
  * @param userId The UID of the user whose workouts to fetch.
  * @returns A promise that resolves to an array of workout documents.
  */
@@ -79,7 +53,7 @@ export async function getUserWorkouts(userId: string): Promise<Workout[]> {
 }
 
 /**
- * Fetches a single workout by its document ID using the CLIENT SDK.
+ * [CLIENT SDK] Fetches a single workout by its document ID.
  * @param workoutId The ID of the workout document to fetch.
  * @returns A promise that resolves to the workout document or null if not found.
  */
@@ -96,7 +70,7 @@ export async function getWorkoutById(workoutId: string): Promise<Workout | null>
 
 
 /**
- * Deletes a workout document from Firestore using the CLIENT SDK.
+ * [CLIENT SDK] Deletes a workout document from Firestore.
  * @param workoutId The ID of the workout to delete.
  */
 export async function deleteWorkout(workoutId: string): Promise<void> {
@@ -106,14 +80,12 @@ export async function deleteWorkout(workoutId: string): Promise<void> {
 
 
 /**
- * Fetches the most recent workouts from all users (excluding the current user) for the feed.
+ * [CLIENT SDK] Fetches the most recent workouts from all users (excluding the current user) for the feed.
  * @param currentUserId The UID of the current user to exclude from the feed.
  * @returns A promise that resolves to an array of workout documents with user info.
  */
 export async function getFeedWorkouts(currentUserId: string): Promise<WorkoutWithUser[]> {
     const workoutsCollection = collection(db, 'workouts');
-    // We need to query by userId eventually for a proper feed, but for now we get latest.
-    // The query needs to not include the current user.
     const q = query(workoutsCollection, orderBy('createdAt', 'desc'), limit(20));
     
     const querySnapshot = await getDocs(q);

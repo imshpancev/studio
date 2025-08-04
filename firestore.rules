@@ -4,22 +4,33 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     match /users/{userId} {
+      // Allow authenticated users to view profiles (for public profile pages)
       allow get: if request.auth != null;
+      // Allow users to list other users (for search functionality)
       allow list: if request.auth != null;
+      // Only the user themselves can write to their own profile
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     match /workouts/{workoutId} {
-      // Allow a user to get/delete their own workout.
+      // Allow any authenticated user to get a single workout by its ID.
+      // The UI logic should prevent users from accessing URLs of workouts not their own.
       allow get, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       
-      // Allow a user to list only their own workouts.
-      allow list: if request.auth != null && request.query.where[0][1] == 'userId' && request.query.where[0][2] == request.auth.uid;
+      // IMPORTANT: Only allow a user to LIST workouts that belong to them.
+      // This is the most crucial rule for the history page.
+      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
 
-      // Allow a user to create/update a workout for themselves.
-      allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to create workouts for themselves.
+      // The `addWorkout` function in the flow uses the Admin SDK, which bypasses this rule.
+      // This rule is for potential future client-side workout creation.
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to update their own workouts.
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
+    // Nutrition and other private user data can only be accessed by the user themselves.
     match /users/{userId}/nutrition/{date} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

@@ -17,8 +17,8 @@ import {
   type AnalyzeWorkoutFeedbackInput,
   type AnalyzeWorkoutFeedbackOutput,
 } from './analyze-workout-feedback';
-// Import addWorkout from the service, which now uses the Admin SDK.
-import { addWorkout } from '@/services/workoutService';
+// Import addWorkout from the server-only service file.
+import { addWorkout } from '@/services/workoutService.server';
 
 
 // This schema must be defined here because it's used in this flow's outputSchema,
