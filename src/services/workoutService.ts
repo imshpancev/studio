@@ -60,6 +60,7 @@ export async function addWorkout(workoutData: Omit<Workout, 'id' | 'createdAt'>)
     }
 }
 
+
 /**
  * Fetches all workouts for a specific user using the CLIENT SDK.
  * This respects security rules and should be used for client-facing requests.
