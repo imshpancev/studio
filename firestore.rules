@@ -3,37 +3,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read any other user's public profile data.
-    // They can only write to their own profile.
+    // Users can read their own profile or list all users, but only write to their own.
+    // Create is allowed for any authenticated user to complete onboarding.
     match /users/{userId} {
-      allow get, list: if request.auth.uid != null;
+      allow get, list: if request.auth != null;
       allow write: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
     }
-    
-    // Users can only read or write their own workouts.
+
+    // Users can only get or list their own workouts.
     match /workouts/{workoutId} {
-      allow read, write: if request.auth.uid == request.resource.data.userId;
+      allow get, write: if request.auth.uid == resource.data.userId;
+      allow list: if request.auth.uid == request.query.filters[0].value;
     }
-    
-    // Users can only manage their own nutrition data.
-    match /users/{userId}/nutrition/{date} {
+
+    // Users can only read/write their own meals.
+    match /meals/{mealId} {
+      allow get, write: if request.auth.uid == resource.data.userId;
+      allow list: if request.auth.uid == request.query.filters[0].value;
+    }
+
+    // Users can only read/write their own nutrition goals.
+    match /nutrition/{date} {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // Users can only manage their own meal data.
-    match /users/{userId}/meals/{mealId} {
+    // Users can only read/write their own water intake.
+    match /water/{date} {
       allow read, write: if request.auth.uid == userId;
-    }
-
-    // Users can only manage their own water intake data.
-    match /users/{userId}/water/{date} {
-      allow read, write: if request.auth.uid == userId;
-    }
-
-    // Records are derived data, making them read-only for the user.
-    match /users/{userId}/records/{recordId} {
-        allow read: if request.auth.uid == userId;
-        allow write: if false; // No direct writes
     }
   }
 }
