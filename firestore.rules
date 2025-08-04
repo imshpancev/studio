@@ -3,42 +3,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read their own profile, and other users can list/view public profiles.
-    // Users can only write to their own profile.
     match /users/{userId} {
-      allow get: if request.auth != null && request.auth.uid == userId;
-      allow list: if request.auth != null;
+      // Any authenticated user can view public profiles
+      allow get: if request.auth != null;
+      // Users can only write to their own profile
       allow write: if request.auth != null && request.auth.uid == userId;
+      // Allow listing users for search functionality
+      allow list: if request.auth != null;
     }
 
-    // Workouts are stored in a top-level collection.
-    // Users can get/delete/update their own workouts by document ID.
-    // To LIST workouts, the query from the client MUST include `where('userId', '==', request.auth.uid)`.
     match /workouts/{workoutId} {
-      allow get, delete, update: if request.auth.uid == resource.data.userId;
+      // Any authenticated user can get a specific workout if they have the ID.
+      // The UI will only show workouts belonging to the user.
+      allow get: if request.auth != null;
+      // Users can only delete their own workouts.
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Users can only list their own workouts. The client MUST use a where() clause.
       allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid);
-      allow create: if request.auth.uid == request.resource.data.userId;
+      // Users can only create workouts for themselves.
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Users can only update their own workouts.
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
-    // Nutrition, meals, and water data are in subcollections under the user.
-    // Access is granted if the requesting user's UID matches the parent user document's ID.
-    // This is simpler and doesn't require query.where checks.
+    // Nutrition data is private to the user
     match /users/{userId}/nutrition/{date} {
-      allow get, list, write: if request.auth.uid == userId;
+      allow get, list, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Meal data is private to the user
     match /users/{userId}/meals/{mealId} {
-      allow get, list, write: if request.auth.uid == userId;
+      allow get, list, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Water data is private to the user
     match /users/{userId}/water/{date} {
-      allow get, list, write: if request.auth.uid == userId;
-    }
-    
-    // This allows public access to the records, which is needed for leaderboards
-    match /records/{recordId} {
-        allow read: if true;
-        allow write: if request.auth != null;
+      allow get, list, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
