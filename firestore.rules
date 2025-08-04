@@ -3,44 +3,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check ownership
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-
-    // Users can be read by any authenticated user (for public profiles, feeds)
-    // but only the owner can update their own profile.
+    // Users can only read and update their own profile.
+    // Any authenticated user can list or get public user profiles.
     match /users/{userId} {
-      allow create: if isOwner(userId);
-      allow read: if request.auth != null;
-      allow update: if isOwner(userId);
-      // Deny listing all users for security, use a cloud function for user search if needed.
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
       allow list: if request.auth != null;
     }
 
     // Users can only manage their own workouts.
     match /workouts/{workoutId} {
-      allow read, list, create, update, delete: if isOwner(resource.data.userId);
-    }
-    
-    // Users can only manage their own meals.
-    match /users/{userId}/meals/{mealId} {
-        allow read, list, create, update, delete: if isOwner(userId);
+      allow read, list, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
     // Users can only manage their own nutrition goals.
+    match /nutrition/{date} {
+       allow read, list, create, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow nested access for a user to their own nutrition data, where the document ID is the date
     match /users/{userId}/nutrition/{date} {
-        allow read, list, create, update, delete: if isOwner(userId);
+       allow read, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Users can only manage their own meals.
+    match /users/{userId}/meals/{mealId} {
+       allow read, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
 
     // Users can only manage their own water intake.
-     match /users/{userId}/water/{date} {
-        allow read, list, create, update, delete: if isOwner(userId);
-    }
-    
-     // Users can only manage their own records.
-    match /users/{userId}/records/{recordId} {
-        allow read, list, create, update, delete: if isOwner(userId);
+    match /users/{userId}/water/{date} {
+       allow read, list, create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
